@@ -6,7 +6,7 @@ Project website for **Perceptive Behavioral Foundation Models for Humanoid Contr
 - Affiliation: RoboPartyLab
 - Contact: xuewangusst@gmail.com
 
-This repository contains the project webpage, paper, figures, and robot demonstration videos.
+This branch contains the project webpage, figures, and robot demonstration videos. The paper will be made available after its arXiv release.
 
 ## Update the website
 

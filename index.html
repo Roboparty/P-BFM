@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="P-BFM: Perceptive Behavioral Foundation Models for Humanoid Control via Unsupervised Reinforcement Learning. Explore real-robot demonstrations of goal reaching, motion tracking, reward inference, and teleoperation."><title>P-BFM — Perceptive Behavioral Foundation Models</title><link rel="stylesheet" href="style.css?v=4ff39b6a5dd9"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230c1118'/%3E%3Cpath d='M9 25V7h9a6 6 0 010 12h-5v6zm4-10h5a2 2 0 000-4h-5z' fill='%23aee3d4'/%3E%3C/svg%3E">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="P-BFM: Perceptive Behavioral Foundation Models for Humanoid Control via Unsupervised Reinforcement Learning. Explore real-robot demonstrations of goal reaching, motion tracking, reward inference, and teleoperation."><title>P-BFM — Perceptive Behavioral Foundation Models</title><link rel="stylesheet" href="style.css?v=4a4d738e02dd"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230c1118'/%3E%3Cpath d='M9 25V7h9a6 6 0 010 12h-5v6zm4-10h5a2 2 0 000-4h-5z' fill='%23aee3d4'/%3E%3C/svg%3E">
 <link rel="canonical" href="https://roboparty.github.io/P-BFM/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="P-BFM · RoboPartyLab">
@@ -19,13 +19,13 @@
 </head>
 <body>
 <a class="skip" href="#abstract">Skip to content</a>
-<header class="nav"><a class="wordmark" href="#top">P-BFM</a><nav aria-label="Main navigation"><a href="#abstract">Overview</a><a href="#demos">Demos</a><a href="#method">Method</a><a href="paper/P-BFM.pdf" target="_blank" rel="noopener" class="nav-paper">Paper</a></nav></header>
+<header class="nav"><a class="wordmark" href="#top">P-BFM</a><nav aria-label="Main navigation"><a href="#abstract">Overview</a><a href="#demos">Demos</a><a href="#method">Method</a><button class="nav-paper" type="button" disabled>Paper (coming soon)</button></nav></header>
 <main id="top">
 <section class="hero">
   <video class="hero-background" muted loop playsinline preload="none" poster="posters/head-composite.jpg" src="pbfm_site_media/head-composite.mp4" aria-hidden="true" tabindex="-1"></video><div class="hero-overlay"></div>
   <div class="hero-title"><h1><span class="acronym">P-BFM</span><span class="paper-title">Perceptive Behavioral Foundation Models</span><small>for Humanoid Control via Unsupervised Reinforcement Learning</small></h1>
   <p class="hero-description">A single humanoid policy that adapts its motion to the terrain it sees.</p>
-  <div class="hero-links"><a class="button primary" href="paper/P-BFM.pdf" target="_blank" rel="noopener">Read the paper</a><button class="button" type="button" disabled>Code (coming soon)</button><a class="button" href="#overview">Watch overview</a></div>
+  <div class="hero-links"><button class="button" type="button" disabled>Paper (coming soon)</button><button class="button" type="button" disabled>Code (coming soon)</button><a class="button" href="#overview">Watch overview</a></div>
   <a class="affiliation" href="https://lab.roboparty.com/" target="_blank" rel="noopener"><img src="paper/robopartylab.png" alt="RoboPartyLab"></a></div>
   <button class="background-toggle" type="button" aria-pressed="false">Play background</button>
 </section>
@@ -53,6 +53,6 @@
 </div>
 <section id="method" class="content method-section"><p class="eyebrow">Method</p><h2>From behavioral intent to physical action.</h2><div class="method-points"><div><span>01</span><h3>Encode the intent</h3><p>A forward–backward representation maps motion references, target states, and rewards into a shared behavioral space.</p></div><div><span>02</span><h3>Perceive the terrain</h3><p>The actor uses depth observations to adapt whole-body execution to its surroundings.</p></div><div><span>03</span><h3>Guide root motion</h3><p>Explicit Root Instructions specify heading and planar velocity alongside the behavioral latent.</p></div></div><figure><div class="figure-scroll" tabindex="0" role="region" aria-label="P-BFM method diagram; scroll horizontally to explore"><img src="paper/method.png" width="1090" height="835" loading="lazy" alt="P-BFM pretraining architecture and frozen inference with teleoperation, reference motions, goals, and rewards."></div><figcaption><span>Pretraining and zero-shot inference. Figure 2.</span><span class="figure-actions"><span class="swipe-hint">Swipe to explore</span><a href="paper/method.png" target="_blank" rel="noopener">Open full-size figure</a></span></figcaption></figure></section>
 </main>
-<footer><div class="footer-brand"><a class="wordmark" href="#top">P-BFM</a><span>RoboPartyLab</span></div><a class="footer-paper" href="paper/P-BFM.pdf" target="_blank" rel="noopener">Read the paper</a><p class="contact"><span class="visitor-count" title="Estimated unique visitors to this page">Total visitors: <strong id="busuanzi_page_uv">—</strong></span>Contact: <a href="mailto:xuewangusst@gmail.com">xuewangusst@gmail.com</a></p></footer>
+<footer><div class="footer-brand"><a class="wordmark" href="#top">P-BFM</a><span>RoboPartyLab</span></div><button class="footer-paper" type="button" disabled>Paper (coming soon)</button><p class="contact"><span class="visitor-count" title="Estimated unique visitors to this page">Total visitors: <strong id="busuanzi_page_uv">—</strong></span>Contact: <a href="mailto:xuewangusst@gmail.com">xuewangusst@gmail.com</a></p></footer>
 <script src="main.js?v=a6c57342ab09"></script>
 </body></html>
