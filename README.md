@@ -24,7 +24,9 @@ The counter loads only on the public P-BFM site, not local previews. A dash rema
 
 Open https://roboparty.github.io/P-BFM/interactive/ or use **Try the policy** on
 the homepage. The model is downloaded only after **Load interactive policy**.
-Tracking includes ten LaFAN excerpts plus the original A417 motion. Users can
+Tracking includes one complete LaFAN recording from each of eight motion families,
+lasting approximately 2–4.5 minutes. Lossless compressed schedules load only when
+selected and pause at their real end. Users can
 import retargeted G1 29-joint CSV/JSON motions; encoding stays in the browser.
 The import panel links to a format guide and example. Goal and reward modes
 share the same live policy and connected terrain map.
