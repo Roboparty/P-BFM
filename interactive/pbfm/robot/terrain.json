@@ -1,0 +1,808 @@
+{
+  "families": [
+    "flat",
+    "perlin_rough",
+    "low_stairs_up",
+    "low_stairs_down",
+    "low_platforms",
+    "hf_pyramid_slope_inv",
+    "boxes"
+  ],
+  "rows": 10,
+  "columns": 7,
+  "tileSize": 5,
+  "coreSize": [
+    50,
+    35
+  ],
+  "outerSize": [
+    74,
+    59
+  ],
+  "generatorSeed": 0,
+  "environmentSeed": 4831,
+  "guardTiles": 84,
+  "defaultSpawn": {
+    "family": "flat",
+    "row": 4
+  },
+  "spawnRegions": [
+    {
+      "family": "flat",
+      "row": 0,
+      "column": 0,
+      "origin": [
+        -22.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 0,
+      "column": 1,
+      "origin": [
+        -22.5,
+        -10.0,
+        0.023263414216486127
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 0,
+      "column": 2,
+      "origin": [
+        -22.5,
+        -5.0,
+        0.5002059914097154
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 0,
+      "column": 3,
+      "origin": [
+        -22.5,
+        0.0,
+        -0.5040170997436425
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 0,
+      "column": 4,
+      "origin": [
+        -22.5,
+        5.0,
+        0.035994152138352394
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 0,
+      "column": 5,
+      "origin": [
+        -22.5,
+        10.0,
+        -0.02
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 0,
+      "column": 6,
+      "origin": [
+        -22.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    },
+    {
+      "family": "flat",
+      "row": 1,
+      "column": 0,
+      "origin": [
+        -17.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 1,
+      "column": 1,
+      "origin": [
+        -17.5,
+        -10.0,
+        0.02466821171512909
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 1,
+      "column": 2,
+      "origin": [
+        -17.5,
+        -5.0,
+        0.5865860547630474
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 1,
+      "column": 3,
+      "origin": [
+        -17.5,
+        0.0,
+        -0.5891594895108149
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 1,
+      "column": 4,
+      "origin": [
+        -17.5,
+        5.0,
+        0.0412539453970032
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 1,
+      "column": 5,
+      "origin": [
+        -17.5,
+        10.0,
+        -0.035
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 1,
+      "column": 6,
+      "origin": [
+        -17.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    },
+    {
+      "family": "flat",
+      "row": 2,
+      "column": 0,
+      "origin": [
+        -12.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 2,
+      "column": 1,
+      "origin": [
+        -12.5,
+        -10.0,
+        0.030903030740207477
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 2,
+      "column": 2,
+      "origin": [
+        -12.5,
+        -5.0,
+        0.6184278583075262
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 2,
+      "column": 3,
+      "origin": [
+        -12.5,
+        0.0,
+        -0.6285929616248659
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 2,
+      "column": 4,
+      "origin": [
+        -12.5,
+        5.0,
+        0.044691726865271196
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 2,
+      "column": 5,
+      "origin": [
+        -12.5,
+        10.0,
+        -0.065
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 2,
+      "column": 6,
+      "origin": [
+        -12.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    },
+    {
+      "family": "flat",
+      "row": 3,
+      "column": 0,
+      "origin": [
+        -7.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 3,
+      "column": 1,
+      "origin": [
+        -7.5,
+        -10.0,
+        0.03305874400729078
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 3,
+      "column": 2,
+      "origin": [
+        -7.5,
+        -5.0,
+        0.6631412851985964
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 3,
+      "column": 3,
+      "origin": [
+        -7.5,
+        0.0,
+        -0.6538668172974736
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 3,
+      "column": 4,
+      "origin": [
+        -7.5,
+        5.0,
+        0.05679878473215987
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 3,
+      "column": 5,
+      "origin": [
+        -7.5,
+        10.0,
+        -0.085
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 3,
+      "column": 6,
+      "origin": [
+        -7.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    },
+    {
+      "family": "flat",
+      "row": 4,
+      "column": 0,
+      "origin": [
+        -2.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 4,
+      "column": 1,
+      "origin": [
+        -2.5,
+        -10.0,
+        0.03826441550631762
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 4,
+      "column": 2,
+      "origin": [
+        -2.5,
+        -5.0,
+        0.7475521481063794
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 4,
+      "column": 3,
+      "origin": [
+        -2.5,
+        0.0,
+        -0.7488584781540732
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 4,
+      "column": 4,
+      "origin": [
+        -2.5,
+        5.0,
+        0.06304377612982137
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 4,
+      "column": 5,
+      "origin": [
+        -2.5,
+        10.0,
+        -0.11
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 4,
+      "column": 6,
+      "origin": [
+        -2.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    },
+    {
+      "family": "flat",
+      "row": 5,
+      "column": 0,
+      "origin": [
+        2.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 5,
+      "column": 1,
+      "origin": [
+        2.5,
+        -10.0,
+        0.04069515487490996
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 5,
+      "column": 2,
+      "origin": [
+        2.5,
+        -5.0,
+        0.7511185699362717
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 5,
+      "column": 3,
+      "origin": [
+        2.5,
+        0.0,
+        -0.7555370639461058
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 5,
+      "column": 4,
+      "origin": [
+        2.5,
+        5.0,
+        0.06626694368508965
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 5,
+      "column": 5,
+      "origin": [
+        2.5,
+        10.0,
+        -0.155
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 5,
+      "column": 6,
+      "origin": [
+        2.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    },
+    {
+      "family": "flat",
+      "row": 6,
+      "column": 0,
+      "origin": [
+        7.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 6,
+      "column": 1,
+      "origin": [
+        7.5,
+        -10.0,
+        0.045873134326856586
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 6,
+      "column": 2,
+      "origin": [
+        7.5,
+        -5.0,
+        0.8313482185998594
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 6,
+      "column": 3,
+      "origin": [
+        7.5,
+        0.0,
+        -0.8246039215991557
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 6,
+      "column": 4,
+      "origin": [
+        7.5,
+        5.0,
+        0.0759628143874301
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 6,
+      "column": 5,
+      "origin": [
+        7.5,
+        10.0,
+        -0.165
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 6,
+      "column": 6,
+      "origin": [
+        7.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    },
+    {
+      "family": "flat",
+      "row": 7,
+      "column": 0,
+      "origin": [
+        12.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 7,
+      "column": 1,
+      "origin": [
+        12.5,
+        -10.0,
+        0.0501782969708872
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 7,
+      "column": 2,
+      "origin": [
+        12.5,
+        -5.0,
+        0.8508933176203817
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 7,
+      "column": 3,
+      "origin": [
+        12.5,
+        0.0,
+        -0.8515254798745081
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 7,
+      "column": 4,
+      "origin": [
+        12.5,
+        5.0,
+        0.08117873031948025
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 7,
+      "column": 5,
+      "origin": [
+        12.5,
+        10.0,
+        -0.19
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 7,
+      "column": 6,
+      "origin": [
+        12.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    },
+    {
+      "family": "flat",
+      "row": 8,
+      "column": 0,
+      "origin": [
+        17.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 8,
+      "column": 1,
+      "origin": [
+        17.5,
+        -10.0,
+        0.055900581084186746
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 8,
+      "column": 2,
+      "origin": [
+        17.5,
+        -5.0,
+        0.9191001296710903
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 8,
+      "column": 3,
+      "origin": [
+        17.5,
+        0.0,
+        -0.9202910235102184
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 8,
+      "column": 4,
+      "origin": [
+        17.5,
+        5.0,
+        0.08791830737942605
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 8,
+      "column": 5,
+      "origin": [
+        17.5,
+        10.0,
+        -0.23
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 8,
+      "column": 6,
+      "origin": [
+        17.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    },
+    {
+      "family": "flat",
+      "row": 9,
+      "column": 0,
+      "origin": [
+        22.5,
+        -15.0,
+        0.0
+      ],
+      "centerResetProfile": "flat"
+    },
+    {
+      "family": "perlin_rough",
+      "row": 9,
+      "column": 1,
+      "origin": [
+        22.5,
+        -10.0,
+        0.056134141155796666
+      ],
+      "centerResetProfile": "perlin_rough"
+    },
+    {
+      "family": "low_stairs_up",
+      "row": 9,
+      "column": 2,
+      "origin": [
+        22.5,
+        -5.0,
+        0.9656279542964878
+      ],
+      "centerResetProfile": "low_stairs_descent_from_center"
+    },
+    {
+      "family": "low_stairs_down",
+      "row": 9,
+      "column": 3,
+      "origin": [
+        22.5,
+        0.0,
+        -0.9745787894452413
+      ],
+      "centerResetProfile": "low_stairs_ascent_from_center"
+    },
+    {
+      "family": "low_platforms",
+      "row": 9,
+      "column": 4,
+      "origin": [
+        22.5,
+        5.0,
+        0.09413623050553702
+      ],
+      "centerResetProfile": "low_platforms"
+    },
+    {
+      "family": "hf_pyramid_slope_inv",
+      "row": 9,
+      "column": 5,
+      "origin": [
+        22.5,
+        10.0,
+        -0.245
+      ],
+      "centerResetProfile": "hf_pyramid_slope_inv"
+    },
+    {
+      "family": "boxes",
+      "row": 9,
+      "column": 6,
+      "origin": [
+        22.5,
+        15.0,
+        0.0
+      ],
+      "centerResetProfile": "boxes"
+    }
+  ],
+  "source": "Archived UFO rp1_simple.make_rp1_simple_generator_cfg + native mjlab TerrainGenerator",
+  "generatorSourceSha256": "2a8f7ed1ba6f7f18aa35c73ad816895cc6f8450ba60a4f64e8259f8008a0c442",
+  "robotSourceSha256": "579c8d3d98afa207cc816f1f6bdbe2594c6153cd00d6cdf644a102a4794b5920",
+  "robotProvenance": "Snapshot source path is absent locally; identical archived project XML verified across four related checkouts. Inertias and collision geometry retained; armature/friction and actuator limits from original364M render.log/config.",
+  "dynamics": "Native MuJoCo CPU/WASM adaptation; explicit PD with DC motor torque-speed clipping, nominal gains, no training domain randomization. Not asserted equivalent to MuJoCo-Warp.",
+  "terrainProvenance": "Original archived seven-family curriculum generator with default 0.10\u20130.20m stairs; not the historical fixed12cm video variant or a benchmark result.",
+  "nativeMujocoVersion": "3.11.0"
+}

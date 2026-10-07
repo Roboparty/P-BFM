@@ -1,0 +1,19 @@
+{
+  "robotSourceSha256": "579c8d3d98afa207cc816f1f6bdbe2594c6153cd00d6cdf644a102a4794b5920",
+  "method": "NumPy Moller-Trumbore ray-triangle intersections on MuJoCo-compiled head_link mesh; Trimesh topology audit with merged coincident vertices",
+  "cameraMount": "Nominal torso-mounted original364M optical camera, retained 18x32 crop",
+  "mesh": "head_link",
+  "geomId": 41,
+  "triangles": 18654,
+  "watertight": true,
+  "windingConsistent": true,
+  "signedVolume": 0.00107296103381518,
+  "rays": 576,
+  "nearestHitExitBackfaces": 576,
+  "nearestRangeMinMaxMeters": [0.011705222079455993, 0.014526096644822855],
+  "nearestNormalDotRayMinMax": [0.8055517802307687, 0.999683981440964],
+  "raysWithOnePositiveIntersection": 512,
+  "raysWithThreePositiveIntersections": 64,
+  "laterFrontFacingIntersections": 64,
+  "interpretation": "All retained rays first exit the closed head housing. The archived MuJoCo-Warp ray_mesh_with_bvh tests only the nearest hit and rejects it if back-facing; it does not query later intersections. Excluding head_link from scalar MuJoCo depth rays reproduces that per-mesh rejection for this fixed nominal camera mount. This does not justify excluding the head for another camera position or an externally located sensor."
+}

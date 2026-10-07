@@ -40,6 +40,7 @@ h1 small { display: block; font-size: clamp(17px, 1.7vw, 23px); font-weight: 450
 .button { padding: 11px 24px; border: 1px solid #ffffff8a; border-radius: 6px; font-family: inherit; font-size: 14px; font-weight: 600; line-height: inherit; white-space: nowrap; background: #ffffff0d; }
 .button:not(:disabled):hover { background: #b9eddb; border-color: #b9eddb; color: #123c30; }
 .button:disabled { color: #dbe8e3; border-color: #ffffff50; cursor: default; }
+.button-primary { color: #123c30; background: #b9eddb; border-color: #b9eddb; }
 .affiliation { display: block; width: 224px; margin: 30px auto 0; }
 .affiliation img { display: block; width: 100%; filter: brightness(0) invert(1); }
 .background-toggle { position: absolute; bottom: 16px; right: 24px; background: #0b1b24aa; border: 1px solid #ffffff70; color: #fff; border-radius: 5px; padding: 8px 12px; font: inherit; font-size: 12px; cursor: pointer; }
@@ -52,6 +53,10 @@ h3 { font-size: 18px; line-height: 1.4; font-weight: 600; }
 .overview-copy strong { color: var(--ink); font-weight: 600; }
 .text-link { display: inline-block; color: var(--accent); border-bottom: 1px solid #8bb8ac; font-size: 14px; font-weight: 600; margin-top: 22px; }
 .overview-film { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 10px 36px #102d3210; }
+.interactive-entry { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding-top: 0; padding-bottom: 56px; }
+.interactive-entry h2 { font-size: 26px; }
+.interactive-entry p:not(.eyebrow) { max-width: 620px; margin-top: 12px; color: var(--muted); font-size: 15px; }
+.interactive-entry .button { flex-shrink: 0; }
 .adaptation { padding-top: 22px; padding-bottom: 60px; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 35px; margin-bottom: 25px; }
 .section-heading>p { max-width: 365px; color: var(--muted); font-size: 15px; }
@@ -116,6 +121,7 @@ footer { max-width: 1088px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   .research-overview { grid-template-columns: 1fr; gap: 28px; padding-top: 48px; }
   .overview-copy { max-width: 630px; }
   .overview-copy h2 br { display: none; }
+  .interactive-entry { flex-direction: column; align-items: flex-start; gap: 20px; }
   .hero { min-height: 560px; padding-inline: 28px; }
   .section-heading { display: block; }
   .section-heading>p { margin-top: 14px; max-width: 600px; }

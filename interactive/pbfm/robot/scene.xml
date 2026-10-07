@@ -1,0 +1,917 @@
+<mujoco model="PBFM_original364M_native_rp1_map">
+  <include file="g1_29dof.xml" />
+  <option timestep="0.005" integrator="implicitfast" solver="Newton" iterations="100" ls_iterations="50" tolerance="1e-8" cone="pyramidal" gravity="0 0 -9.81" />
+  <asset>
+    <hfield name="terrain_hfield_000" size="2.5 2.5 0.020663153466971923 0.023263414216486127" file="hfields/terrain_hfield_000.bin" />
+    <hfield name="terrain_hfield_001" size="2.5 2.5 0.02108854239731673 0.02466821171512909" file="hfields/terrain_hfield_001.bin" />
+    <hfield name="terrain_hfield_002" size="2.5 2.5 0.0300525700955341 0.030903030740207477" file="hfields/terrain_hfield_002.bin" />
+    <hfield name="terrain_hfield_003" size="2.5 2.5 0.02758207732648487 0.03305874400729078" file="hfields/terrain_hfield_003.bin" />
+    <hfield name="terrain_hfield_004" size="2.5 2.5 0.03376708060166076 0.03826441550631762" file="hfields/terrain_hfield_004.bin" />
+    <hfield name="terrain_hfield_005" size="2.5 2.5 0.03736343932873454 0.04069515487490996" file="hfields/terrain_hfield_005.bin" />
+    <hfield name="terrain_hfield_006" size="2.5 2.5 0.04097179097247867 0.045873134326856586" file="hfields/terrain_hfield_006.bin" />
+    <hfield name="terrain_hfield_007" size="2.5 2.5 0.0471721032675065 0.0501782969708872" file="hfields/terrain_hfield_007.bin" />
+    <hfield name="terrain_hfield_008" size="2.5 2.5 0.04514481801786808 0.055900581084186746" file="hfields/terrain_hfield_008.bin" />
+    <hfield name="terrain_hfield_009" size="2.5 2.5 0.05015691209185383 0.056134141155796666" file="hfields/terrain_hfield_009.bin" />
+    <hfield name="terrain_hfield_010" size="2.5 2.5 0.02 0.02" file="hfields/terrain_hfield_010.bin" />
+    <hfield name="terrain_hfield_011" size="2.5 2.5 0.035 0.035" file="hfields/terrain_hfield_011.bin" />
+    <hfield name="terrain_hfield_012" size="2.5 2.5 0.065 0.065" file="hfields/terrain_hfield_012.bin" />
+    <hfield name="terrain_hfield_013" size="2.5 2.5 0.085 0.085" file="hfields/terrain_hfield_013.bin" />
+    <hfield name="terrain_hfield_014" size="2.5 2.5 0.11 0.11" file="hfields/terrain_hfield_014.bin" />
+    <hfield name="terrain_hfield_015" size="2.5 2.5 0.155 0.155" file="hfields/terrain_hfield_015.bin" />
+    <hfield name="terrain_hfield_016" size="2.5 2.5 0.165 0.165" file="hfields/terrain_hfield_016.bin" />
+    <hfield name="terrain_hfield_017" size="2.5 2.5 0.19 0.19" file="hfields/terrain_hfield_017.bin" />
+    <hfield name="terrain_hfield_018" size="2.5 2.5 0.23 0.23" file="hfields/terrain_hfield_018.bin" />
+    <hfield name="terrain_hfield_019" size="2.5 2.5 0.245 0.245" file="hfields/terrain_hfield_019.bin" />
+    <hfield name="terrain_hfield_020" size="2.5 2.5 0.11 0.11" file="hfields/terrain_hfield_020.bin" />
+    <hfield name="terrain_hfield_021" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_021.bin" />
+    <hfield name="terrain_hfield_022" size="2.5 2.5 0.14 0.14" file="hfields/terrain_hfield_022.bin" />
+    <hfield name="terrain_hfield_023" size="2.5 2.5 0.17 0.17" file="hfields/terrain_hfield_023.bin" />
+    <hfield name="terrain_hfield_024" size="2.5 2.5 0.18 0.18" file="hfields/terrain_hfield_024.bin" />
+    <hfield name="terrain_hfield_025" size="2.5 2.5 0.2 0.2" file="hfields/terrain_hfield_025.bin" />
+    <hfield name="terrain_hfield_026" size="2.5 2.5 0.23 0.23" file="hfields/terrain_hfield_026.bin" />
+    <hfield name="terrain_hfield_027" size="2.5 2.5 0.24 0.24" file="hfields/terrain_hfield_027.bin" />
+    <hfield name="terrain_hfield_028" size="2.5 2.5 0.27 0.27" file="hfields/terrain_hfield_028.bin" />
+    <hfield name="terrain_hfield_029" size="2.5 2.5 0.29 0.29" file="hfields/terrain_hfield_029.bin" />
+    <hfield name="terrain_hfield_030" size="2.5 2.5 0.07032350435256955 0.022" file="hfields/terrain_hfield_030.bin" />
+    <hfield name="terrain_hfield_031" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_031.bin" />
+    <hfield name="terrain_hfield_032" size="2.5 2.5 0.07687400162219998 0.03" file="hfields/terrain_hfield_032.bin" />
+    <hfield name="terrain_hfield_033" size="2.5 2.5 0.16 0.16" file="hfields/terrain_hfield_033.bin" />
+    <hfield name="terrain_hfield_034" size="2.5 2.5 0.08555302176475522 0.038" file="hfields/terrain_hfield_034.bin" />
+    <hfield name="terrain_hfield_035" size="2.5 2.5 0.21 0.21" file="hfields/terrain_hfield_035.bin" />
+    <hfield name="terrain_hfield_036" size="2.5 2.5 0.09154599499702443 0.046" file="hfields/terrain_hfield_036.bin" />
+    <hfield name="terrain_hfield_037" size="2.5 2.5 0.25 0.25" file="hfields/terrain_hfield_037.bin" />
+    <hfield name="terrain_hfield_038" size="2.5 2.5 0.09408481945335861 0.05399999999999999" file="hfields/terrain_hfield_038.bin" />
+    <hfield name="terrain_hfield_039" size="2.5 2.5 0.28 0.28" file="hfields/terrain_hfield_039.bin" />
+    <hfield name="terrain_hfield_040" size="2.5 2.5 0.06926111603975295 0.022" file="hfields/terrain_hfield_040.bin" />
+    <hfield name="terrain_hfield_041" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_041.bin" />
+    <hfield name="terrain_hfield_042" size="2.5 2.5 0.07711661565303804 0.03" file="hfields/terrain_hfield_042.bin" />
+    <hfield name="terrain_hfield_043" size="2.5 2.5 0.16 0.16" file="hfields/terrain_hfield_043.bin" />
+    <hfield name="terrain_hfield_044" size="2.5 2.5 0.08368351197242724 0.038" file="hfields/terrain_hfield_044.bin" />
+    <hfield name="terrain_hfield_045" size="2.5 2.5 0.21 0.21" file="hfields/terrain_hfield_045.bin" />
+    <hfield name="terrain_hfield_046" size="2.5 2.5 0.09157207458019252 0.046" file="hfields/terrain_hfield_046.bin" />
+    <hfield name="terrain_hfield_047" size="2.5 2.5 0.25 0.25" file="hfields/terrain_hfield_047.bin" />
+    <hfield name="terrain_hfield_048" size="2.5 2.5 0.09790736436843867 0.05399999999999999" file="hfields/terrain_hfield_048.bin" />
+    <hfield name="terrain_hfield_049" size="2.5 2.5 0.28 0.28" file="hfields/terrain_hfield_049.bin" />
+    <hfield name="terrain_hfield_050" size="2.5 2.5 0.07074880187511444 0.022" file="hfields/terrain_hfield_050.bin" />
+    <hfield name="terrain_hfield_051" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_051.bin" />
+    <hfield name="terrain_hfield_052" size="2.5 2.5 0.07983348488807673 0.03" file="hfields/terrain_hfield_052.bin" />
+    <hfield name="terrain_hfield_053" size="2.5 2.5 0.16 0.16" file="hfields/terrain_hfield_053.bin" />
+    <hfield name="terrain_hfield_054" size="2.5 2.5 0.08520913672447197 0.038" file="hfields/terrain_hfield_054.bin" />
+    <hfield name="terrain_hfield_055" size="2.5 2.5 0.21 0.21" file="hfields/terrain_hfield_055.bin" />
+    <hfield name="terrain_hfield_056" size="2.5 2.5 0.09436430525779714 0.046" file="hfields/terrain_hfield_056.bin" />
+    <hfield name="terrain_hfield_057" size="2.5 2.5 0.25 0.25" file="hfields/terrain_hfield_057.bin" />
+    <hfield name="terrain_hfield_058" size="2.5 2.5 0.10214244129657742 0.05399999999999999" file="hfields/terrain_hfield_058.bin" />
+    <hfield name="terrain_hfield_059" size="2.5 2.5 0.28 0.28" file="hfields/terrain_hfield_059.bin" />
+    <hfield name="terrain_hfield_060" size="2.5 2.5 0.06996049053668975 0.022" file="hfields/terrain_hfield_060.bin" />
+    <hfield name="terrain_hfield_061" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_061.bin" />
+    <hfield name="terrain_hfield_062" size="2.5 2.5 0.07786113321781156 0.03" file="hfields/terrain_hfield_062.bin" />
+    <hfield name="terrain_hfield_063" size="2.5 2.5 0.16 0.16" file="hfields/terrain_hfield_063.bin" />
+    <hfield name="terrain_hfield_064" size="2.5 2.5 0.08799999999999997 0.038" file="hfields/terrain_hfield_064.bin" />
+    <hfield name="terrain_hfield_065" size="2.5 2.5 0.21 0.21" file="hfields/terrain_hfield_065.bin" />
+    <hfield name="terrain_hfield_066" size="2.5 2.5 0.09374557662010193 0.046" file="hfields/terrain_hfield_066.bin" />
+    <hfield name="terrain_hfield_067" size="2.5 2.5 0.25 0.25" file="hfields/terrain_hfield_067.bin" />
+    <hfield name="terrain_hfield_068" size="2.5 2.5 0.09916913406848904 0.05399999999999999" file="hfields/terrain_hfield_068.bin" />
+    <hfield name="terrain_hfield_069" size="2.5 2.5 0.28 0.28" file="hfields/terrain_hfield_069.bin" />
+    <hfield name="terrain_hfield_070" size="2.5 2.5 0.06849543817043305 0.022" file="hfields/terrain_hfield_070.bin" />
+    <hfield name="terrain_hfield_071" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_071.bin" />
+    <hfield name="terrain_hfield_072" size="2.5 2.5 0.07527652478218076 0.03" file="hfields/terrain_hfield_072.bin" />
+    <hfield name="terrain_hfield_073" size="2.5 2.5 0.16 0.16" file="hfields/terrain_hfield_073.bin" />
+    <hfield name="terrain_hfield_074" size="2.5 2.5 0.08279545319080349 0.038" file="hfields/terrain_hfield_074.bin" />
+    <hfield name="terrain_hfield_075" size="2.5 2.5 0.21 0.21" file="hfields/terrain_hfield_075.bin" />
+    <hfield name="terrain_hfield_076" size="2.5 2.5 0.09401131594181061 0.046" file="hfields/terrain_hfield_076.bin" />
+    <hfield name="terrain_hfield_077" size="2.5 2.5 0.25 0.25" file="hfields/terrain_hfield_077.bin" />
+    <hfield name="terrain_hfield_078" size="2.5 2.5 0.09741003003120416 0.05399999999999999" file="hfields/terrain_hfield_078.bin" />
+    <hfield name="terrain_hfield_079" size="2.5 2.5 0.28 0.28" file="hfields/terrain_hfield_079.bin" />
+    <hfield name="terrain_hfield_080" size="2.5 2.5 0.06874165272712707 0.022" file="hfields/terrain_hfield_080.bin" />
+    <hfield name="terrain_hfield_081" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_081.bin" />
+    <hfield name="terrain_hfield_082" size="2.5 2.5 0.07944840550422666 0.03" file="hfields/terrain_hfield_082.bin" />
+    <hfield name="terrain_hfield_083" size="2.5 2.5 0.16 0.16" file="hfields/terrain_hfield_083.bin" />
+    <hfield name="terrain_hfield_084" size="2.5 2.5 0.08391718733310695 0.038" file="hfields/terrain_hfield_084.bin" />
+    <hfield name="terrain_hfield_085" size="2.5 2.5 0.21 0.21" file="hfields/terrain_hfield_085.bin" />
+    <hfield name="terrain_hfield_086" size="2.5 2.5 0.0896732814311981 0.046" file="hfields/terrain_hfield_086.bin" />
+    <hfield name="terrain_hfield_087" size="2.5 2.5 0.25 0.25" file="hfields/terrain_hfield_087.bin" />
+    <hfield name="terrain_hfield_088" size="2.5 2.5 0.1008881034612655 0.05399999999999999" file="hfields/terrain_hfield_088.bin" />
+    <hfield name="terrain_hfield_089" size="2.5 2.5 0.28 0.28" file="hfields/terrain_hfield_089.bin" />
+    <hfield name="terrain_hfield_090" size="2.5 2.5 0.06780298852920531 0.022" file="hfields/terrain_hfield_090.bin" />
+    <hfield name="terrain_hfield_091" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_091.bin" />
+    <hfield name="terrain_hfield_092" size="2.5 2.5 0.0757336983680725 0.03" file="hfields/terrain_hfield_092.bin" />
+    <hfield name="terrain_hfield_093" size="2.5 2.5 0.16 0.16" file="hfields/terrain_hfield_093.bin" />
+    <hfield name="terrain_hfield_094" size="2.5 2.5 0.08045549427986147 0.038" file="hfields/terrain_hfield_094.bin" />
+    <hfield name="terrain_hfield_095" size="2.5 2.5 0.21 0.21" file="hfields/terrain_hfield_095.bin" />
+    <hfield name="terrain_hfield_096" size="2.5 2.5 0.09256596229076382 0.046" file="hfields/terrain_hfield_096.bin" />
+    <hfield name="terrain_hfield_097" size="2.5 2.5 0.25 0.25" file="hfields/terrain_hfield_097.bin" />
+    <hfield name="terrain_hfield_098" size="2.5 2.5 0.10166680967807763 0.05399999999999999" file="hfields/terrain_hfield_098.bin" />
+    <hfield name="terrain_hfield_099" size="2.5 2.5 0.28 0.28" file="hfields/terrain_hfield_099.bin" />
+    <hfield name="terrain_hfield_100" size="2.5 2.5 0.07015337705612183 0.022" file="hfields/terrain_hfield_100.bin" />
+    <hfield name="terrain_hfield_101" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_101.bin" />
+    <hfield name="terrain_hfield_102" size="2.5 2.5 0.0776534640789032 0.03" file="hfields/terrain_hfield_102.bin" />
+    <hfield name="terrain_hfield_103" size="2.5 2.5 0.16 0.16" file="hfields/terrain_hfield_103.bin" />
+    <hfield name="terrain_hfield_104" size="2.5 2.5 0.08495242292881011 0.038" file="hfields/terrain_hfield_104.bin" />
+    <hfield name="terrain_hfield_105" size="2.5 2.5 0.21 0.21" file="hfields/terrain_hfield_105.bin" />
+    <hfield name="terrain_hfield_106" size="2.5 2.5 0.09575370562076566 0.046" file="hfields/terrain_hfield_106.bin" />
+    <hfield name="terrain_hfield_107" size="2.5 2.5 0.25 0.25" file="hfields/terrain_hfield_107.bin" />
+    <hfield name="terrain_hfield_108" size="2.5 2.5 0.09754275013208397 0.05399999999999999" file="hfields/terrain_hfield_108.bin" />
+    <hfield name="terrain_hfield_109" size="2.5 2.5 0.28 0.28" file="hfields/terrain_hfield_109.bin" />
+    <hfield name="terrain_hfield_110" size="2.5 2.5 0.06980109703540802 0.022" file="hfields/terrain_hfield_110.bin" />
+    <hfield name="terrain_hfield_111" size="2.5 2.5 0.13 0.13" file="hfields/terrain_hfield_111.bin" />
+    <hfield name="terrain_hfield_112" size="2.5 2.5 0.07635410189628601 0.03" file="hfields/terrain_hfield_112.bin" />
+    <hfield name="terrain_hfield_113" size="2.5 2.5 0.16 0.16" file="hfields/terrain_hfield_113.bin" />
+  </asset>
+  <worldbody>
+    <body name="terrain">
+      <geom name="terrain_0" size="2.5 2.5 0.5" pos="-22.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_1" size="2.5 2.5 0.5" pos="-17.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_2" size="2.5 2.5 0.5" pos="-12.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_3" size="2.5 2.5 0.5" pos="-7.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_4" size="2.5 2.5 0.5" pos="-2.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_5" size="2.5 2.5 0.5" pos="2.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_6" size="2.5 2.5 0.5" pos="7.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_7" size="2.5 2.5 0.5" pos="12.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_8" size="2.5 2.5 0.5" pos="17.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_9" size="2.5 2.5 0.5" pos="22.5 -15 -0.5" type="box" mass="0" />
+      <geom name="terrain_10" pos="-22.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_000" />
+      <geom name="terrain_11" pos="-17.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_001" />
+      <geom name="terrain_12" pos="-12.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_002" />
+      <geom name="terrain_13" pos="-7.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_003" />
+      <geom name="terrain_14" pos="-2.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_004" />
+      <geom name="terrain_15" pos="2.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_005" />
+      <geom name="terrain_16" pos="7.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_006" />
+      <geom name="terrain_17" pos="12.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_007" />
+      <geom name="terrain_18" pos="17.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_008" />
+      <geom name="terrain_19" pos="22.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_009" />
+      <geom name="terrain_20" size="2.5 0.25 0.0500206" pos="-22.5 -2.75 -0.0500206" type="box" mass="0" />
+      <geom name="terrain_21" size="2.5 0.25 0.0500206" pos="-22.5 -7.25 -0.0500206" type="box" mass="0" />
+      <geom name="terrain_22" size="0.25 2 0.0500206" pos="-24.75 -5 -0.0500206" type="box" mass="0" />
+      <geom name="terrain_23" size="0.25 2 0.0500206" pos="-20.25 -5 -0.0500206" type="box" mass="0" />
+      <geom name="terrain_24" size="2 0.15 0.100041" pos="-22.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_25" size="2 0.15 0.100041" pos="-22.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_26" size="0.15 1.7 0.100041" pos="-20.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_27" size="0.15 1.7 0.100041" pos="-24.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_28" size="1.7 0.15 0.150062" pos="-22.5 -3.45 0.0500206" type="box" mass="0" />
+      <geom name="terrain_29" size="1.7 0.15 0.150062" pos="-22.5 -6.55 0.0500206" type="box" mass="0" />
+      <geom name="terrain_30" size="0.15 1.4 0.150062" pos="-20.95 -5 0.0500206" type="box" mass="0" />
+      <geom name="terrain_31" size="0.15 1.4 0.150062" pos="-24.05 -5 0.0500206" type="box" mass="0" />
+      <geom name="terrain_32" size="1.4 0.15 0.200082" pos="-22.5 -3.75 0.100041" type="box" mass="0" />
+      <geom name="terrain_33" size="1.4 0.15 0.200082" pos="-22.5 -6.25 0.100041" type="box" mass="0" />
+      <geom name="terrain_34" size="0.15 1.1 0.200082" pos="-21.25 -5 0.100041" type="box" mass="0" />
+      <geom name="terrain_35" size="0.15 1.1 0.200082" pos="-23.75 -5 0.100041" type="box" mass="0" />
+      <geom name="terrain_36" size="1.1 0.15 0.250103" pos="-22.5 -4.05 0.150062" type="box" mass="0" />
+      <geom name="terrain_37" size="1.1 0.15 0.250103" pos="-22.5 -5.95 0.150062" type="box" mass="0" />
+      <geom name="terrain_38" size="0.15 0.8 0.250103" pos="-21.55 -5 0.150062" type="box" mass="0" />
+      <geom name="terrain_39" size="0.15 0.8 0.250103" pos="-23.45 -5 0.150062" type="box" mass="0" />
+      <geom name="terrain_40" size="0.8 0.8 0.300124" pos="-22.5 -5 0.200082" type="box" mass="0" />
+      <geom name="terrain_41" size="2.5 0.25 0.0586586" pos="-17.5 -2.75 -0.0586586" type="box" mass="0" />
+      <geom name="terrain_42" size="2.5 0.25 0.0586586" pos="-17.5 -7.25 -0.0586586" type="box" mass="0" />
+      <geom name="terrain_43" size="0.25 2 0.0586586" pos="-19.75 -5 -0.0586586" type="box" mass="0" />
+      <geom name="terrain_44" size="0.25 2 0.0586586" pos="-15.25 -5 -0.0586586" type="box" mass="0" />
+      <geom name="terrain_45" size="2 0.15 0.117317" pos="-17.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_46" size="2 0.15 0.117317" pos="-17.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_47" size="0.15 1.7 0.117317" pos="-15.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_48" size="0.15 1.7 0.117317" pos="-19.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_49" size="1.7 0.15 0.175976" pos="-17.5 -3.45 0.0586586" type="box" mass="0" />
+      <geom name="terrain_50" size="1.7 0.15 0.175976" pos="-17.5 -6.55 0.0586586" type="box" mass="0" />
+      <geom name="terrain_51" size="0.15 1.4 0.175976" pos="-15.95 -5 0.0586586" type="box" mass="0" />
+      <geom name="terrain_52" size="0.15 1.4 0.175976" pos="-19.05 -5 0.0586586" type="box" mass="0" />
+      <geom name="terrain_53" size="1.4 0.15 0.234634" pos="-17.5 -3.75 0.117317" type="box" mass="0" />
+      <geom name="terrain_54" size="1.4 0.15 0.234634" pos="-17.5 -6.25 0.117317" type="box" mass="0" />
+      <geom name="terrain_55" size="0.15 1.1 0.234634" pos="-16.25 -5 0.117317" type="box" mass="0" />
+      <geom name="terrain_56" size="0.15 1.1 0.234634" pos="-18.75 -5 0.117317" type="box" mass="0" />
+      <geom name="terrain_57" size="1.1 0.15 0.293293" pos="-17.5 -4.05 0.175976" type="box" mass="0" />
+      <geom name="terrain_58" size="1.1 0.15 0.293293" pos="-17.5 -5.95 0.175976" type="box" mass="0" />
+      <geom name="terrain_59" size="0.15 0.8 0.293293" pos="-16.55 -5 0.175976" type="box" mass="0" />
+      <geom name="terrain_60" size="0.15 0.8 0.293293" pos="-18.45 -5 0.175976" type="box" mass="0" />
+      <geom name="terrain_61" size="0.8 0.8 0.351952" pos="-17.5 -5 0.234634" type="box" mass="0" />
+      <geom name="terrain_62" size="2.5 0.25 0.0618428" pos="-12.5 -2.75 -0.0618428" type="box" mass="0" />
+      <geom name="terrain_63" size="2.5 0.25 0.0618428" pos="-12.5 -7.25 -0.0618428" type="box" mass="0" />
+      <geom name="terrain_64" size="0.25 2 0.0618428" pos="-14.75 -5 -0.0618428" type="box" mass="0" />
+      <geom name="terrain_65" size="0.25 2 0.0618428" pos="-10.25 -5 -0.0618428" type="box" mass="0" />
+      <geom name="terrain_66" size="2 0.15 0.123686" pos="-12.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_67" size="2 0.15 0.123686" pos="-12.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_68" size="0.15 1.7 0.123686" pos="-10.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_69" size="0.15 1.7 0.123686" pos="-14.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_70" size="1.7 0.15 0.185528" pos="-12.5 -3.45 0.0618428" type="box" mass="0" />
+      <geom name="terrain_71" size="1.7 0.15 0.185528" pos="-12.5 -6.55 0.0618428" type="box" mass="0" />
+      <geom name="terrain_72" size="0.15 1.4 0.185528" pos="-10.95 -5 0.0618428" type="box" mass="0" />
+      <geom name="terrain_73" size="0.15 1.4 0.185528" pos="-14.05 -5 0.0618428" type="box" mass="0" />
+      <geom name="terrain_74" size="1.4 0.15 0.247371" pos="-12.5 -3.75 0.123686" type="box" mass="0" />
+      <geom name="terrain_75" size="1.4 0.15 0.247371" pos="-12.5 -6.25 0.123686" type="box" mass="0" />
+      <geom name="terrain_76" size="0.15 1.1 0.247371" pos="-11.25 -5 0.123686" type="box" mass="0" />
+      <geom name="terrain_77" size="0.15 1.1 0.247371" pos="-13.75 -5 0.123686" type="box" mass="0" />
+      <geom name="terrain_78" size="1.1 0.15 0.309214" pos="-12.5 -4.05 0.185528" type="box" mass="0" />
+      <geom name="terrain_79" size="1.1 0.15 0.309214" pos="-12.5 -5.95 0.185528" type="box" mass="0" />
+      <geom name="terrain_80" size="0.15 0.8 0.309214" pos="-11.55 -5 0.185528" type="box" mass="0" />
+      <geom name="terrain_81" size="0.15 0.8 0.309214" pos="-13.45 -5 0.185528" type="box" mass="0" />
+      <geom name="terrain_82" size="0.8 0.8 0.371057" pos="-12.5 -5 0.247371" type="box" mass="0" />
+      <geom name="terrain_83" size="2.5 0.25 0.0663141" pos="-7.5 -2.75 -0.0663141" type="box" mass="0" />
+      <geom name="terrain_84" size="2.5 0.25 0.0663141" pos="-7.5 -7.25 -0.0663141" type="box" mass="0" />
+      <geom name="terrain_85" size="0.25 2 0.0663141" pos="-9.75 -5 -0.0663141" type="box" mass="0" />
+      <geom name="terrain_86" size="0.25 2 0.0663141" pos="-5.25 -5 -0.0663141" type="box" mass="0" />
+      <geom name="terrain_87" size="2 0.15 0.132628" pos="-7.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_88" size="2 0.15 0.132628" pos="-7.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_89" size="0.15 1.7 0.132628" pos="-5.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_90" size="0.15 1.7 0.132628" pos="-9.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_91" size="1.7 0.15 0.198942" pos="-7.5 -3.45 0.0663141" type="box" mass="0" />
+      <geom name="terrain_92" size="1.7 0.15 0.198942" pos="-7.5 -6.55 0.0663141" type="box" mass="0" />
+      <geom name="terrain_93" size="0.15 1.4 0.198942" pos="-5.95 -5 0.0663141" type="box" mass="0" />
+      <geom name="terrain_94" size="0.15 1.4 0.198942" pos="-9.05 -5 0.0663141" type="box" mass="0" />
+      <geom name="terrain_95" size="1.4 0.15 0.265257" pos="-7.5 -3.75 0.132628" type="box" mass="0" />
+      <geom name="terrain_96" size="1.4 0.15 0.265257" pos="-7.5 -6.25 0.132628" type="box" mass="0" />
+      <geom name="terrain_97" size="0.15 1.1 0.265257" pos="-6.25 -5 0.132628" type="box" mass="0" />
+      <geom name="terrain_98" size="0.15 1.1 0.265257" pos="-8.75 -5 0.132628" type="box" mass="0" />
+      <geom name="terrain_99" size="1.1 0.15 0.331571" pos="-7.5 -4.05 0.198942" type="box" mass="0" />
+      <geom name="terrain_100" size="1.1 0.15 0.331571" pos="-7.5 -5.95 0.198942" type="box" mass="0" />
+      <geom name="terrain_101" size="0.15 0.8 0.331571" pos="-6.55 -5 0.198942" type="box" mass="0" />
+      <geom name="terrain_102" size="0.15 0.8 0.331571" pos="-8.45 -5 0.198942" type="box" mass="0" />
+      <geom name="terrain_103" size="0.8 0.8 0.397885" pos="-7.5 -5 0.265257" type="box" mass="0" />
+      <geom name="terrain_104" size="2.5 0.25 0.0747552" pos="-2.5 -2.75 -0.0747552" type="box" mass="0" />
+      <geom name="terrain_105" size="2.5 0.25 0.0747552" pos="-2.5 -7.25 -0.0747552" type="box" mass="0" />
+      <geom name="terrain_106" size="0.25 2 0.0747552" pos="-4.75 -5 -0.0747552" type="box" mass="0" />
+      <geom name="terrain_107" size="0.25 2 0.0747552" pos="-0.25 -5 -0.0747552" type="box" mass="0" />
+      <geom name="terrain_108" size="2 0.15 0.14951" pos="-2.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_109" size="2 0.15 0.14951" pos="-2.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_110" size="0.15 1.7 0.14951" pos="-0.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_111" size="0.15 1.7 0.14951" pos="-4.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_112" size="1.7 0.15 0.224266" pos="-2.5 -3.45 0.0747552" type="box" mass="0" />
+      <geom name="terrain_113" size="1.7 0.15 0.224266" pos="-2.5 -6.55 0.0747552" type="box" mass="0" />
+      <geom name="terrain_114" size="0.15 1.4 0.224266" pos="-0.95 -5 0.0747552" type="box" mass="0" />
+      <geom name="terrain_115" size="0.15 1.4 0.224266" pos="-4.05 -5 0.0747552" type="box" mass="0" />
+      <geom name="terrain_116" size="1.4 0.15 0.299021" pos="-2.5 -3.75 0.14951" type="box" mass="0" />
+      <geom name="terrain_117" size="1.4 0.15 0.299021" pos="-2.5 -6.25 0.14951" type="box" mass="0" />
+      <geom name="terrain_118" size="0.15 1.1 0.299021" pos="-1.25 -5 0.14951" type="box" mass="0" />
+      <geom name="terrain_119" size="0.15 1.1 0.299021" pos="-3.75 -5 0.14951" type="box" mass="0" />
+      <geom name="terrain_120" size="1.1 0.15 0.373776" pos="-2.5 -4.05 0.224266" type="box" mass="0" />
+      <geom name="terrain_121" size="1.1 0.15 0.373776" pos="-2.5 -5.95 0.224266" type="box" mass="0" />
+      <geom name="terrain_122" size="0.15 0.8 0.373776" pos="-1.55 -5 0.224266" type="box" mass="0" />
+      <geom name="terrain_123" size="0.15 0.8 0.373776" pos="-3.45 -5 0.224266" type="box" mass="0" />
+      <geom name="terrain_124" size="0.8 0.8 0.448531" pos="-2.5 -5 0.299021" type="box" mass="0" />
+      <geom name="terrain_125" size="2.5 0.25 0.0751119" pos="2.5 -2.75 -0.0751119" type="box" mass="0" />
+      <geom name="terrain_126" size="2.5 0.25 0.0751119" pos="2.5 -7.25 -0.0751119" type="box" mass="0" />
+      <geom name="terrain_127" size="0.25 2 0.0751119" pos="0.25 -5 -0.0751119" type="box" mass="0" />
+      <geom name="terrain_128" size="0.25 2 0.0751119" pos="4.75 -5 -0.0751119" type="box" mass="0" />
+      <geom name="terrain_129" size="2 0.15 0.150224" pos="2.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_130" size="2 0.15 0.150224" pos="2.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_131" size="0.15 1.7 0.150224" pos="4.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_132" size="0.15 1.7 0.150224" pos="0.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_133" size="1.7 0.15 0.225336" pos="2.5 -3.45 0.0751119" type="box" mass="0" />
+      <geom name="terrain_134" size="1.7 0.15 0.225336" pos="2.5 -6.55 0.0751119" type="box" mass="0" />
+      <geom name="terrain_135" size="0.15 1.4 0.225336" pos="4.05 -5 0.0751119" type="box" mass="0" />
+      <geom name="terrain_136" size="0.15 1.4 0.225336" pos="0.95 -5 0.0751119" type="box" mass="0" />
+      <geom name="terrain_137" size="1.4 0.15 0.300447" pos="2.5 -3.75 0.150224" type="box" mass="0" />
+      <geom name="terrain_138" size="1.4 0.15 0.300447" pos="2.5 -6.25 0.150224" type="box" mass="0" />
+      <geom name="terrain_139" size="0.15 1.1 0.300447" pos="3.75 -5 0.150224" type="box" mass="0" />
+      <geom name="terrain_140" size="0.15 1.1 0.300447" pos="1.25 -5 0.150224" type="box" mass="0" />
+      <geom name="terrain_141" size="1.1 0.15 0.375559" pos="2.5 -4.05 0.225336" type="box" mass="0" />
+      <geom name="terrain_142" size="1.1 0.15 0.375559" pos="2.5 -5.95 0.225336" type="box" mass="0" />
+      <geom name="terrain_143" size="0.15 0.8 0.375559" pos="3.45 -5 0.225336" type="box" mass="0" />
+      <geom name="terrain_144" size="0.15 0.8 0.375559" pos="1.55 -5 0.225336" type="box" mass="0" />
+      <geom name="terrain_145" size="0.8 0.8 0.450671" pos="2.5 -5 0.300447" type="box" mass="0" />
+      <geom name="terrain_146" size="2.5 0.25 0.0831348" pos="7.5 -2.75 -0.0831348" type="box" mass="0" />
+      <geom name="terrain_147" size="2.5 0.25 0.0831348" pos="7.5 -7.25 -0.0831348" type="box" mass="0" />
+      <geom name="terrain_148" size="0.25 2 0.0831348" pos="5.25 -5 -0.0831348" type="box" mass="0" />
+      <geom name="terrain_149" size="0.25 2 0.0831348" pos="9.75 -5 -0.0831348" type="box" mass="0" />
+      <geom name="terrain_150" size="2 0.15 0.16627" pos="7.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_151" size="2 0.15 0.16627" pos="7.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_152" size="0.15 1.7 0.16627" pos="9.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_153" size="0.15 1.7 0.16627" pos="5.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_154" size="1.7 0.15 0.249404" pos="7.5 -3.45 0.0831348" type="box" mass="0" />
+      <geom name="terrain_155" size="1.7 0.15 0.249404" pos="7.5 -6.55 0.0831348" type="box" mass="0" />
+      <geom name="terrain_156" size="0.15 1.4 0.249404" pos="9.05 -5 0.0831348" type="box" mass="0" />
+      <geom name="terrain_157" size="0.15 1.4 0.249404" pos="5.95 -5 0.0831348" type="box" mass="0" />
+      <geom name="terrain_158" size="1.4 0.15 0.332539" pos="7.5 -3.75 0.16627" type="box" mass="0" />
+      <geom name="terrain_159" size="1.4 0.15 0.332539" pos="7.5 -6.25 0.16627" type="box" mass="0" />
+      <geom name="terrain_160" size="0.15 1.1 0.332539" pos="8.75 -5 0.16627" type="box" mass="0" />
+      <geom name="terrain_161" size="0.15 1.1 0.332539" pos="6.25 -5 0.16627" type="box" mass="0" />
+      <geom name="terrain_162" size="1.1 0.15 0.415674" pos="7.5 -4.05 0.249404" type="box" mass="0" />
+      <geom name="terrain_163" size="1.1 0.15 0.415674" pos="7.5 -5.95 0.249404" type="box" mass="0" />
+      <geom name="terrain_164" size="0.15 0.8 0.415674" pos="8.45 -5 0.249404" type="box" mass="0" />
+      <geom name="terrain_165" size="0.15 0.8 0.415674" pos="6.55 -5 0.249404" type="box" mass="0" />
+      <geom name="terrain_166" size="0.8 0.8 0.498809" pos="7.5 -5 0.332539" type="box" mass="0" />
+      <geom name="terrain_167" size="2.5 0.25 0.0850893" pos="12.5 -2.75 -0.0850893" type="box" mass="0" />
+      <geom name="terrain_168" size="2.5 0.25 0.0850893" pos="12.5 -7.25 -0.0850893" type="box" mass="0" />
+      <geom name="terrain_169" size="0.25 2 0.0850893" pos="10.25 -5 -0.0850893" type="box" mass="0" />
+      <geom name="terrain_170" size="0.25 2 0.0850893" pos="14.75 -5 -0.0850893" type="box" mass="0" />
+      <geom name="terrain_171" size="2 0.15 0.170179" pos="12.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_172" size="2 0.15 0.170179" pos="12.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_173" size="0.15 1.7 0.170179" pos="14.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_174" size="0.15 1.7 0.170179" pos="10.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_175" size="1.7 0.15 0.255268" pos="12.5 -3.45 0.0850893" type="box" mass="0" />
+      <geom name="terrain_176" size="1.7 0.15 0.255268" pos="12.5 -6.55 0.0850893" type="box" mass="0" />
+      <geom name="terrain_177" size="0.15 1.4 0.255268" pos="14.05 -5 0.0850893" type="box" mass="0" />
+      <geom name="terrain_178" size="0.15 1.4 0.255268" pos="10.95 -5 0.0850893" type="box" mass="0" />
+      <geom name="terrain_179" size="1.4 0.15 0.340357" pos="12.5 -3.75 0.170179" type="box" mass="0" />
+      <geom name="terrain_180" size="1.4 0.15 0.340357" pos="12.5 -6.25 0.170179" type="box" mass="0" />
+      <geom name="terrain_181" size="0.15 1.1 0.340357" pos="13.75 -5 0.170179" type="box" mass="0" />
+      <geom name="terrain_182" size="0.15 1.1 0.340357" pos="11.25 -5 0.170179" type="box" mass="0" />
+      <geom name="terrain_183" size="1.1 0.15 0.425447" pos="12.5 -4.05 0.255268" type="box" mass="0" />
+      <geom name="terrain_184" size="1.1 0.15 0.425447" pos="12.5 -5.95 0.255268" type="box" mass="0" />
+      <geom name="terrain_185" size="0.15 0.8 0.425447" pos="13.45 -5 0.255268" type="box" mass="0" />
+      <geom name="terrain_186" size="0.15 0.8 0.425447" pos="11.55 -5 0.255268" type="box" mass="0" />
+      <geom name="terrain_187" size="0.8 0.8 0.510536" pos="12.5 -5 0.340357" type="box" mass="0" />
+      <geom name="terrain_188" size="2.5 0.25 0.09191" pos="17.5 -2.75 -0.09191" type="box" mass="0" />
+      <geom name="terrain_189" size="2.5 0.25 0.09191" pos="17.5 -7.25 -0.09191" type="box" mass="0" />
+      <geom name="terrain_190" size="0.25 2 0.09191" pos="15.25 -5 -0.09191" type="box" mass="0" />
+      <geom name="terrain_191" size="0.25 2 0.09191" pos="19.75 -5 -0.09191" type="box" mass="0" />
+      <geom name="terrain_192" size="2 0.15 0.18382" pos="17.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_193" size="2 0.15 0.18382" pos="17.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_194" size="0.15 1.7 0.18382" pos="19.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_195" size="0.15 1.7 0.18382" pos="15.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_196" size="1.7 0.15 0.27573" pos="17.5 -3.45 0.09191" type="box" mass="0" />
+      <geom name="terrain_197" size="1.7 0.15 0.27573" pos="17.5 -6.55 0.09191" type="box" mass="0" />
+      <geom name="terrain_198" size="0.15 1.4 0.27573" pos="19.05 -5 0.09191" type="box" mass="0" />
+      <geom name="terrain_199" size="0.15 1.4 0.27573" pos="15.95 -5 0.09191" type="box" mass="0" />
+      <geom name="terrain_200" size="1.4 0.15 0.36764" pos="17.5 -3.75 0.18382" type="box" mass="0" />
+      <geom name="terrain_201" size="1.4 0.15 0.36764" pos="17.5 -6.25 0.18382" type="box" mass="0" />
+      <geom name="terrain_202" size="0.15 1.1 0.36764" pos="18.75 -5 0.18382" type="box" mass="0" />
+      <geom name="terrain_203" size="0.15 1.1 0.36764" pos="16.25 -5 0.18382" type="box" mass="0" />
+      <geom name="terrain_204" size="1.1 0.15 0.45955" pos="17.5 -4.05 0.27573" type="box" mass="0" />
+      <geom name="terrain_205" size="1.1 0.15 0.45955" pos="17.5 -5.95 0.27573" type="box" mass="0" />
+      <geom name="terrain_206" size="0.15 0.8 0.45955" pos="18.45 -5 0.27573" type="box" mass="0" />
+      <geom name="terrain_207" size="0.15 0.8 0.45955" pos="16.55 -5 0.27573" type="box" mass="0" />
+      <geom name="terrain_208" size="0.8 0.8 0.55146" pos="17.5 -5 0.36764" type="box" mass="0" />
+      <geom name="terrain_209" size="2.5 0.25 0.0965628" pos="22.5 -2.75 -0.0965628" type="box" mass="0" />
+      <geom name="terrain_210" size="2.5 0.25 0.0965628" pos="22.5 -7.25 -0.0965628" type="box" mass="0" />
+      <geom name="terrain_211" size="0.25 2 0.0965628" pos="20.25 -5 -0.0965628" type="box" mass="0" />
+      <geom name="terrain_212" size="0.25 2 0.0965628" pos="24.75 -5 -0.0965628" type="box" mass="0" />
+      <geom name="terrain_213" size="2 0.15 0.193126" pos="22.5 -3.15 0" type="box" mass="0" />
+      <geom name="terrain_214" size="2 0.15 0.193126" pos="22.5 -6.85 0" type="box" mass="0" />
+      <geom name="terrain_215" size="0.15 1.7 0.193126" pos="24.35 -5 0" type="box" mass="0" />
+      <geom name="terrain_216" size="0.15 1.7 0.193126" pos="20.65 -5 0" type="box" mass="0" />
+      <geom name="terrain_217" size="1.7 0.15 0.289688" pos="22.5 -3.45 0.0965628" type="box" mass="0" />
+      <geom name="terrain_218" size="1.7 0.15 0.289688" pos="22.5 -6.55 0.0965628" type="box" mass="0" />
+      <geom name="terrain_219" size="0.15 1.4 0.289688" pos="24.05 -5 0.0965628" type="box" mass="0" />
+      <geom name="terrain_220" size="0.15 1.4 0.289688" pos="20.95 -5 0.0965628" type="box" mass="0" />
+      <geom name="terrain_221" size="1.4 0.15 0.386251" pos="22.5 -3.75 0.193126" type="box" mass="0" />
+      <geom name="terrain_222" size="1.4 0.15 0.386251" pos="22.5 -6.25 0.193126" type="box" mass="0" />
+      <geom name="terrain_223" size="0.15 1.1 0.386251" pos="23.75 -5 0.193126" type="box" mass="0" />
+      <geom name="terrain_224" size="0.15 1.1 0.386251" pos="21.25 -5 0.193126" type="box" mass="0" />
+      <geom name="terrain_225" size="1.1 0.15 0.482814" pos="22.5 -4.05 0.289688" type="box" mass="0" />
+      <geom name="terrain_226" size="1.1 0.15 0.482814" pos="22.5 -5.95 0.289688" type="box" mass="0" />
+      <geom name="terrain_227" size="0.15 0.8 0.482814" pos="23.45 -5 0.289688" type="box" mass="0" />
+      <geom name="terrain_228" size="0.15 0.8 0.482814" pos="21.55 -5 0.289688" type="box" mass="0" />
+      <geom name="terrain_229" size="0.8 0.8 0.579377" pos="22.5 -5 0.386251" type="box" mass="0" />
+      <geom name="terrain_230" size="2.5 0.25 0.0504017" pos="-22.5 2.25 -0.0504017" type="box" mass="0" />
+      <geom name="terrain_231" size="2.5 0.25 0.0504017" pos="-22.5 -2.25 -0.0504017" type="box" mass="0" />
+      <geom name="terrain_232" size="0.25 2 0.0504017" pos="-24.75 0 -0.0504017" type="box" mass="0" />
+      <geom name="terrain_233" size="0.25 2 0.0504017" pos="-20.25 0 -0.0504017" type="box" mass="0" />
+      <geom name="terrain_234" size="2 0.15 0.201607" pos="-22.5 1.85 -0.30241" type="box" mass="0" />
+      <geom name="terrain_235" size="2 0.15 0.201607" pos="-22.5 -1.85 -0.30241" type="box" mass="0" />
+      <geom name="terrain_236" size="0.15 1.7 0.201607" pos="-20.65 0 -0.30241" type="box" mass="0" />
+      <geom name="terrain_237" size="0.15 1.7 0.201607" pos="-24.35 0 -0.30241" type="box" mass="0" />
+      <geom name="terrain_238" size="1.7 0.15 0.151205" pos="-22.5 1.55 -0.352812" type="box" mass="0" />
+      <geom name="terrain_239" size="1.7 0.15 0.151205" pos="-22.5 -1.55 -0.352812" type="box" mass="0" />
+      <geom name="terrain_240" size="0.15 1.4 0.151205" pos="-20.95 0 -0.352812" type="box" mass="0" />
+      <geom name="terrain_241" size="0.15 1.4 0.151205" pos="-24.05 0 -0.352812" type="box" mass="0" />
+      <geom name="terrain_242" size="1.4 0.15 0.100803" pos="-22.5 1.25 -0.403214" type="box" mass="0" />
+      <geom name="terrain_243" size="1.4 0.15 0.100803" pos="-22.5 -1.25 -0.403214" type="box" mass="0" />
+      <geom name="terrain_244" size="0.15 1.1 0.100803" pos="-21.25 0 -0.403214" type="box" mass="0" />
+      <geom name="terrain_245" size="0.15 1.1 0.100803" pos="-23.75 0 -0.403214" type="box" mass="0" />
+      <geom name="terrain_246" size="1.1 0.15 0.0504017" pos="-22.5 0.95 -0.453615" type="box" mass="0" />
+      <geom name="terrain_247" size="1.1 0.15 0.0504017" pos="-22.5 -0.95 -0.453615" type="box" mass="0" />
+      <geom name="terrain_248" size="0.15 0.8 0.0504017" pos="-21.55 0 -0.453615" type="box" mass="0" />
+      <geom name="terrain_249" size="0.15 0.8 0.0504017" pos="-23.45 0 -0.453615" type="box" mass="0" />
+      <geom name="terrain_250" size="0.8 0.8 0.0504017" pos="-22.5 0 -0.554419" type="box" mass="0" />
+      <geom name="terrain_251" size="2.5 0.25 0.0589159" pos="-17.5 2.25 -0.0589159" type="box" mass="0" />
+      <geom name="terrain_252" size="2.5 0.25 0.0589159" pos="-17.5 -2.25 -0.0589159" type="box" mass="0" />
+      <geom name="terrain_253" size="0.25 2 0.0589159" pos="-19.75 0 -0.0589159" type="box" mass="0" />
+      <geom name="terrain_254" size="0.25 2 0.0589159" pos="-15.25 0 -0.0589159" type="box" mass="0" />
+      <geom name="terrain_255" size="2 0.15 0.235664" pos="-17.5 1.85 -0.353496" type="box" mass="0" />
+      <geom name="terrain_256" size="2 0.15 0.235664" pos="-17.5 -1.85 -0.353496" type="box" mass="0" />
+      <geom name="terrain_257" size="0.15 1.7 0.235664" pos="-15.65 0 -0.353496" type="box" mass="0" />
+      <geom name="terrain_258" size="0.15 1.7 0.235664" pos="-19.35 0 -0.353496" type="box" mass="0" />
+      <geom name="terrain_259" size="1.7 0.15 0.176748" pos="-17.5 1.55 -0.412412" type="box" mass="0" />
+      <geom name="terrain_260" size="1.7 0.15 0.176748" pos="-17.5 -1.55 -0.412412" type="box" mass="0" />
+      <geom name="terrain_261" size="0.15 1.4 0.176748" pos="-15.95 0 -0.412412" type="box" mass="0" />
+      <geom name="terrain_262" size="0.15 1.4 0.176748" pos="-19.05 0 -0.412412" type="box" mass="0" />
+      <geom name="terrain_263" size="1.4 0.15 0.117832" pos="-17.5 1.25 -0.471328" type="box" mass="0" />
+      <geom name="terrain_264" size="1.4 0.15 0.117832" pos="-17.5 -1.25 -0.471328" type="box" mass="0" />
+      <geom name="terrain_265" size="0.15 1.1 0.117832" pos="-16.25 0 -0.471328" type="box" mass="0" />
+      <geom name="terrain_266" size="0.15 1.1 0.117832" pos="-18.75 0 -0.471328" type="box" mass="0" />
+      <geom name="terrain_267" size="1.1 0.15 0.0589159" pos="-17.5 0.95 -0.530244" type="box" mass="0" />
+      <geom name="terrain_268" size="1.1 0.15 0.0589159" pos="-17.5 -0.95 -0.530244" type="box" mass="0" />
+      <geom name="terrain_269" size="0.15 0.8 0.0589159" pos="-16.55 0 -0.530244" type="box" mass="0" />
+      <geom name="terrain_270" size="0.15 0.8 0.0589159" pos="-18.45 0 -0.530244" type="box" mass="0" />
+      <geom name="terrain_271" size="0.8 0.8 0.0589159" pos="-17.5 0 -0.648075" type="box" mass="0" />
+      <geom name="terrain_272" size="2.5 0.25 0.0628593" pos="-12.5 2.25 -0.0628593" type="box" mass="0" />
+      <geom name="terrain_273" size="2.5 0.25 0.0628593" pos="-12.5 -2.25 -0.0628593" type="box" mass="0" />
+      <geom name="terrain_274" size="0.25 2 0.0628593" pos="-14.75 0 -0.0628593" type="box" mass="0" />
+      <geom name="terrain_275" size="0.25 2 0.0628593" pos="-10.25 0 -0.0628593" type="box" mass="0" />
+      <geom name="terrain_276" size="2 0.15 0.251437" pos="-12.5 1.85 -0.377156" type="box" mass="0" />
+      <geom name="terrain_277" size="2 0.15 0.251437" pos="-12.5 -1.85 -0.377156" type="box" mass="0" />
+      <geom name="terrain_278" size="0.15 1.7 0.251437" pos="-10.65 0 -0.377156" type="box" mass="0" />
+      <geom name="terrain_279" size="0.15 1.7 0.251437" pos="-14.35 0 -0.377156" type="box" mass="0" />
+      <geom name="terrain_280" size="1.7 0.15 0.188578" pos="-12.5 1.55 -0.440015" type="box" mass="0" />
+      <geom name="terrain_281" size="1.7 0.15 0.188578" pos="-12.5 -1.55 -0.440015" type="box" mass="0" />
+      <geom name="terrain_282" size="0.15 1.4 0.188578" pos="-10.95 0 -0.440015" type="box" mass="0" />
+      <geom name="terrain_283" size="0.15 1.4 0.188578" pos="-14.05 0 -0.440015" type="box" mass="0" />
+      <geom name="terrain_284" size="1.4 0.15 0.125719" pos="-12.5 1.25 -0.502874" type="box" mass="0" />
+      <geom name="terrain_285" size="1.4 0.15 0.125719" pos="-12.5 -1.25 -0.502874" type="box" mass="0" />
+      <geom name="terrain_286" size="0.15 1.1 0.125719" pos="-11.25 0 -0.502874" type="box" mass="0" />
+      <geom name="terrain_287" size="0.15 1.1 0.125719" pos="-13.75 0 -0.502874" type="box" mass="0" />
+      <geom name="terrain_288" size="1.1 0.15 0.0628593" pos="-12.5 0.95 -0.565734" type="box" mass="0" />
+      <geom name="terrain_289" size="1.1 0.15 0.0628593" pos="-12.5 -0.95 -0.565734" type="box" mass="0" />
+      <geom name="terrain_290" size="0.15 0.8 0.0628593" pos="-11.55 0 -0.565734" type="box" mass="0" />
+      <geom name="terrain_291" size="0.15 0.8 0.0628593" pos="-13.45 0 -0.565734" type="box" mass="0" />
+      <geom name="terrain_292" size="0.8 0.8 0.0628593" pos="-12.5 0 -0.691452" type="box" mass="0" />
+      <geom name="terrain_293" size="2.5 0.25 0.0653867" pos="-7.5 2.25 -0.0653867" type="box" mass="0" />
+      <geom name="terrain_294" size="2.5 0.25 0.0653867" pos="-7.5 -2.25 -0.0653867" type="box" mass="0" />
+      <geom name="terrain_295" size="0.25 2 0.0653867" pos="-9.75 0 -0.0653867" type="box" mass="0" />
+      <geom name="terrain_296" size="0.25 2 0.0653867" pos="-5.25 0 -0.0653867" type="box" mass="0" />
+      <geom name="terrain_297" size="2 0.15 0.261547" pos="-7.5 1.85 -0.39232" type="box" mass="0" />
+      <geom name="terrain_298" size="2 0.15 0.261547" pos="-7.5 -1.85 -0.39232" type="box" mass="0" />
+      <geom name="terrain_299" size="0.15 1.7 0.261547" pos="-5.65 0 -0.39232" type="box" mass="0" />
+      <geom name="terrain_300" size="0.15 1.7 0.261547" pos="-9.35 0 -0.39232" type="box" mass="0" />
+      <geom name="terrain_301" size="1.7 0.15 0.19616" pos="-7.5 1.55 -0.457707" type="box" mass="0" />
+      <geom name="terrain_302" size="1.7 0.15 0.19616" pos="-7.5 -1.55 -0.457707" type="box" mass="0" />
+      <geom name="terrain_303" size="0.15 1.4 0.19616" pos="-5.95 0 -0.457707" type="box" mass="0" />
+      <geom name="terrain_304" size="0.15 1.4 0.19616" pos="-9.05 0 -0.457707" type="box" mass="0" />
+      <geom name="terrain_305" size="1.4 0.15 0.130773" pos="-7.5 1.25 -0.523093" type="box" mass="0" />
+      <geom name="terrain_306" size="1.4 0.15 0.130773" pos="-7.5 -1.25 -0.523093" type="box" mass="0" />
+      <geom name="terrain_307" size="0.15 1.1 0.130773" pos="-6.25 0 -0.523093" type="box" mass="0" />
+      <geom name="terrain_308" size="0.15 1.1 0.130773" pos="-8.75 0 -0.523093" type="box" mass="0" />
+      <geom name="terrain_309" size="1.1 0.15 0.0653867" pos="-7.5 0.95 -0.58848" type="box" mass="0" />
+      <geom name="terrain_310" size="1.1 0.15 0.0653867" pos="-7.5 -0.95 -0.58848" type="box" mass="0" />
+      <geom name="terrain_311" size="0.15 0.8 0.0653867" pos="-6.55 0 -0.58848" type="box" mass="0" />
+      <geom name="terrain_312" size="0.15 0.8 0.0653867" pos="-8.45 0 -0.58848" type="box" mass="0" />
+      <geom name="terrain_313" size="0.8 0.8 0.0653867" pos="-7.5 0 -0.719253" type="box" mass="0" />
+      <geom name="terrain_314" size="2.5 0.25 0.0748858" pos="-2.5 2.25 -0.0748858" type="box" mass="0" />
+      <geom name="terrain_315" size="2.5 0.25 0.0748858" pos="-2.5 -2.25 -0.0748858" type="box" mass="0" />
+      <geom name="terrain_316" size="0.25 2 0.0748858" pos="-4.75 0 -0.0748858" type="box" mass="0" />
+      <geom name="terrain_317" size="0.25 2 0.0748858" pos="-0.25 0 -0.0748858" type="box" mass="0" />
+      <geom name="terrain_318" size="2 0.15 0.299543" pos="-2.5 1.85 -0.449315" type="box" mass="0" />
+      <geom name="terrain_319" size="2 0.15 0.299543" pos="-2.5 -1.85 -0.449315" type="box" mass="0" />
+      <geom name="terrain_320" size="0.15 1.7 0.299543" pos="-0.65 0 -0.449315" type="box" mass="0" />
+      <geom name="terrain_321" size="0.15 1.7 0.299543" pos="-4.35 0 -0.449315" type="box" mass="0" />
+      <geom name="terrain_322" size="1.7 0.15 0.224658" pos="-2.5 1.55 -0.524201" type="box" mass="0" />
+      <geom name="terrain_323" size="1.7 0.15 0.224658" pos="-2.5 -1.55 -0.524201" type="box" mass="0" />
+      <geom name="terrain_324" size="0.15 1.4 0.224658" pos="-0.95 0 -0.524201" type="box" mass="0" />
+      <geom name="terrain_325" size="0.15 1.4 0.224658" pos="-4.05 0 -0.524201" type="box" mass="0" />
+      <geom name="terrain_326" size="1.4 0.15 0.149772" pos="-2.5 1.25 -0.599087" type="box" mass="0" />
+      <geom name="terrain_327" size="1.4 0.15 0.149772" pos="-2.5 -1.25 -0.599087" type="box" mass="0" />
+      <geom name="terrain_328" size="0.15 1.1 0.149772" pos="-1.25 0 -0.599087" type="box" mass="0" />
+      <geom name="terrain_329" size="0.15 1.1 0.149772" pos="-3.75 0 -0.599087" type="box" mass="0" />
+      <geom name="terrain_330" size="1.1 0.15 0.0748858" pos="-2.5 0.95 -0.673973" type="box" mass="0" />
+      <geom name="terrain_331" size="1.1 0.15 0.0748858" pos="-2.5 -0.95 -0.673973" type="box" mass="0" />
+      <geom name="terrain_332" size="0.15 0.8 0.0748858" pos="-1.55 0 -0.673973" type="box" mass="0" />
+      <geom name="terrain_333" size="0.15 0.8 0.0748858" pos="-3.45 0 -0.673973" type="box" mass="0" />
+      <geom name="terrain_334" size="0.8 0.8 0.0748858" pos="-2.5 0 -0.823744" type="box" mass="0" />
+      <geom name="terrain_335" size="2.5 0.25 0.0755537" pos="2.5 2.25 -0.0755537" type="box" mass="0" />
+      <geom name="terrain_336" size="2.5 0.25 0.0755537" pos="2.5 -2.25 -0.0755537" type="box" mass="0" />
+      <geom name="terrain_337" size="0.25 2 0.0755537" pos="0.25 0 -0.0755537" type="box" mass="0" />
+      <geom name="terrain_338" size="0.25 2 0.0755537" pos="4.75 0 -0.0755537" type="box" mass="0" />
+      <geom name="terrain_339" size="2 0.15 0.302215" pos="2.5 1.85 -0.453322" type="box" mass="0" />
+      <geom name="terrain_340" size="2 0.15 0.302215" pos="2.5 -1.85 -0.453322" type="box" mass="0" />
+      <geom name="terrain_341" size="0.15 1.7 0.302215" pos="4.35 0 -0.453322" type="box" mass="0" />
+      <geom name="terrain_342" size="0.15 1.7 0.302215" pos="0.65 0 -0.453322" type="box" mass="0" />
+      <geom name="terrain_343" size="1.7 0.15 0.226661" pos="2.5 1.55 -0.528876" type="box" mass="0" />
+      <geom name="terrain_344" size="1.7 0.15 0.226661" pos="2.5 -1.55 -0.528876" type="box" mass="0" />
+      <geom name="terrain_345" size="0.15 1.4 0.226661" pos="4.05 0 -0.528876" type="box" mass="0" />
+      <geom name="terrain_346" size="0.15 1.4 0.226661" pos="0.95 0 -0.528876" type="box" mass="0" />
+      <geom name="terrain_347" size="1.4 0.15 0.151107" pos="2.5 1.25 -0.60443" type="box" mass="0" />
+      <geom name="terrain_348" size="1.4 0.15 0.151107" pos="2.5 -1.25 -0.60443" type="box" mass="0" />
+      <geom name="terrain_349" size="0.15 1.1 0.151107" pos="3.75 0 -0.60443" type="box" mass="0" />
+      <geom name="terrain_350" size="0.15 1.1 0.151107" pos="1.25 0 -0.60443" type="box" mass="0" />
+      <geom name="terrain_351" size="1.1 0.15 0.0755537" pos="2.5 0.95 -0.679983" type="box" mass="0" />
+      <geom name="terrain_352" size="1.1 0.15 0.0755537" pos="2.5 -0.95 -0.679983" type="box" mass="0" />
+      <geom name="terrain_353" size="0.15 0.8 0.0755537" pos="3.45 0 -0.679983" type="box" mass="0" />
+      <geom name="terrain_354" size="0.15 0.8 0.0755537" pos="1.55 0 -0.679983" type="box" mass="0" />
+      <geom name="terrain_355" size="0.8 0.8 0.0755537" pos="2.5 0 -0.831091" type="box" mass="0" />
+      <geom name="terrain_356" size="2.5 0.25 0.0824604" pos="7.5 2.25 -0.0824604" type="box" mass="0" />
+      <geom name="terrain_357" size="2.5 0.25 0.0824604" pos="7.5 -2.25 -0.0824604" type="box" mass="0" />
+      <geom name="terrain_358" size="0.25 2 0.0824604" pos="5.25 0 -0.0824604" type="box" mass="0" />
+      <geom name="terrain_359" size="0.25 2 0.0824604" pos="9.75 0 -0.0824604" type="box" mass="0" />
+      <geom name="terrain_360" size="2 0.15 0.329842" pos="7.5 1.85 -0.494762" type="box" mass="0" />
+      <geom name="terrain_361" size="2 0.15 0.329842" pos="7.5 -1.85 -0.494762" type="box" mass="0" />
+      <geom name="terrain_362" size="0.15 1.7 0.329842" pos="9.35 0 -0.494762" type="box" mass="0" />
+      <geom name="terrain_363" size="0.15 1.7 0.329842" pos="5.65 0 -0.494762" type="box" mass="0" />
+      <geom name="terrain_364" size="1.7 0.15 0.247381" pos="7.5 1.55 -0.577223" type="box" mass="0" />
+      <geom name="terrain_365" size="1.7 0.15 0.247381" pos="7.5 -1.55 -0.577223" type="box" mass="0" />
+      <geom name="terrain_366" size="0.15 1.4 0.247381" pos="9.05 0 -0.577223" type="box" mass="0" />
+      <geom name="terrain_367" size="0.15 1.4 0.247381" pos="5.95 0 -0.577223" type="box" mass="0" />
+      <geom name="terrain_368" size="1.4 0.15 0.164921" pos="7.5 1.25 -0.659683" type="box" mass="0" />
+      <geom name="terrain_369" size="1.4 0.15 0.164921" pos="7.5 -1.25 -0.659683" type="box" mass="0" />
+      <geom name="terrain_370" size="0.15 1.1 0.164921" pos="8.75 0 -0.659683" type="box" mass="0" />
+      <geom name="terrain_371" size="0.15 1.1 0.164921" pos="6.25 0 -0.659683" type="box" mass="0" />
+      <geom name="terrain_372" size="1.1 0.15 0.0824604" pos="7.5 0.95 -0.742144" type="box" mass="0" />
+      <geom name="terrain_373" size="1.1 0.15 0.0824604" pos="7.5 -0.95 -0.742144" type="box" mass="0" />
+      <geom name="terrain_374" size="0.15 0.8 0.0824604" pos="8.45 0 -0.742144" type="box" mass="0" />
+      <geom name="terrain_375" size="0.15 0.8 0.0824604" pos="6.55 0 -0.742144" type="box" mass="0" />
+      <geom name="terrain_376" size="0.8 0.8 0.0824604" pos="7.5 0 -0.907064" type="box" mass="0" />
+      <geom name="terrain_377" size="2.5 0.25 0.0851525" pos="12.5 2.25 -0.0851525" type="box" mass="0" />
+      <geom name="terrain_378" size="2.5 0.25 0.0851525" pos="12.5 -2.25 -0.0851525" type="box" mass="0" />
+      <geom name="terrain_379" size="0.25 2 0.0851525" pos="10.25 0 -0.0851525" type="box" mass="0" />
+      <geom name="terrain_380" size="0.25 2 0.0851525" pos="14.75 0 -0.0851525" type="box" mass="0" />
+      <geom name="terrain_381" size="2 0.15 0.34061" pos="12.5 1.85 -0.510915" type="box" mass="0" />
+      <geom name="terrain_382" size="2 0.15 0.34061" pos="12.5 -1.85 -0.510915" type="box" mass="0" />
+      <geom name="terrain_383" size="0.15 1.7 0.34061" pos="14.35 0 -0.510915" type="box" mass="0" />
+      <geom name="terrain_384" size="0.15 1.7 0.34061" pos="10.65 0 -0.510915" type="box" mass="0" />
+      <geom name="terrain_385" size="1.7 0.15 0.255458" pos="12.5 1.55 -0.596068" type="box" mass="0" />
+      <geom name="terrain_386" size="1.7 0.15 0.255458" pos="12.5 -1.55 -0.596068" type="box" mass="0" />
+      <geom name="terrain_387" size="0.15 1.4 0.255458" pos="14.05 0 -0.596068" type="box" mass="0" />
+      <geom name="terrain_388" size="0.15 1.4 0.255458" pos="10.95 0 -0.596068" type="box" mass="0" />
+      <geom name="terrain_389" size="1.4 0.15 0.170305" pos="12.5 1.25 -0.68122" type="box" mass="0" />
+      <geom name="terrain_390" size="1.4 0.15 0.170305" pos="12.5 -1.25 -0.68122" type="box" mass="0" />
+      <geom name="terrain_391" size="0.15 1.1 0.170305" pos="13.75 0 -0.68122" type="box" mass="0" />
+      <geom name="terrain_392" size="0.15 1.1 0.170305" pos="11.25 0 -0.68122" type="box" mass="0" />
+      <geom name="terrain_393" size="1.1 0.15 0.0851525" pos="12.5 0.95 -0.766373" type="box" mass="0" />
+      <geom name="terrain_394" size="1.1 0.15 0.0851525" pos="12.5 -0.95 -0.766373" type="box" mass="0" />
+      <geom name="terrain_395" size="0.15 0.8 0.0851525" pos="13.45 0 -0.766373" type="box" mass="0" />
+      <geom name="terrain_396" size="0.15 0.8 0.0851525" pos="11.55 0 -0.766373" type="box" mass="0" />
+      <geom name="terrain_397" size="0.8 0.8 0.0851525" pos="12.5 0 -0.936678" type="box" mass="0" />
+      <geom name="terrain_398" size="2.5 0.25 0.0920291" pos="17.5 2.25 -0.0920291" type="box" mass="0" />
+      <geom name="terrain_399" size="2.5 0.25 0.0920291" pos="17.5 -2.25 -0.0920291" type="box" mass="0" />
+      <geom name="terrain_400" size="0.25 2 0.0920291" pos="15.25 0 -0.0920291" type="box" mass="0" />
+      <geom name="terrain_401" size="0.25 2 0.0920291" pos="19.75 0 -0.0920291" type="box" mass="0" />
+      <geom name="terrain_402" size="2 0.15 0.368116" pos="17.5 1.85 -0.552175" type="box" mass="0" />
+      <geom name="terrain_403" size="2 0.15 0.368116" pos="17.5 -1.85 -0.552175" type="box" mass="0" />
+      <geom name="terrain_404" size="0.15 1.7 0.368116" pos="19.35 0 -0.552175" type="box" mass="0" />
+      <geom name="terrain_405" size="0.15 1.7 0.368116" pos="15.65 0 -0.552175" type="box" mass="0" />
+      <geom name="terrain_406" size="1.7 0.15 0.276087" pos="17.5 1.55 -0.644204" type="box" mass="0" />
+      <geom name="terrain_407" size="1.7 0.15 0.276087" pos="17.5 -1.55 -0.644204" type="box" mass="0" />
+      <geom name="terrain_408" size="0.15 1.4 0.276087" pos="19.05 0 -0.644204" type="box" mass="0" />
+      <geom name="terrain_409" size="0.15 1.4 0.276087" pos="15.95 0 -0.644204" type="box" mass="0" />
+      <geom name="terrain_410" size="1.4 0.15 0.184058" pos="17.5 1.25 -0.736233" type="box" mass="0" />
+      <geom name="terrain_411" size="1.4 0.15 0.184058" pos="17.5 -1.25 -0.736233" type="box" mass="0" />
+      <geom name="terrain_412" size="0.15 1.1 0.184058" pos="18.75 0 -0.736233" type="box" mass="0" />
+      <geom name="terrain_413" size="0.15 1.1 0.184058" pos="16.25 0 -0.736233" type="box" mass="0" />
+      <geom name="terrain_414" size="1.1 0.15 0.0920291" pos="17.5 0.95 -0.828262" type="box" mass="0" />
+      <geom name="terrain_415" size="1.1 0.15 0.0920291" pos="17.5 -0.95 -0.828262" type="box" mass="0" />
+      <geom name="terrain_416" size="0.15 0.8 0.0920291" pos="18.45 0 -0.828262" type="box" mass="0" />
+      <geom name="terrain_417" size="0.15 0.8 0.0920291" pos="16.55 0 -0.828262" type="box" mass="0" />
+      <geom name="terrain_418" size="0.8 0.8 0.0920291" pos="17.5 0 -1.01232" type="box" mass="0" />
+      <geom name="terrain_419" size="2.5 0.25 0.0974579" pos="22.5 2.25 -0.0974579" type="box" mass="0" />
+      <geom name="terrain_420" size="2.5 0.25 0.0974579" pos="22.5 -2.25 -0.0974579" type="box" mass="0" />
+      <geom name="terrain_421" size="0.25 2 0.0974579" pos="20.25 0 -0.0974579" type="box" mass="0" />
+      <geom name="terrain_422" size="0.25 2 0.0974579" pos="24.75 0 -0.0974579" type="box" mass="0" />
+      <geom name="terrain_423" size="2 0.15 0.389832" pos="22.5 1.85 -0.584747" type="box" mass="0" />
+      <geom name="terrain_424" size="2 0.15 0.389832" pos="22.5 -1.85 -0.584747" type="box" mass="0" />
+      <geom name="terrain_425" size="0.15 1.7 0.389832" pos="24.35 0 -0.584747" type="box" mass="0" />
+      <geom name="terrain_426" size="0.15 1.7 0.389832" pos="20.65 0 -0.584747" type="box" mass="0" />
+      <geom name="terrain_427" size="1.7 0.15 0.292374" pos="22.5 1.55 -0.682205" type="box" mass="0" />
+      <geom name="terrain_428" size="1.7 0.15 0.292374" pos="22.5 -1.55 -0.682205" type="box" mass="0" />
+      <geom name="terrain_429" size="0.15 1.4 0.292374" pos="24.05 0 -0.682205" type="box" mass="0" />
+      <geom name="terrain_430" size="0.15 1.4 0.292374" pos="20.95 0 -0.682205" type="box" mass="0" />
+      <geom name="terrain_431" size="1.4 0.15 0.194916" pos="22.5 1.25 -0.779663" type="box" mass="0" />
+      <geom name="terrain_432" size="1.4 0.15 0.194916" pos="22.5 -1.25 -0.779663" type="box" mass="0" />
+      <geom name="terrain_433" size="0.15 1.1 0.194916" pos="23.75 0 -0.779663" type="box" mass="0" />
+      <geom name="terrain_434" size="0.15 1.1 0.194916" pos="21.25 0 -0.779663" type="box" mass="0" />
+      <geom name="terrain_435" size="1.1 0.15 0.0974579" pos="22.5 0.95 -0.877121" type="box" mass="0" />
+      <geom name="terrain_436" size="1.1 0.15 0.0974579" pos="22.5 -0.95 -0.877121" type="box" mass="0" />
+      <geom name="terrain_437" size="0.15 0.8 0.0974579" pos="23.45 0 -0.877121" type="box" mass="0" />
+      <geom name="terrain_438" size="0.15 0.8 0.0974579" pos="21.55 0 -0.877121" type="box" mass="0" />
+      <geom name="terrain_439" size="0.8 0.8 0.0974579" pos="22.5 0 -1.07204" type="box" mass="0" />
+      <geom name="terrain_440" size="2.5 0.25 0.5" pos="-22.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_441" size="2.5 0.25 0.5" pos="-22.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_442" size="0.25 2 0.5" pos="-24.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_443" size="0.25 2 0.5" pos="-20.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_444" size="0.4 0.4 0.5125" pos="-24.1 3.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_445" size="0.4 0.4 0.5" pos="-24.1 4.2 -0.5" type="box" mass="0" />
+      <geom name="terrain_446" size="0.4 0.8 0.4875" pos="-24.1 5.4 -0.5125" type="box" mass="0" />
+      <geom name="terrain_447" size="0.8 0.4 0.5" pos="-23.7 6.6 -0.5" type="box" mass="0" />
+      <geom name="terrain_448" size="0.8 0.4 0.4875" pos="-22.9 3.4 -0.5125" type="box" mass="0" />
+      <geom name="terrain_449" size="0.4 0.4 0.4875" pos="-23.3 4.2 -0.5125" type="box" mass="0" />
+      <geom name="terrain_450" size="0.4 0.4 0.5" pos="-23.3 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_451" size="1.2 0.4 0.4875" pos="-22.5 5.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_452" size="0.8 0.4 0.5125" pos="-22.1 4.2 -0.4875" type="box" mass="0" />
+      <geom name="terrain_453" size="0.4 0.4 0.5125" pos="-22.5 5 -0.4875" type="box" mass="0" />
+      <geom name="terrain_454" size="0.8 0.4 0.5125" pos="-22.1 6.6 -0.4875" type="box" mass="0" />
+      <geom name="terrain_455" size="0.4 0.4 0.5" pos="-21.7 3.4 -0.5" type="box" mass="0" />
+      <geom name="terrain_456" size="0.8 0.4 0.4875" pos="-21.3 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_457" size="0.4 0.4 0.4875" pos="-20.9 3.4 -0.5125" type="box" mass="0" />
+      <geom name="terrain_458" size="0.4 0.4 0.5" pos="-20.9 4.2 -0.5" type="box" mass="0" />
+      <geom name="terrain_459" size="0.4 0.4 0.4875" pos="-20.9 5.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_460" size="0.4 0.4 0.5" pos="-20.9 6.6 -0.5" type="box" mass="0" />
+      <geom name="terrain_461" size="0.6 0.6 0.517997" pos="-22.5 5 -0.482003" type="box" mass="0" />
+      <geom name="terrain_462" size="2.5 0.25 0.5" pos="-17.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_463" size="2.5 0.25 0.5" pos="-17.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_464" size="0.25 2 0.5" pos="-19.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_465" size="0.25 2 0.5" pos="-15.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_466" size="0.4 0.4 0.5" pos="-19.1 3.4 -0.5" type="box" mass="0" />
+      <geom name="terrain_467" size="0.4 0.4 0.525" pos="-19.1 4.2 -0.475" type="box" mass="0" />
+      <geom name="terrain_468" size="0.4 0.8 0.5125" pos="-19.1 5.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_469" size="0.8 0.4 0.4875" pos="-18.7 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_470" size="0.4 0.4 0.4875" pos="-18.3 3.4 -0.5125" type="box" mass="0" />
+      <geom name="terrain_471" size="0.4 0.4 0.5" pos="-18.3 4.2 -0.5" type="box" mass="0" />
+      <geom name="terrain_472" size="0.4 0.8 0.4875" pos="-18.3 5.4 -0.5125" type="box" mass="0" />
+      <geom name="terrain_473" size="0.4 0.4 0.5" pos="-17.5 3.4 -0.5" type="box" mass="0" />
+      <geom name="terrain_474" size="0.4 0.4 0.4875" pos="-17.5 4.2 -0.5125" type="box" mass="0" />
+      <geom name="terrain_475" size="0.8 0.4 0.5125" pos="-17.1 5 -0.4875" type="box" mass="0" />
+      <geom name="terrain_476" size="0.8 0.4 0.5" pos="-17.1 5.8 -0.5" type="box" mass="0" />
+      <geom name="terrain_477" size="0.4 0.4 0.5125" pos="-17.5 6.6 -0.4875" type="box" mass="0" />
+      <geom name="terrain_478" size="0.8 0.4 0.4875" pos="-16.3 3.4 -0.5125" type="box" mass="0" />
+      <geom name="terrain_479" size="0.4 0.4 0.475" pos="-16.7 4.2 -0.525" type="box" mass="0" />
+      <geom name="terrain_480" size="0.8 0.4 0.5" pos="-16.3 6.6 -0.5" type="box" mass="0" />
+      <geom name="terrain_481" size="0.4 0.4 0.5" pos="-15.9 4.2 -0.5" type="box" mass="0" />
+      <geom name="terrain_482" size="0.4 0.4 0.4875" pos="-15.9 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_483" size="0.4 0.4 0.525" pos="-15.9 5.8 -0.475" type="box" mass="0" />
+      <geom name="terrain_484" size="0.6 0.6 0.520627" pos="-17.5 5 -0.479373" type="box" mass="0" />
+      <geom name="terrain_485" size="2.5 0.25 0.5" pos="-12.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_486" size="2.5 0.25 0.5" pos="-12.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_487" size="0.25 2 0.5" pos="-14.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_488" size="0.25 2 0.5" pos="-10.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_489" size="0.4 0.4 0.5125" pos="-14.1 3.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_490" size="0.8 0.4 0.5" pos="-13.7 4.2 -0.5" type="box" mass="0" />
+      <geom name="terrain_491" size="0.4 0.4 0.5" pos="-14.1 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_492" size="0.4 0.4 0.4875" pos="-14.1 5.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_493" size="0.4 0.4 0.5" pos="-14.1 6.6 -0.5" type="box" mass="0" />
+      <geom name="terrain_494" size="0.4 0.4 0.5" pos="-13.3 3.4 -0.5" type="box" mass="0" />
+      <geom name="terrain_495" size="0.4 0.4 0.5125" pos="-13.3 5 -0.4875" type="box" mass="0" />
+      <geom name="terrain_496" size="0.4 0.4 0.5" pos="-13.3 5.8 -0.5" type="box" mass="0" />
+      <geom name="terrain_497" size="0.4 0.4 0.4875" pos="-13.3 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_498" size="1.2 0.4 0.4875" pos="-11.7 3.4 -0.5125" type="box" mass="0" />
+      <geom name="terrain_499" size="0.4 0.4 0.4875" pos="-12.5 4.2 -0.5125" type="box" mass="0" />
+      <geom name="terrain_500" size="0.4 0.4 0.5" pos="-12.5 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_501" size="0.8 0.4 0.4875" pos="-12.1 5.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_502" size="0.4 0.4 0.475" pos="-12.5 6.6 -0.525" type="box" mass="0" />
+      <geom name="terrain_503" size="0.4 0.4 0.5" pos="-11.7 4.2 -0.5" type="box" mass="0" />
+      <geom name="terrain_504" size="0.8 0.4 0.4875" pos="-11.3 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_505" size="0.8 0.4 0.4875" pos="-11.3 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_506" size="0.4 0.4 0.4875" pos="-10.9 4.2 -0.5125" type="box" mass="0" />
+      <geom name="terrain_507" size="0.4 0.4 0.5125" pos="-10.9 5.8 -0.4875" type="box" mass="0" />
+      <geom name="terrain_508" size="0.6 0.6 0.522346" pos="-12.5 5 -0.477654" type="box" mass="0" />
+      <geom name="terrain_509" size="2.5 0.25 0.5" pos="-7.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_510" size="2.5 0.25 0.5" pos="-7.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_511" size="0.25 2 0.5" pos="-9.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_512" size="0.25 2 0.5" pos="-5.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_513" size="0.4 0.4 0.5125" pos="-9.1 3.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_514" size="0.4 0.4 0.525" pos="-9.1 4.2 -0.475" type="box" mass="0" />
+      <geom name="terrain_515" size="0.4 0.4 0.5125" pos="-9.1 5 -0.4875" type="box" mass="0" />
+      <geom name="terrain_516" size="1.2 0.4 0.475" pos="-8.3 5.8 -0.525" type="box" mass="0" />
+      <geom name="terrain_517" size="0.4 0.4 0.525" pos="-9.1 6.6 -0.475" type="box" mass="0" />
+      <geom name="terrain_518" size="0.4 0.4 0.525" pos="-8.3 3.4 -0.475" type="box" mass="0" />
+      <geom name="terrain_519" size="0.4 0.8 0.5" pos="-8.3 4.6 -0.5" type="box" mass="0" />
+      <geom name="terrain_520" size="0.4 0.4 0.4875" pos="-8.3 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_521" size="0.4 0.4 0.5125" pos="-7.5 3.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_522" size="0.4 0.4 0.475" pos="-7.5 4.2 -0.525" type="box" mass="0" />
+      <geom name="terrain_523" size="0.4 0.4 0.525" pos="-7.5 5 -0.475" type="box" mass="0" />
+      <geom name="terrain_524" size="0.4 0.4 0.525" pos="-7.5 6.6 -0.475" type="box" mass="0" />
+      <geom name="terrain_525" size="0.4 0.4 0.4875" pos="-6.7 3.4 -0.5125" type="box" mass="0" />
+      <geom name="terrain_526" size="0.4 0.8 0.5" pos="-6.7 4.6 -0.5" type="box" mass="0" />
+      <geom name="terrain_527" size="0.4 0.8 0.4875" pos="-6.7 6.2 -0.5125" type="box" mass="0" />
+      <geom name="terrain_528" size="0.4 0.4 0.475" pos="-5.9 3.4 -0.525" type="box" mass="0" />
+      <geom name="terrain_529" size="0.4 0.4 0.5125" pos="-5.9 4.2 -0.4875" type="box" mass="0" />
+      <geom name="terrain_530" size="0.4 0.4 0.525" pos="-5.9 5 -0.475" type="box" mass="0" />
+      <geom name="terrain_531" size="0.4 0.4 0.475" pos="-5.9 5.8 -0.525" type="box" mass="0" />
+      <geom name="terrain_532" size="0.4 0.4 0.525" pos="-5.9 6.6 -0.475" type="box" mass="0" />
+      <geom name="terrain_533" size="0.6 0.6 0.528399" pos="-7.5 5 -0.471601" type="box" mass="0" />
+      <geom name="terrain_534" size="2.5 0.25 0.5" pos="-2.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_535" size="2.5 0.25 0.5" pos="-2.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_536" size="0.25 2 0.5" pos="-4.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_537" size="0.25 2 0.5" pos="-0.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_538" size="1.2 0.4 0.5125" pos="-3.3 3.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_539" size="0.8 0.4 0.4875" pos="-3.7 4.2 -0.5125" type="box" mass="0" />
+      <geom name="terrain_540" size="0.4 0.4 0.475" pos="-4.1 5 -0.525" type="box" mass="0" />
+      <geom name="terrain_541" size="0.4 0.4 0.5125" pos="-4.1 5.8 -0.4875" type="box" mass="0" />
+      <geom name="terrain_542" size="0.4 0.4 0.525" pos="-4.1 6.6 -0.475" type="box" mass="0" />
+      <geom name="terrain_543" size="0.4 0.4 0.5" pos="-3.3 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_544" size="0.8 0.4 0.475" pos="-2.9 5.8 -0.525" type="box" mass="0" />
+      <geom name="terrain_545" size="0.8 0.4 0.5125" pos="-2.9 6.6 -0.4875" type="box" mass="0" />
+      <geom name="terrain_546" size="1.2 0.4 0.5" pos="-1.7 4.2 -0.5" type="box" mass="0" />
+      <geom name="terrain_547" size="0.4 0.4 0.475" pos="-2.5 5 -0.525" type="box" mass="0" />
+      <geom name="terrain_548" size="0.8 0.4 0.5125" pos="-1.3 3.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_549" size="0.8 0.4 0.4875" pos="-1.3 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_550" size="0.4 0.4 0.5125" pos="-1.7 5.8 -0.4875" type="box" mass="0" />
+      <geom name="terrain_551" size="0.4 0.4 0.475" pos="-1.7 6.6 -0.525" type="box" mass="0" />
+      <geom name="terrain_552" size="0.4 0.4 0.4875" pos="-0.9 5.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_553" size="0.4 0.4 0.5125" pos="-0.9 6.6 -0.4875" type="box" mass="0" />
+      <geom name="terrain_554" size="0.6 0.6 0.531522" pos="-2.5 5 -0.468478" type="box" mass="0" />
+      <geom name="terrain_555" size="2.5 0.25 0.5" pos="2.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_556" size="2.5 0.25 0.5" pos="2.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_557" size="0.25 2 0.5" pos="0.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_558" size="0.25 2 0.5" pos="4.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_559" size="0.8 0.4 0.475" pos="1.3 3.4 -0.525" type="box" mass="0" />
+      <geom name="terrain_560" size="0.4 0.8 0.5125" pos="0.9 4.6 -0.4875" type="box" mass="0" />
+      <geom name="terrain_561" size="0.4 0.4 0.475" pos="0.9 5.8 -0.525" type="box" mass="0" />
+      <geom name="terrain_562" size="0.4 0.4 0.4875" pos="0.9 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_563" size="0.8 0.4 0.525" pos="2.1 4.2 -0.475" type="box" mass="0" />
+      <geom name="terrain_564" size="0.4 0.4 0.4625" pos="1.7 5 -0.5375" type="box" mass="0" />
+      <geom name="terrain_565" size="0.8 0.4 0.4875" pos="2.1 5.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_566" size="1.2 0.4 0.475" pos="2.5 6.6 -0.525" type="box" mass="0" />
+      <geom name="terrain_567" size="0.4 0.4 0.5" pos="2.5 3.4 -0.5" type="box" mass="0" />
+      <geom name="terrain_568" size="0.8 0.4 0.5125" pos="2.9 5 -0.4875" type="box" mass="0" />
+      <geom name="terrain_569" size="0.4 0.4 0.5125" pos="3.3 3.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_570" size="0.8 0.4 0.5" pos="3.7 4.2 -0.5" type="box" mass="0" />
+      <geom name="terrain_571" size="0.4 0.4 0.475" pos="3.3 5.8 -0.525" type="box" mass="0" />
+      <geom name="terrain_572" size="0.4 0.4 0.4875" pos="4.1 3.4 -0.5125" type="box" mass="0" />
+      <geom name="terrain_573" size="0.4 1.2 0.5" pos="4.1 5.8 -0.5" type="box" mass="0" />
+      <geom name="terrain_574" size="0.6 0.6 0.533133" pos="2.5 5 -0.466867" type="box" mass="0" />
+      <geom name="terrain_575" size="2.5 0.25 0.5" pos="7.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_576" size="2.5 0.25 0.5" pos="7.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_577" size="0.25 2 0.5" pos="5.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_578" size="0.25 2 0.5" pos="9.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_579" size="0.4 0.8 0.4875" pos="5.9 3.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_580" size="0.4 0.4 0.5" pos="5.9 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_581" size="0.8 0.4 0.475" pos="6.3 5.8 -0.525" type="box" mass="0" />
+      <geom name="terrain_582" size="0.4 0.4 0.525" pos="5.9 6.6 -0.475" type="box" mass="0" />
+      <geom name="terrain_583" size="0.4 0.4 0.5375" pos="6.7 3.4 -0.4625" type="box" mass="0" />
+      <geom name="terrain_584" size="0.4 0.4 0.4625" pos="6.7 4.2 -0.5375" type="box" mass="0" />
+      <geom name="terrain_585" size="0.4 0.4 0.525" pos="6.7 5 -0.475" type="box" mass="0" />
+      <geom name="terrain_586" size="0.8 0.4 0.4875" pos="7.1 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_587" size="0.4 0.4 0.4625" pos="7.5 3.4 -0.5375" type="box" mass="0" />
+      <geom name="terrain_588" size="0.4 0.4 0.5375" pos="7.5 4.2 -0.4625" type="box" mass="0" />
+      <geom name="terrain_589" size="0.4 0.4 0.5" pos="7.5 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_590" size="0.4 0.4 0.4625" pos="7.5 5.8 -0.5375" type="box" mass="0" />
+      <geom name="terrain_591" size="0.4 0.4 0.5375" pos="8.3 3.4 -0.4625" type="box" mass="0" />
+      <geom name="terrain_592" size="0.4 0.4 0.4625" pos="8.3 4.2 -0.5375" type="box" mass="0" />
+      <geom name="terrain_593" size="0.4 0.4 0.5375" pos="8.3 5 -0.4625" type="box" mass="0" />
+      <geom name="terrain_594" size="0.8 0.4 0.4875" pos="8.7 5.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_595" size="0.4 0.4 0.4625" pos="8.3 6.6 -0.5375" type="box" mass="0" />
+      <geom name="terrain_596" size="0.4 0.4 0.5125" pos="9.1 3.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_597" size="0.4 0.4 0.525" pos="9.1 4.2 -0.475" type="box" mass="0" />
+      <geom name="terrain_598" size="0.4 0.4 0.4875" pos="9.1 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_599" size="0.4 0.4 0.4875" pos="9.1 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_600" size="0.6 0.6 0.537981" pos="7.5 5 -0.462019" type="box" mass="0" />
+      <geom name="terrain_601" size="2.5 0.25 0.5" pos="12.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_602" size="2.5 0.25 0.5" pos="12.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_603" size="0.25 2 0.5" pos="10.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_604" size="0.25 2 0.5" pos="14.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_605" size="0.4 0.4 0.4625" pos="10.9 3.4 -0.5375" type="box" mass="0" />
+      <geom name="terrain_606" size="0.4 0.4 0.5" pos="10.9 4.2 -0.5" type="box" mass="0" />
+      <geom name="terrain_607" size="0.4 0.4 0.4875" pos="10.9 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_608" size="0.4 0.4 0.475" pos="10.9 5.8 -0.525" type="box" mass="0" />
+      <geom name="terrain_609" size="0.4 0.4 0.5125" pos="10.9 6.6 -0.4875" type="box" mass="0" />
+      <geom name="terrain_610" size="0.8 0.4 0.5375" pos="12.1 3.4 -0.4625" type="box" mass="0" />
+      <geom name="terrain_611" size="0.4 0.4 0.525" pos="11.7 4.2 -0.475" type="box" mass="0" />
+      <geom name="terrain_612" size="0.4 0.4 0.475" pos="11.7 5 -0.525" type="box" mass="0" />
+      <geom name="terrain_613" size="0.4 0.4 0.5375" pos="11.7 5.8 -0.4625" type="box" mass="0" />
+      <geom name="terrain_614" size="0.4 0.4 0.4875" pos="11.7 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_615" size="0.4 0.4 0.4625" pos="12.5 4.2 -0.5375" type="box" mass="0" />
+      <geom name="terrain_616" size="0.4 0.4 0.5375" pos="12.5 5 -0.4625" type="box" mass="0" />
+      <geom name="terrain_617" size="0.4 0.4 0.4625" pos="12.5 5.8 -0.5375" type="box" mass="0" />
+      <geom name="terrain_618" size="0.4 0.4 0.525" pos="12.5 6.6 -0.475" type="box" mass="0" />
+      <geom name="terrain_619" size="0.4 0.4 0.5125" pos="13.3 3.4 -0.4875" type="box" mass="0" />
+      <geom name="terrain_620" size="0.4 0.4 0.525" pos="13.3 4.2 -0.475" type="box" mass="0" />
+      <geom name="terrain_621" size="0.4 0.4 0.475" pos="13.3 5 -0.525" type="box" mass="0" />
+      <geom name="terrain_622" size="0.8 0.4 0.525" pos="13.7 5.8 -0.475" type="box" mass="0" />
+      <geom name="terrain_623" size="0.8 0.4 0.5" pos="13.7 6.6 -0.5" type="box" mass="0" />
+      <geom name="terrain_624" size="0.4 0.8 0.4625" pos="14.1 3.8 -0.5375" type="box" mass="0" />
+      <geom name="terrain_625" size="0.4 0.4 0.4875" pos="14.1 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_626" size="0.6 0.6 0.540589" pos="12.5 5 -0.459411" type="box" mass="0" />
+      <geom name="terrain_627" size="2.5 0.25 0.5" pos="17.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_628" size="2.5 0.25 0.5" pos="17.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_629" size="0.25 2 0.5" pos="15.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_630" size="0.25 2 0.5" pos="19.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_631" size="0.4 0.4 0.5" pos="15.9 3.4 -0.5" type="box" mass="0" />
+      <geom name="terrain_632" size="0.4 0.8 0.4875" pos="15.9 4.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_633" size="0.4 0.4 0.475" pos="15.9 5.8 -0.525" type="box" mass="0" />
+      <geom name="terrain_634" size="0.4 0.4 0.4875" pos="15.9 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_635" size="0.4 0.4 0.475" pos="16.7 3.4 -0.525" type="box" mass="0" />
+      <geom name="terrain_636" size="0.4 0.4 0.5125" pos="16.7 4.2 -0.4875" type="box" mass="0" />
+      <geom name="terrain_637" size="0.4 0.4 0.4875" pos="16.7 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_638" size="0.8 0.4 0.4625" pos="17.1 5.8 -0.5375" type="box" mass="0" />
+      <geom name="terrain_639" size="0.4 0.4 0.475" pos="16.7 6.6 -0.525" type="box" mass="0" />
+      <geom name="terrain_640" size="0.4 0.4 0.5" pos="17.5 3.4 -0.5" type="box" mass="0" />
+      <geom name="terrain_641" size="0.4 0.4 0.475" pos="17.5 4.2 -0.525" type="box" mass="0" />
+      <geom name="terrain_642" size="0.4 0.4 0.5375" pos="17.5 5 -0.4625" type="box" mass="0" />
+      <geom name="terrain_643" size="0.4 0.4 0.5125" pos="17.5 6.6 -0.4875" type="box" mass="0" />
+      <geom name="terrain_644" size="0.4 0.8 0.5375" pos="18.3 3.8 -0.4625" type="box" mass="0" />
+      <geom name="terrain_645" size="0.4 0.4 0.5" pos="18.3 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_646" size="0.4 0.4 0.4875" pos="18.3 5.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_647" size="0.4 0.4 0.4625" pos="18.3 6.6 -0.5375" type="box" mass="0" />
+      <geom name="terrain_648" size="0.4 0.4 0.5" pos="19.1 3.4 -0.5" type="box" mass="0" />
+      <geom name="terrain_649" size="0.4 0.4 0.5125" pos="19.1 4.2 -0.4875" type="box" mass="0" />
+      <geom name="terrain_650" size="0.4 0.4 0.4875" pos="19.1 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_651" size="0.4 0.4 0.475" pos="19.1 5.8 -0.525" type="box" mass="0" />
+      <geom name="terrain_652" size="0.4 0.4 0.5" pos="19.1 6.6 -0.5" type="box" mass="0" />
+      <geom name="terrain_653" size="0.6 0.6 0.543959" pos="17.5 5 -0.456041" type="box" mass="0" />
+      <geom name="terrain_654" size="2.5 0.25 0.5" pos="22.5 7.25 -0.5" type="box" mass="0" />
+      <geom name="terrain_655" size="2.5 0.25 0.5" pos="22.5 2.75 -0.5" type="box" mass="0" />
+      <geom name="terrain_656" size="0.25 2 0.5" pos="20.25 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_657" size="0.25 2 0.5" pos="24.75 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_658" size="0.4 0.8 0.5" pos="20.9 3.8 -0.5" type="box" mass="0" />
+      <geom name="terrain_659" size="0.4 0.4 0.55" pos="20.9 5 -0.45" type="box" mass="0" />
+      <geom name="terrain_660" size="0.4 0.4 0.4625" pos="20.9 5.8 -0.5375" type="box" mass="0" />
+      <geom name="terrain_661" size="0.4 0.4 0.5125" pos="20.9 6.6 -0.4875" type="box" mass="0" />
+      <geom name="terrain_662" size="0.4 0.4 0.475" pos="21.7 3.4 -0.525" type="box" mass="0" />
+      <geom name="terrain_663" size="0.4 0.4 0.4875" pos="21.7 4.2 -0.5125" type="box" mass="0" />
+      <geom name="terrain_664" size="0.4 0.4 0.525" pos="21.7 5 -0.475" type="box" mass="0" />
+      <geom name="terrain_665" size="0.4 0.4 0.5" pos="21.7 5.8 -0.5" type="box" mass="0" />
+      <geom name="terrain_666" size="0.8 0.4 0.4875" pos="22.1 6.6 -0.5125" type="box" mass="0" />
+      <geom name="terrain_667" size="0.4 0.8 0.5375" pos="22.5 3.8 -0.4625" type="box" mass="0" />
+      <geom name="terrain_668" size="0.4 0.4 0.4875" pos="22.5 5 -0.5125" type="box" mass="0" />
+      <geom name="terrain_669" size="0.4 0.4 0.4625" pos="22.5 5.8 -0.5375" type="box" mass="0" />
+      <geom name="terrain_670" size="0.4 0.4 0.475" pos="23.3 3.4 -0.525" type="box" mass="0" />
+      <geom name="terrain_671" size="0.4 0.4 0.525" pos="23.3 4.2 -0.475" type="box" mass="0" />
+      <geom name="terrain_672" size="0.4 0.4 0.5125" pos="23.3 5 -0.4875" type="box" mass="0" />
+      <geom name="terrain_673" size="0.4 0.4 0.5" pos="23.3 5.8 -0.5" type="box" mass="0" />
+      <geom name="terrain_674" size="0.4 0.4 0.45" pos="23.3 6.6 -0.55" type="box" mass="0" />
+      <geom name="terrain_675" size="0.4 0.4 0.55" pos="24.1 3.4 -0.45" type="box" mass="0" />
+      <geom name="terrain_676" size="0.4 0.4 0.45" pos="24.1 4.2 -0.55" type="box" mass="0" />
+      <geom name="terrain_677" size="0.4 0.4 0.5" pos="24.1 5 -0.5" type="box" mass="0" />
+      <geom name="terrain_678" size="0.4 0.4 0.4875" pos="24.1 5.8 -0.5125" type="box" mass="0" />
+      <geom name="terrain_679" size="0.4 0.4 0.475" pos="24.1 6.6 -0.525" type="box" mass="0" />
+      <geom name="terrain_680" size="0.6 0.6 0.547068" pos="22.5 5 -0.452932" type="box" mass="0" />
+      <geom name="terrain_681" pos="-22.5 10 -0.02" type="hfield" mass="0" hfield="terrain_hfield_010" />
+      <geom name="terrain_682" pos="-17.5 10 -0.035" type="hfield" mass="0" hfield="terrain_hfield_011" />
+      <geom name="terrain_683" pos="-12.5 10 -0.065" type="hfield" mass="0" hfield="terrain_hfield_012" />
+      <geom name="terrain_684" pos="-7.5 10 -0.085" type="hfield" mass="0" hfield="terrain_hfield_013" />
+      <geom name="terrain_685" pos="-2.5 10 -0.11" type="hfield" mass="0" hfield="terrain_hfield_014" />
+      <geom name="terrain_686" pos="2.5 10 -0.155" type="hfield" mass="0" hfield="terrain_hfield_015" />
+      <geom name="terrain_687" pos="7.5 10 -0.165" type="hfield" mass="0" hfield="terrain_hfield_016" />
+      <geom name="terrain_688" pos="12.5 10 -0.19" type="hfield" mass="0" hfield="terrain_hfield_017" />
+      <geom name="terrain_689" pos="17.5 10 -0.23" type="hfield" mass="0" hfield="terrain_hfield_018" />
+      <geom name="terrain_690" pos="22.5 10 -0.245" type="hfield" mass="0" hfield="terrain_hfield_019" />
+      <geom name="terrain_691" pos="-22.5 15 -0.055" type="hfield" mass="0" hfield="terrain_hfield_020" />
+      <geom name="terrain_692" pos="-17.5 15 -0.065" type="hfield" mass="0" hfield="terrain_hfield_021" />
+      <geom name="terrain_693" pos="-12.5 15 -0.07" type="hfield" mass="0" hfield="terrain_hfield_022" />
+      <geom name="terrain_694" pos="-7.5 15 -0.085" type="hfield" mass="0" hfield="terrain_hfield_023" />
+      <geom name="terrain_695" pos="-2.5 15 -0.09" type="hfield" mass="0" hfield="terrain_hfield_024" />
+      <geom name="terrain_696" pos="2.5 15 -0.1" type="hfield" mass="0" hfield="terrain_hfield_025" />
+      <geom name="terrain_697" pos="7.5 15 -0.115" type="hfield" mass="0" hfield="terrain_hfield_026" />
+      <geom name="terrain_698" pos="12.5 15 -0.12" type="hfield" mass="0" hfield="terrain_hfield_027" />
+      <geom name="terrain_699" pos="17.5 15 -0.135" type="hfield" mass="0" hfield="terrain_hfield_028" />
+      <geom name="terrain_700" pos="22.5 15 -0.145" type="hfield" mass="0" hfield="terrain_hfield_029" />
+      <geom name="terrain_701" size="37 6 0.5" pos="0 23.5 -0.5" type="box" mass="0" rgba="0.2 0.2 0.2 1" />
+      <geom name="terrain_702" size="37 6 0.5" pos="0 -23.5 -0.5" type="box" mass="0" rgba="0.2 0.2 0.2 1" />
+      <geom name="terrain_703" size="6 17.5 0.5" pos="-31 0 -0.5" type="box" mass="0" rgba="0.2 0.2 0.2 1" />
+      <geom name="terrain_704" size="6 17.5 0.5" pos="31 0 -0.5" type="box" mass="0" rgba="0.2 0.2 0.2 1" />
+      <geom name="g1depth_guard_tile_000_geom_000" pos="-32.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_030" />
+      <geom name="g1depth_guard_tile_001_geom_000" pos="-32.5 -20 -0.015" type="hfield" mass="0" hfield="terrain_hfield_031" />
+      <geom name="g1depth_guard_tile_002_geom_000" pos="-32.5 -15 0" type="hfield" mass="0" hfield="terrain_hfield_032" />
+      <geom name="g1depth_guard_tile_003_geom_000" pos="-32.5 -10 -0.03" type="hfield" mass="0" hfield="terrain_hfield_033" />
+      <geom name="g1depth_guard_tile_004_geom_000" pos="-32.5 -5 0" type="hfield" mass="0" hfield="terrain_hfield_034" />
+      <geom name="g1depth_guard_tile_005_geom_000" pos="-32.5 0 -0.055" type="hfield" mass="0" hfield="terrain_hfield_035" />
+      <geom name="g1depth_guard_tile_006_geom_000" pos="-32.5 5 0" type="hfield" mass="0" hfield="terrain_hfield_036" />
+      <geom name="g1depth_guard_tile_007_geom_000" pos="-32.5 10 -0.075" type="hfield" mass="0" hfield="terrain_hfield_037" />
+      <geom name="g1depth_guard_tile_008_geom_000" pos="-32.5 15 0" type="hfield" mass="0" hfield="terrain_hfield_038" />
+      <geom name="g1depth_guard_tile_009_geom_000" pos="-32.5 20 -0.09" type="hfield" mass="0" hfield="terrain_hfield_039" />
+      <geom name="g1depth_guard_tile_010_geom_000" pos="-32.5 25 0" type="hfield" mass="0" hfield="terrain_hfield_040" />
+      <geom name="g1depth_guard_tile_011_geom_000" pos="-27.5 -25 -0.015" type="hfield" mass="0" hfield="terrain_hfield_041" />
+      <geom name="g1depth_guard_tile_012_geom_000" pos="-27.5 -20 0" type="hfield" mass="0" hfield="terrain_hfield_042" />
+      <geom name="g1depth_guard_tile_013_geom_000" pos="-27.5 -15 -0.03" type="hfield" mass="0" hfield="terrain_hfield_043" />
+      <geom name="g1depth_guard_tile_014_geom_000" pos="-27.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_044" />
+      <geom name="g1depth_guard_tile_015_geom_000" pos="-27.5 -5 -0.055" type="hfield" mass="0" hfield="terrain_hfield_045" />
+      <geom name="g1depth_guard_tile_016_geom_000" pos="-27.5 0 0" type="hfield" mass="0" hfield="terrain_hfield_046" />
+      <geom name="g1depth_guard_tile_017_geom_000" pos="-27.5 5 -0.075" type="hfield" mass="0" hfield="terrain_hfield_047" />
+      <geom name="g1depth_guard_tile_018_geom_000" pos="-27.5 10 0" type="hfield" mass="0" hfield="terrain_hfield_048" />
+      <geom name="g1depth_guard_tile_019_geom_000" pos="-27.5 15 -0.09" type="hfield" mass="0" hfield="terrain_hfield_049" />
+      <geom name="g1depth_guard_tile_020_geom_000" pos="-27.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_050" />
+      <geom name="g1depth_guard_tile_021_geom_000" pos="-27.5 25 -0.015" type="hfield" mass="0" hfield="terrain_hfield_051" />
+      <geom name="g1depth_guard_tile_022_geom_000" pos="-22.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_052" />
+      <geom name="g1depth_guard_tile_023_geom_000" pos="-22.5 -20 -0.03" type="hfield" mass="0" hfield="terrain_hfield_053" />
+      <geom name="g1depth_guard_tile_024_geom_000" pos="-22.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_054" />
+      <geom name="g1depth_guard_tile_025_geom_000" pos="-22.5 25 -0.055" type="hfield" mass="0" hfield="terrain_hfield_055" />
+      <geom name="g1depth_guard_tile_026_geom_000" pos="-17.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_056" />
+      <geom name="g1depth_guard_tile_027_geom_000" pos="-17.5 -20 -0.075" type="hfield" mass="0" hfield="terrain_hfield_057" />
+      <geom name="g1depth_guard_tile_028_geom_000" pos="-17.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_058" />
+      <geom name="g1depth_guard_tile_029_geom_000" pos="-17.5 25 -0.09" type="hfield" mass="0" hfield="terrain_hfield_059" />
+      <geom name="g1depth_guard_tile_030_geom_000" pos="-12.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_060" />
+      <geom name="g1depth_guard_tile_031_geom_000" pos="-12.5 -20 -0.015" type="hfield" mass="0" hfield="terrain_hfield_061" />
+      <geom name="g1depth_guard_tile_032_geom_000" pos="-12.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_062" />
+      <geom name="g1depth_guard_tile_033_geom_000" pos="-12.5 25 -0.03" type="hfield" mass="0" hfield="terrain_hfield_063" />
+      <geom name="g1depth_guard_tile_034_geom_000" pos="-7.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_064" />
+      <geom name="g1depth_guard_tile_035_geom_000" pos="-7.5 -20 -0.055" type="hfield" mass="0" hfield="terrain_hfield_065" />
+      <geom name="g1depth_guard_tile_036_geom_000" pos="-7.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_066" />
+      <geom name="g1depth_guard_tile_037_geom_000" pos="-7.5 25 -0.075" type="hfield" mass="0" hfield="terrain_hfield_067" />
+      <geom name="g1depth_guard_tile_038_geom_000" pos="-2.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_068" />
+      <geom name="g1depth_guard_tile_039_geom_000" pos="-2.5 -20 -0.09" type="hfield" mass="0" hfield="terrain_hfield_069" />
+      <geom name="g1depth_guard_tile_040_geom_000" pos="-2.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_070" />
+      <geom name="g1depth_guard_tile_041_geom_000" pos="-2.5 25 -0.015" type="hfield" mass="0" hfield="terrain_hfield_071" />
+      <geom name="g1depth_guard_tile_042_geom_000" pos="2.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_072" />
+      <geom name="g1depth_guard_tile_043_geom_000" pos="2.5 -20 -0.03" type="hfield" mass="0" hfield="terrain_hfield_073" />
+      <geom name="g1depth_guard_tile_044_geom_000" pos="2.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_074" />
+      <geom name="g1depth_guard_tile_045_geom_000" pos="2.5 25 -0.055" type="hfield" mass="0" hfield="terrain_hfield_075" />
+      <geom name="g1depth_guard_tile_046_geom_000" pos="7.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_076" />
+      <geom name="g1depth_guard_tile_047_geom_000" pos="7.5 -20 -0.075" type="hfield" mass="0" hfield="terrain_hfield_077" />
+      <geom name="g1depth_guard_tile_048_geom_000" pos="7.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_078" />
+      <geom name="g1depth_guard_tile_049_geom_000" pos="7.5 25 -0.09" type="hfield" mass="0" hfield="terrain_hfield_079" />
+      <geom name="g1depth_guard_tile_050_geom_000" pos="12.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_080" />
+      <geom name="g1depth_guard_tile_051_geom_000" pos="12.5 -20 -0.015" type="hfield" mass="0" hfield="terrain_hfield_081" />
+      <geom name="g1depth_guard_tile_052_geom_000" pos="12.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_082" />
+      <geom name="g1depth_guard_tile_053_geom_000" pos="12.5 25 -0.03" type="hfield" mass="0" hfield="terrain_hfield_083" />
+      <geom name="g1depth_guard_tile_054_geom_000" pos="17.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_084" />
+      <geom name="g1depth_guard_tile_055_geom_000" pos="17.5 -20 -0.055" type="hfield" mass="0" hfield="terrain_hfield_085" />
+      <geom name="g1depth_guard_tile_056_geom_000" pos="17.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_086" />
+      <geom name="g1depth_guard_tile_057_geom_000" pos="17.5 25 -0.075" type="hfield" mass="0" hfield="terrain_hfield_087" />
+      <geom name="g1depth_guard_tile_058_geom_000" pos="22.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_088" />
+      <geom name="g1depth_guard_tile_059_geom_000" pos="22.5 -20 -0.09" type="hfield" mass="0" hfield="terrain_hfield_089" />
+      <geom name="g1depth_guard_tile_060_geom_000" pos="22.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_090" />
+      <geom name="g1depth_guard_tile_061_geom_000" pos="22.5 25 -0.015" type="hfield" mass="0" hfield="terrain_hfield_091" />
+      <geom name="g1depth_guard_tile_062_geom_000" pos="27.5 -25 0" type="hfield" mass="0" hfield="terrain_hfield_092" />
+      <geom name="g1depth_guard_tile_063_geom_000" pos="27.5 -20 -0.03" type="hfield" mass="0" hfield="terrain_hfield_093" />
+      <geom name="g1depth_guard_tile_064_geom_000" pos="27.5 -15 0" type="hfield" mass="0" hfield="terrain_hfield_094" />
+      <geom name="g1depth_guard_tile_065_geom_000" pos="27.5 -10 -0.055" type="hfield" mass="0" hfield="terrain_hfield_095" />
+      <geom name="g1depth_guard_tile_066_geom_000" pos="27.5 -5 0" type="hfield" mass="0" hfield="terrain_hfield_096" />
+      <geom name="g1depth_guard_tile_067_geom_000" pos="27.5 0 -0.075" type="hfield" mass="0" hfield="terrain_hfield_097" />
+      <geom name="g1depth_guard_tile_068_geom_000" pos="27.5 5 0" type="hfield" mass="0" hfield="terrain_hfield_098" />
+      <geom name="g1depth_guard_tile_069_geom_000" pos="27.5 10 -0.09" type="hfield" mass="0" hfield="terrain_hfield_099" />
+      <geom name="g1depth_guard_tile_070_geom_000" pos="27.5 15 0" type="hfield" mass="0" hfield="terrain_hfield_100" />
+      <geom name="g1depth_guard_tile_071_geom_000" pos="27.5 20 -0.015" type="hfield" mass="0" hfield="terrain_hfield_101" />
+      <geom name="g1depth_guard_tile_072_geom_000" pos="27.5 25 0" type="hfield" mass="0" hfield="terrain_hfield_102" />
+      <geom name="g1depth_guard_tile_073_geom_000" pos="32.5 -25 -0.03" type="hfield" mass="0" hfield="terrain_hfield_103" />
+      <geom name="g1depth_guard_tile_074_geom_000" pos="32.5 -20 0" type="hfield" mass="0" hfield="terrain_hfield_104" />
+      <geom name="g1depth_guard_tile_075_geom_000" pos="32.5 -15 -0.055" type="hfield" mass="0" hfield="terrain_hfield_105" />
+      <geom name="g1depth_guard_tile_076_geom_000" pos="32.5 -10 0" type="hfield" mass="0" hfield="terrain_hfield_106" />
+      <geom name="g1depth_guard_tile_077_geom_000" pos="32.5 -5 -0.075" type="hfield" mass="0" hfield="terrain_hfield_107" />
+      <geom name="g1depth_guard_tile_078_geom_000" pos="32.5 0 0" type="hfield" mass="0" hfield="terrain_hfield_108" />
+      <geom name="g1depth_guard_tile_079_geom_000" pos="32.5 5 -0.09" type="hfield" mass="0" hfield="terrain_hfield_109" />
+      <geom name="g1depth_guard_tile_080_geom_000" pos="32.5 10 0" type="hfield" mass="0" hfield="terrain_hfield_110" />
+      <geom name="g1depth_guard_tile_081_geom_000" pos="32.5 15 -0.015" type="hfield" mass="0" hfield="terrain_hfield_111" />
+      <geom name="g1depth_guard_tile_082_geom_000" pos="32.5 20 0" type="hfield" mass="0" hfield="terrain_hfield_112" />
+      <geom name="g1depth_guard_tile_083_geom_000" pos="32.5 25 -0.03" type="hfield" mass="0" hfield="terrain_hfield_113" />
+      <geom name="rp1_outer_wall_x_negative" size="0.025 29.55 2.5" pos="-37.025 0 2.5" type="box" />
+      <geom name="rp1_outer_wall_x_positive" size="0.025 29.55 2.5" pos="37.025 0 2.5" type="box" />
+      <geom name="rp1_outer_wall_y_negative" size="37 0.025 2.5" pos="0 -29.525 2.5" type="box" />
+      <geom name="rp1_outer_wall_y_positive" size="37 0.025 2.5" pos="0 29.525 2.5" type="box" />
+    </body>
+  </worldbody>
+</mujoco>
