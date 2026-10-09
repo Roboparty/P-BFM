@@ -51,6 +51,9 @@ h3 { font-size: 18px; line-height: 1.4; font-weight: 600; }
 .research-overview { display: grid; grid-template-columns: .85fr 1.4fr; align-items: center; gap: 46px; padding-top: 72px; padding-bottom: 60px; }
 .overview-copy>p:not(.eyebrow) { font-size: 16px; color: var(--muted); margin-top: 18px; }
 .overview-copy strong { color: var(--ink); font-weight: 600; }
+.training-note { margin-top: 22px; padding: 14px 18px; border-left: 3px solid var(--accent); background: #f0f6f3; }
+.training-note strong { display: block; font-size: 17px; line-height: 1.45; }
+.training-note p { margin-top: 8px; color: var(--muted); font-size: 14px; }
 .text-link { display: inline-block; color: var(--accent); border-bottom: 1px solid #8bb8ac; font-size: 14px; font-weight: 600; margin-top: 22px; }
 .overview-film { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; box-shadow: 0 10px 36px #102d3210; }
 .interactive-entry { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding-top: 0; padding-bottom: 56px; }
@@ -79,10 +82,20 @@ figure img { display: block; width: 100%; }
 figure figcaption { font-size: 13px; color: var(--muted); margin-top: 13px; }
 .demo-band { background: var(--surface); border-block: 1px solid var(--line); padding-bottom: 20px; }
 .demo-nav { position: sticky; top: 0; z-index: 5; background: #f3f7f7f5; backdrop-filter: blur(12px); border-bottom: 1px solid var(--line); }
-.demo-nav nav { display: flex; justify-content: center; gap: 38px; padding: 18px 24px; font-size: 14px; }
+.demo-nav nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 30px; padding: 18px 24px; font-size: 14px; }
 .demo { padding-top: 45px; padding-bottom: 30px; }
 .clips { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 .clip { background: #fff; border: 1px solid var(--line); border-radius: 9px; overflow: hidden; }
+.labeled-clip { position: relative; }
+.clip-label { position: absolute; top: 12px; left: 12px; right: 12px; width: fit-content; padding: 5px 10px; border-radius: 5px; color: white; background: #132c2de6; font-size: 12px; pointer-events: none; }
+.input-example { display: grid; grid-template-columns: .9fr 1.1fr; align-items: center; gap: 28px; padding: 22px; margin-bottom: 24px; border: 1px solid var(--line); border-radius: 9px; background: white; }
+.input-copy .eyebrow { margin-bottom: 7px; }
+.input-copy>p:not(.eyebrow) { margin-top: 10px; color: var(--muted); font-size: 14px; }
+.input-copy strong { font-weight: 600; color: var(--ink); }
+.target-examples { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.target-examples img { border-radius: 5px; }
+.target-examples figcaption { margin-top: 7px; text-align: center; font-size: 13px; }
+.tracking-example video { width: min(100%, 280px); justify-self: center; aspect-ratio: 4 / 3; border-radius: 6px; }
 .gallery-title { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
 .clip-count { font-size: 12px; color: var(--muted); background: #e5edeb; border-radius: 20px; padding: 3px 10px; white-space: nowrap; }
 .more-clips { margin-top: 18px; }
@@ -130,6 +143,8 @@ footer { max-width: 1088px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   .section-heading { display: block; }
   .section-heading>p { margin-top: 14px; max-width: 600px; }
   .section-heading>.demo-context { margin-top: 14px; max-width: 600px; }
+  .input-example { grid-template-columns: 1fr; gap: 20px; }
+  .target-examples { max-width: 520px; width: 100%; justify-self: center; }
   .reward { width: calc(100% - 56px); grid-template-columns: 1fr; padding: 28px; }
   .method-points { gap: 22px; }
   footer { margin-inline: 28px; }
@@ -162,6 +177,10 @@ footer { max-width: 1088px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   .adaptation h2 { font-size: 27px; }
   .demo-nav nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; padding: 12px 20px; font-size: 14px; }
   .demo-nav a { text-align: center; }
+  .demo-nav a:first-child { grid-column: 1 / -1; }
+  .input-example { padding: 18px; }
+  .target-examples { gap: 8px; }
+  .clip-label { top: 8px; left: 8px; right: 8px; font-size: 11px; }
   .clips { grid-template-columns: 1fr; gap: 20px; }
   .demo { padding-top: 34px; padding-bottom: 22px; }
   .reward { width: calc(100% - 40px); padding: 22px; gap: 22px; margin-block: 22px; }
