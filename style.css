@@ -57,6 +57,9 @@ h3 { font-size: 18px; line-height: 1.4; font-weight: 600; }
 .interactive-entry h2 { font-size: 26px; }
 .interactive-entry p:not(.eyebrow) { max-width: 620px; margin-top: 12px; color: var(--muted); font-size: 15px; }
 .interactive-entry .button { flex-shrink: 0; }
+.abstract-section { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 44px; border-top: 1px solid var(--line); padding-top: 44px; padding-bottom: 60px; }
+.abstract-copy { max-width: 76ch; color: var(--muted); font-size: 16px; line-height: 1.85; }
+.abstract-copy p + p { margin-top: 18px; }
 .adaptation { padding-top: 22px; padding-bottom: 60px; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 35px; margin-bottom: 25px; }
 .section-heading>p { max-width: 365px; color: var(--muted); font-size: 15px; }
@@ -122,6 +125,7 @@ footer { max-width: 1088px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   .overview-copy { max-width: 630px; }
   .overview-copy h2 br { display: none; }
   .interactive-entry { flex-direction: column; align-items: flex-start; gap: 20px; }
+  .abstract-section { grid-template-columns: 1fr; gap: 24px; }
   .hero { min-height: 560px; padding-inline: 28px; }
   .section-heading { display: block; }
   .section-heading>p { margin-top: 14px; max-width: 600px; }
@@ -131,8 +135,8 @@ footer { max-width: 1088px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   footer { margin-inline: 28px; }
 }
 @media (max-width: 560px) {
-  .nav { padding: 16px 20px; gap: 12px; }
-  .nav nav { gap: 15px; font-size: 14px; }
+  .nav { padding: 16px 20px; gap: 12px; flex-wrap: wrap; }
+  .nav nav { flex-basis: 100%; justify-content: space-between; gap: 15px; font-size: 14px; }
   .nav-paper { display: none; }
   .wordmark { font-size: 22px; }
   .hero { padding: 40px 22px 65px; min-height: 570px; }
@@ -146,6 +150,7 @@ footer { max-width: 1088px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   .background-toggle { right: 20px; bottom: 16px; }
   .content,.demo { padding-inline: 20px; }
   .research-overview { padding-block: 40px; }
+  .abstract-section { padding-block: 36px 40px; gap: 20px; }
   .overview-copy h2 { font-size: 32px; }
   .overview-copy>p:not(.eyebrow) { margin-top: 15px; }
   .adaptation { padding-top: 0; padding-bottom: 40px; }
