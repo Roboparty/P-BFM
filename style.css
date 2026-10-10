@@ -67,6 +67,8 @@ h3 { font-size: 22px; line-height: 1.4; font-weight: 600; }
 .abstract-section h2 { text-align: center; margin-bottom: 28px; }
 .abstract-copy { width: 100%; color: var(--ink); font-size: 22px; line-height: 1.75; }
 .abstract-copy p + p { margin-top: 24px; }
+.abstract-copy strong { color: var(--accent); font-weight: 600; }
+.abstract-copy .highlight-orange { color: #ad481b; }
 .adaptation { padding-top: 22px; padding-bottom: 60px; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 35px; margin-bottom: 25px; }
 .section-heading>p { max-width: 440px; color: var(--muted); font-size: var(--text-body); }
