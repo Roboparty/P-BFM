@@ -31,24 +31,6 @@ for (const gallery of document.querySelectorAll('.more-clips')) {
   });
 }
 
-const comparison = document.querySelector('#comparison-video');
-for (const button of document.querySelectorAll('[data-comparison]')) {
-  button.addEventListener('click', () => {
-    if (button.getAttribute('aria-pressed') === 'true') return;
-    const terrain = button.dataset.comparison;
-    const label = terrain === 'stairs' ? 'Stairs' : 'Box obstacles';
-    comparison.pause();
-    comparison.src = `pbfm_site_media/adaptation-${terrain}.mp4`;
-    comparison.poster = `posters/adaptation-${terrain}.jpg`;
-    comparison.setAttribute('aria-label', `Matched reference motion on the left and P-BFM execution on ${label.toLowerCase()} on the right`);
-    comparison.load();
-    document.querySelector('#comparison-terrain').textContent = label;
-    for (const option of document.querySelectorAll('[data-comparison]')) {
-      option.setAttribute('aria-pressed', String(option === button));
-    }
-  });
-}
-
 // Page UV keeps P-BFM separate from other projects on roboparty.github.io.
 // Local previews do not load the counter; unavailable counts remain a dash.
 if (location.hostname === 'roboparty.github.io' && location.pathname.startsWith('/P-BFM/')) {

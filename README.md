@@ -22,7 +22,7 @@ The counter loads only on the public P-BFM site, not local previews. A dash rema
 
 ## Interactive policy
 
-Open https://roboparty.github.io/P-BFM/interactive/ or use **Try interactive demo** on
+Open https://roboparty.github.io/P-BFM/interactive/ or use **Try the policy** on
 the homepage. The model is downloaded only after **Load interactive policy**.
 Tracking includes one complete LaFAN recording from each of eight motion families,
 lasting approximately 2–4.5 minutes. Lossless compressed schedules load only when
@@ -37,6 +37,6 @@ individual parts or mix them between builds. Publish the complete static build
 to `interactive/` together with its `pbfm/config.json`. Paper and source-code
 release buttons remain disabled pending their respective releases.
 
-## Research overview
+## Page layout
 
-The homepage includes a 2:06 overview film, paired reference/policy recordings on stairs and boxes, and two SOMA simulation metrics with baselines and evaluation context. These videos use the same A417 reference and frozen checkpoint; they are individual rollouts, not success-rate measurements. Hardware target-pose illustrations remain explicitly unpaired examples. The full abstract follows the method.
+The previous homepage layout is restored. The complete abstract follows Method, immediately before the footer.
