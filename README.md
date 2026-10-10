@@ -39,4 +39,4 @@ release buttons remain disabled pending their respective releases.
 
 ## Research overview
 
-The homepage includes manuscript authors and affiliations, a 2:06 overview film, paired reference/policy recordings on stairs and boxes, and two SOMA simulation metrics with baselines and evaluation context. These videos use the same A417 reference and frozen checkpoint; they are individual rollouts, not success-rate measurements. Hardware target-pose illustrations remain explicitly unpaired examples. The full abstract follows the method.
+The homepage includes a 2:06 overview film, paired reference/policy recordings on stairs and boxes, and two SOMA simulation metrics with baselines and evaluation context. These videos use the same A417 reference and frozen checkpoint; they are individual rollouts, not success-rate measurements. Hardware target-pose illustrations remain explicitly unpaired examples. The full abstract follows the method.

@@ -43,13 +43,6 @@ h1 small { display: block; font-size: clamp(20px, 1.8vw, 26px); font-weight: 450
 .hero-cost { margin: 14px auto 0; font-size: var(--text-small); color: #e4efeb; text-wrap: balance; }
 .resource-status { margin-top: 9px; font-size: var(--text-small); color: #d0dfdc; }
 .resource-status span { padding: 0 12px; }
-.authors { padding-top: 32px; padding-bottom: 24px; text-align: center; }
-.author-names { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px 20px; font-size: 20px; font-weight: 550; }
-.author-names span { white-space: nowrap; }
-.authors sup { font-size: 14px; }
-.author-affiliations { margin-top: 16px; display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 20px; font-size: var(--text-small); color: var(--muted); }
-.author-notes { margin-top: 12px; font-size: var(--text-small); color: var(--muted); }
-.author-notes a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .hero-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .button { padding: 11px 24px; border: 1px solid #ffffff8a; border-radius: 6px; font-family: inherit; font-size: var(--text-small); font-weight: 600; line-height: inherit; white-space: nowrap; background: #ffffff0d; }
 .button:not(:disabled):hover { background: #b9eddb; border-color: #b9eddb; color: #123c30; }
@@ -201,8 +194,6 @@ footer { max-width: 1184px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   h1 small { font-size: 20px; }
   .hero-description { font-size: var(--text-body); margin-block: 22px; }
   .hero-explanation { font-size: var(--text-body); }
-  .authors { padding-block: 24px; }
-  .author-names { gap: 8px 16px; }
   .result-cards { grid-template-columns: 1fr; gap: 20px; }
   .result-card { padding: 22px; }
   .result-main { font-size: 48px; }
