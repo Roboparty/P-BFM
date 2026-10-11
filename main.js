@@ -15,11 +15,15 @@ toggle.addEventListener('click', () => {
 if (matchMedia('(prefers-reduced-motion: no-preference) and (min-width: 561px)').matches) background.play().catch(updateToggle);
 for (const video of videos) video.addEventListener('play', () => {
   background.pause();
-  for (const other of videos) if (other !== video) other.pause();
+  for (const other of videos) {
+    // Reference and terrain clips can be played side by side.
+    const sameComparison = video.closest('#adaptation') && other.closest('#adaptation');
+    if (other !== video && !sameComparison && !other.paused) other.pause();
+  }
 });
 if ('IntersectionObserver' in window) {
   const observer = new IntersectionObserver(entries => {
-    for (const entry of entries) if (!entry.isIntersecting) entry.target.pause();
+    for (const entry of entries) if (!entry.isIntersecting && !entry.target.paused) entry.target.pause();
   });
   for (const video of [...videos, background]) observer.observe(video);
 }
@@ -27,7 +31,7 @@ if ('IntersectionObserver' in window) {
 // Closing a gallery also stops any media hidden inside it.
 for (const gallery of document.querySelectorAll('.more-clips')) {
   gallery.addEventListener('toggle', () => {
-    if (!gallery.open) for (const video of gallery.querySelectorAll('video')) video.pause();
+    if (!gallery.open) for (const video of gallery.querySelectorAll('video')) if (!video.paused) video.pause();
   });
 }
 
