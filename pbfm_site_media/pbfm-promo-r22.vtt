@@ -1,0 +1,52 @@
+WEBVTT
+
+00:00:00.150 --> 00:00:07.470 line:70% position:50% size:90%
+How can a model trained without terrain-specific
+demonstrations adapt its motion while preserving behavioral
+intent?
+
+00:00:08.364 --> 00:00:12.630 line:70% position:50% size:90%
+P-BFM separates intent from execution.
+
+00:00:12.630 --> 00:00:19.669 line:70% position:50% size:90%
+It learns from forty flat-ground LaFAN motion sequences and
+interaction with simulated terrains.
+
+00:00:20.088 --> 00:00:28.643 line:96% position:50% size:90%
+In simulation, the same reference motion guides behavior
+across stairs, platforms, box obstacles, and slopes.
+
+00:00:30.350 --> 00:00:35.932 line:70% position:50% size:90%
+On the real robot, live human motion supplies the intent for
+teleoperation.
+
+00:00:35.932 --> 00:00:39.418 line:70% position:50% size:90%
+The robot adapts its movements to the surrounding terrain.
+
+00:00:50.250 --> 00:00:55.529 line:70% position:50% size:90%
+Rewards for forward speed and pelvis height specify the
+behavioral intent.
+
+00:00:56.350 --> 00:01:00.853 line:70% position:50% size:90%
+For motion tracking, a reference motion supplies the intent.
+
+00:01:00.853 --> 00:01:06.432 line:70% position:50% size:90%
+Onboard depth perception guides whole-body execution over
+uneven terrain.
+
+00:01:11.100 --> 00:01:16.800 line:70% position:50% size:90%
+Explicit heading and velocity commands help maintain direction
+and forward progress.
+
+00:01:17.350 --> 00:01:25.616 line:70% position:50% size:90%
+For goal reaching, a target body pose specifies the intent,
+without requiring a full motion trajectory.
+
+00:01:35.400 --> 00:01:43.942 line:70% position:50% size:90%
+When pushed or kicked, the robot adjusts its posture and foot
+placement to regain balance and continue the commanded
+behavior.
+
+00:01:52.700 --> 00:01:56.703 line:70% position:50% size:90%
+One frozen policy, from simulation to the real world.
+
