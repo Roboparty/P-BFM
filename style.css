@@ -51,7 +51,8 @@ h1 small { display: block; font-size: clamp(22px, 2vw, 28px); font-weight: 450; 
 .eyebrow { color: var(--accent); font-size: var(--text-caption); font-weight: 700; letter-spacing: .4px; margin-bottom: 12px; }
 h2 { font-size: clamp(34px, 3.4vw, 48px); font-weight: 650; line-height: 1.2; letter-spacing: -1px; text-wrap: balance; }
 h3 { font-size: 26px; line-height: 1.4; font-weight: 600; }
-.research-overview { display: grid; grid-template-columns: 1fr 1.4fr; align-items: center; gap: 46px; padding-top: 72px; padding-bottom: 60px; }
+.research-overview { display: grid; grid-template-columns: 1fr; gap: 32px; padding-top: 72px; padding-bottom: 60px; }
+.overview-copy h2 br { display: none; }
 .overview-copy>p:not(.eyebrow) { font-size: var(--text-body); color: var(--muted); margin-top: 18px; }
 .overview-copy strong { color: var(--ink); font-weight: 600; }
 .training-note { margin-top: 22px; padding: 14px 18px; border-left: 3px solid var(--accent); background: #f0f6f3; }
@@ -149,8 +150,6 @@ footer { max-width: 1184px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   .nav { padding-inline: 28px; }
   .content,.demo { padding-inline: 28px; }
   .research-overview { grid-template-columns: 1fr; gap: 28px; padding-top: 48px; }
-  .overview-copy { max-width: 630px; }
-  .overview-copy h2 br { display: none; }
   .interactive-entry { flex-direction: column; align-items: flex-start; gap: 20px; }
   .hero { min-height: 560px; padding-inline: 28px; }
   .section-heading { display: block; }
