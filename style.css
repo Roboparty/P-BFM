@@ -79,7 +79,11 @@ h3 { font-size: 26px; line-height: 1.4; font-weight: 600; }
 .reward-copy .demo-context { margin-top: 15px; }
 .adaptation h2 { font-size: 34px; }
 .adaptation-note { color: var(--muted); margin-bottom: 20px; font-size: var(--text-small); }
-.adaptation-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; }
+.adaptation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+.adaptation-controls:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 20px; font-size: var(--text-small); }
+.adaptation-controls button { font: inherit; font-weight: 600; color: var(--accent); background: #f0f6f3; border: 1px solid #bfd2cc; border-radius: 6px; padding: 8px 16px; cursor: pointer; }
+.adaptation-controls button:hover { border-color: var(--accent); }
+.adaptation-controls [role="status"] { color: var(--muted); }
 .terrain-clip video { aspect-ratio: 1; }
 .terrain-clip figcaption { margin: 0; padding: 10px 14px; color: var(--ink); font-size: var(--text-body); font-weight: 600; }
 .terrain-reference { border-color: var(--accent); }
