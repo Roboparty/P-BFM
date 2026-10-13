@@ -32,12 +32,12 @@ button, summary { -webkit-tap-highlight-color: transparent; }
 video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: contain; background: #0d151b; }
 .hero-background { object-fit: cover; }
 .hero-overlay { z-index: -1; background: linear-gradient(180deg, #091d29d9 0%, #12282ecd 55%, #11272b80 100%); }
-.hero-title { max-width: 1100px; }
+.hero-title { max-width: 1320px; }
 .hero h1 { text-shadow: 0 2px 20px #07151b55; }
 h1 { font-weight: 650; line-height: 1.23; }
-.acronym { display: block; font-size: clamp(52px, 5.3vw, 76px); letter-spacing: -2.5px; color: #b9eddb; margin-bottom: 17px; }
-.paper-title { display: block; font-size: clamp(32px, 3.4vw, 48px); letter-spacing: -.9px; text-wrap: balance; }
-h1 small { display: block; font-size: clamp(22px, 2vw, 28px); font-weight: 450; line-height: 1.5; margin-top: 12px; text-wrap: balance; }
+.acronym { display: block; font-size: clamp(64px, 6.7vw, 96px); letter-spacing: -2.5px; color: #b9eddb; margin-bottom: 17px; }
+.paper-title { display: block; font-size: clamp(36px, 4.1vw, 58px); letter-spacing: -.9px; text-wrap: balance; }
+h1 small { display: block; font-size: clamp(25px, 2.4vw, 34px); font-weight: 450; line-height: 1.5; margin-top: 12px; text-wrap: balance; }
 .hero-description { max-width: 760px; margin: 26px auto 24px; font-size: var(--text-body); color: #eef8f5; text-wrap: balance; }
 .hero-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .button { padding: 11px 24px; border: 1px solid #ffffff8a; border-radius: 6px; font-family: inherit; font-size: var(--text-small); font-weight: 600; line-height: inherit; white-space: nowrap; background: #ffffff0d; }
@@ -174,9 +174,9 @@ footer { max-width: 1184px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   .wordmark { font-size: 26px; }
   .hero { padding: 40px 22px 65px; min-height: 570px; }
   .hero-background { object-position: 50% center; }
-  .acronym { font-size: 56px; }
-  .paper-title { font-size: 32px; line-height: 1.22; }
-  h1 small { font-size: 22px; }
+  .acronym { font-size: 64px; }
+  .paper-title { font-size: 36px; line-height: 1.22; }
+  h1 small { font-size: 25px; }
   .hero-description { font-size: var(--text-body); margin-block: 22px; }
   .affiliation { width: 200px; margin-top: 24px; }
   .button { padding: 10px 18px; }
