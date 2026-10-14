@@ -3,10 +3,11 @@
 Project website for **Perceptive Behavioral Foundation Models for Humanoid Control via Unsupervised Reinforcement Learning**.
 
 - Website: https://roboparty.github.io/P-BFM/
+- Paper: https://arxiv.org/abs/2610.15833
 - Affiliation: RoboPartyLab
 - Contact: xuewangusst@gmail.com
 
-This branch contains the project webpage, figures, robot demonstration videos, and browser policy demo. The paper will be made available after its arXiv release.
+This branch contains the project webpage, figures, robot demonstration videos, and browser policy demo. The paper is available on arXiv.
 
 ## Update the website
 
@@ -34,8 +35,7 @@ share the same live policy and connected terrain map.
 The policy binary is stored in four same-origin parts below GitHub's file-size
 limit. The browser reassembles it and checks SHA256 before loading. Do not edit
 individual parts or mix them between builds. Publish the complete static build
-to `interactive/` together with its `pbfm/config.json`. Paper and source-code
-release buttons remain disabled pending their respective releases.
+to `interactive/` together with its `pbfm/config.json`. The homepage Paper and Code links open arXiv and the project GitHub repository.
 
 ## Page layout
 
