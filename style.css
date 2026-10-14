@@ -74,11 +74,8 @@ h3 { font-size: 26px; line-height: 1.4; font-weight: 600; }
 .section-heading { display: flex; justify-content: space-between; align-items: end; gap: 35px; margin-bottom: 25px; }
 .section-heading>p { max-width: 440px; color: var(--muted); font-size: var(--text-body); }
 .demo-context { max-width: 440px; color: var(--muted); font-size: var(--text-body); }
-.demo-context p + p { margin-top: 6px; }
-.demo-context strong { color: var(--accent); font-size: inherit; margin-right: 8px; }
 .reward-copy .demo-context { margin-top: 15px; }
 .adaptation h2 { font-size: 34px; }
-.adaptation-note { color: var(--muted); margin-bottom: 20px; font-size: var(--text-small); }
 .adaptation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
 .adaptation-controls:not([hidden]) { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 20px; font-size: var(--text-small); }
 .adaptation-controls button { font: inherit; font-weight: 600; color: var(--accent); background: #f0f6f3; border: 1px solid #bfd2cc; border-radius: 6px; padding: 8px 16px; cursor: pointer; }
@@ -88,15 +85,11 @@ h3 { font-size: 26px; line-height: 1.4; font-weight: 600; }
 .terrain-clip figcaption { margin: 0; padding: 10px 14px; color: var(--ink); font-size: var(--text-body); font-weight: 600; }
 .terrain-reference { border-color: var(--accent); }
 .terrain-reference figcaption { color: var(--accent); background: #f0f6f3; }
-.adaptation-source { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px 24px; margin-top: 20px; color: var(--muted); font-size: var(--text-small); }
-.adaptation-source p { min-width: 0; overflow-wrap: anywhere; }
+.adaptation-source { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px 24px; margin-top: 20px; color: var(--muted); font-size: var(--text-small); }
 .adaptation-source a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .figure-scroll { overflow-x: auto; scrollbar-width: thin; scrollbar-color: #92b3ac #eaf0ee; border-radius: 4px; }
 .figure-scroll img { max-width: none; }
-.figure-actions { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 14px; }
-.figure-actions a { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
-.swipe-hint { display: none; }
-.method-section figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; text-align: left; }
+.method-section figcaption { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; text-align: left; }
 figure img { display: block; width: 100%; }
 figure figcaption { font-size: var(--text-caption); color: var(--muted); margin-top: 13px; }
 .demo-band { background: var(--surface); border-block: 1px solid var(--line); padding-bottom: 20px; }
@@ -108,14 +101,11 @@ figure figcaption { font-size: var(--text-caption); color: var(--muted); margin-
 .labeled-clip { position: relative; }
 .clip-label { position: absolute; top: 12px; left: 12px; right: 12px; width: fit-content; padding: 5px 10px; border-radius: 5px; color: white; background: #132c2de6; font-size: var(--text-caption); pointer-events: none; }
 .input-example { display: grid; grid-template-columns: .9fr 1.1fr; align-items: center; gap: 28px; padding: 22px; margin-bottom: 24px; border: 1px solid var(--line); border-radius: 9px; background: white; }
-.input-copy .eyebrow { margin-bottom: 7px; }
 .input-copy>p:not(.eyebrow) { margin-top: 10px; color: var(--muted); font-size: var(--text-small); }
 .input-copy strong { font-weight: 600; color: var(--ink); }
 .target-examples { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .target-examples img { border-radius: 5px; }
 .target-examples figcaption { margin-top: 7px; text-align: center; font-size: var(--text-caption); }
-.gallery-title { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; }
-.clip-count { font-size: var(--text-caption); color: var(--muted); background: #e5edeb; border-radius: 20px; padding: 3px 10px; white-space: nowrap; }
 .more-clips { margin-top: 18px; }
 .more-clips summary { color: var(--accent); font-size: var(--text-small); font-weight: 600; cursor: pointer; width: fit-content; padding: 10px 16px; min-height: 44px; border: 1px solid #bfd2cc; border-radius: 6px; background: #fff; }
 .more-clips summary:hover { border-color: var(--accent); background: #eef5f2; }
@@ -158,7 +148,6 @@ footer { max-width: 1184px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   .hero { min-height: 560px; padding-inline: 28px; }
   .section-heading { display: block; }
   .section-heading>p { margin-top: 14px; max-width: 600px; }
-  .section-heading>.demo-context { margin-top: 14px; max-width: 600px; }
   .input-example { grid-template-columns: 1fr; gap: 20px; }
   .target-examples { max-width: 520px; width: 100%; justify-self: center; }
   .reward { width: calc(100% - 56px); grid-template-columns: 1fr; padding: 28px; }
@@ -191,7 +180,6 @@ footer { max-width: 1184px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
   .adaptation { padding-top: 0; padding-bottom: 40px; }
   .adaptation-grid { grid-template-columns: 1fr; gap: 20px; }
   .method-section .figure-scroll img { width: 780px; }
-  .swipe-hint { display: inline; }
   .method-section figcaption { font-size: var(--text-caption); }
   .adaptation h2 { font-size: 30px; }
   .demo-nav nav { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; padding: 12px 20px; font-size: var(--text-small); }
