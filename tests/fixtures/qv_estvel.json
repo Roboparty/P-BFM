@@ -1,0 +1,286 @@
+{
+  "agent": {
+    "name": "FBcprAuxAgent",
+    "model": {
+      "name": "FBcprAuxModel",
+      "device": "cuda",
+      "archi": {
+        "name": "FBcprAuxModelArchiConfig",
+        "z_dim": 256,
+        "norm_z": true,
+        "f": {
+          "name": "ForwardArchi",
+          "hidden_dim": 2048,
+          "model": "residual",
+          "hidden_layers": 6,
+          "embedding_layers": 2,
+          "num_parallel": 2,
+          "ensemble_mode": "batch",
+          "input_filter": {
+            "name": "DictInputFilterConfig",
+            "key": [
+              "state",
+              "privileged_state",
+              "last_action",
+              "history_actor",
+              "terrain_priv",
+              "heading",
+              "velocity_command",
+              "velocity_target_yaw"
+            ]
+          }
+        },
+        "b": {
+          "name": "BackwardArchi",
+          "hidden_dim": 256,
+          "hidden_layers": 1,
+          "norm": true,
+          "input_filter": {
+            "name": "DictInputFilterConfig",
+            "key": [
+              "state",
+              "privileged_state"
+            ]
+          }
+        },
+        "actor": {
+          "name": "direct_depth",
+          "model": "residual",
+          "hidden_dim": 2048,
+          "hidden_layers": 6,
+          "embedding_layers": 2,
+          "input_filter": {
+            "name": "DictInputFilterConfig",
+            "key": [
+              "state",
+              "last_action",
+              "history_actor",
+              "heading",
+              "velocity_command"
+            ]
+          },
+          "depth_key": "depth_image",
+          "depth_channels": 8,
+          "depth_height": 36,
+          "depth_width": 32,
+          "depth_latent_dim": 256,
+          "estimated_velocity_enabled": true
+        },
+        "critic": {
+          "name": "ForwardArchi",
+          "hidden_dim": 1024,
+          "model": "residual",
+          "hidden_layers": 4,
+          "embedding_layers": 2,
+          "num_parallel": 2,
+          "ensemble_mode": "batch",
+          "input_filter": {
+            "name": "DictInputFilterConfig",
+            "key": [
+              "state",
+              "privileged_state",
+              "last_action",
+              "history_actor",
+              "terrain_priv",
+              "heading",
+              "velocity_command",
+              "velocity_target_yaw"
+            ]
+          }
+        },
+        "discriminator": {
+          "name": "DiscriminatorArchi",
+          "hidden_dim": 1024,
+          "hidden_layers": 3,
+          "input_filter": {
+            "name": "DictInputFilterConfig",
+            "key": [
+              "state",
+              "privileged_state"
+            ]
+          }
+        },
+        "aux_critic": {
+          "name": "ForwardArchi",
+          "hidden_dim": 2048,
+          "model": "residual",
+          "hidden_layers": 4,
+          "embedding_layers": 2,
+          "num_parallel": 2,
+          "ensemble_mode": "batch",
+          "input_filter": {
+            "name": "DictInputFilterConfig",
+            "key": [
+              "state",
+              "privileged_state",
+              "last_action",
+              "history_actor",
+              "terrain_priv",
+              "heading",
+              "velocity_command",
+              "velocity_target_yaw"
+            ]
+          }
+        },
+        "heading_critic": {
+          "name": "ForwardArchi",
+          "hidden_dim": 1024,
+          "model": "residual",
+          "hidden_layers": 3,
+          "embedding_layers": 2,
+          "num_parallel": 2,
+          "ensemble_mode": "batch",
+          "input_filter": {
+            "name": "DictInputFilterConfig",
+            "key": [
+              "state",
+              "privileged_state",
+              "last_action",
+              "history_actor",
+              "terrain_priv",
+              "heading",
+              "velocity_command",
+              "velocity_target_yaw"
+            ]
+          }
+        },
+        "velocity_critic": {
+          "name": "ForwardArchi",
+          "hidden_dim": 1024,
+          "model": "residual",
+          "hidden_layers": 3,
+          "embedding_layers": 2,
+          "num_parallel": 2,
+          "ensemble_mode": "batch",
+          "input_filter": {
+            "name": "DictInputFilterConfig",
+            "key": [
+              "state",
+              "privileged_state",
+              "last_action",
+              "history_actor",
+              "terrain_priv",
+              "heading",
+              "velocity_command",
+              "velocity_target_yaw"
+            ]
+          }
+        }
+      },
+      "obs_normalizer": {
+        "name": "ObsNormalizerConfig",
+        "normalizers": {
+          "state": {
+            "name": "BatchNormNormalizerConfig",
+            "momentum": 0.01
+          },
+          "privileged_state": {
+            "name": "BatchNormNormalizerConfig",
+            "momentum": 0.01
+          },
+          "last_action": {
+            "name": "BatchNormNormalizerConfig",
+            "momentum": 0.01
+          },
+          "history_actor": {
+            "name": "BatchNormNormalizerConfig",
+            "momentum": 0.01
+          },
+          "terrain_priv": {
+            "name": "BatchNormNormalizerConfig",
+            "momentum": 0.01
+          },
+          "depth_image": {
+            "name": "IdentityNormalizerConfig"
+          },
+          "heading": {
+            "name": "IdentityNormalizerConfig"
+          },
+          "velocity_command": {
+            "name": "IdentityNormalizerConfig"
+          },
+          "velocity_target_yaw": {
+            "name": "IdentityNormalizerConfig"
+          }
+        },
+        "allow_mismatching_keys": true
+      },
+      "inference_batch_size": 500000,
+      "seq_length": 8,
+      "actor_std": 0.05,
+      "amp": false,
+      "norm_aux_reward": {
+        "name": "RewardNormalizer",
+        "translate": false,
+        "scale": true
+      },
+      "heading_context_enabled": true,
+      "heading_critic_enabled": true,
+      "velocity_critic_enabled": true
+    },
+    "train": {
+      "name": "FBcprAuxAgentTrainConfig",
+      "lr_f": 0.0003,
+      "lr_b": 0.00001,
+      "lr_actor": 0.0003,
+      "weight_decay": 0,
+      "clip_grad_norm": 0,
+      "fb_target_tau": 0.01,
+      "ortho_coef": 100,
+      "train_goal_ratio": 0.2,
+      "fb_pessimism_penalty": 0,
+      "actor_pessimism_penalty": 0.5,
+      "stddev_clip": 0.3,
+      "q_loss_coef": 0,
+      "batch_size": 1024,
+      "discount": 0.98,
+      "use_mix_rollout": true,
+      "update_z_every_step": 100,
+      "z_buffer_size": 8192,
+      "rollout_expert_trajectories": true,
+      "rollout_expert_trajectories_length": 250,
+      "rollout_expert_trajectories_percentage": 0.5,
+      "behavior_prior_enabled": true,
+      "lr_discriminator": 0.000005,
+      "lr_critic": 0.0003,
+      "critic_target_tau": 0.005,
+      "critic_pessimism_penalty": 0.5,
+      "reg_coeff": 0.02,
+      "scale_reg": true,
+      "expert_asm_ratio": 0.6,
+      "relabel_ratio": 0.8,
+      "grad_penalty_discriminator": 10,
+      "discriminator_loss": "bce",
+      "discriminator_reward": "log_odds",
+      "weight_decay_discriminator": 0,
+      "lr_aux_critic": 0.0003,
+      "reg_coeff_aux": 0.02,
+      "aux_critic_pessimism_penalty": 0.5,
+      "aux_reward_normalizer_freeze_global_steps": 0,
+      "lr_heading_critic": 0.0003,
+      "reg_coeff_heading": 0.002,
+      "heading_critic_pessimism_penalty": 0.5,
+      "actor_gradient_monitor_every": 1000,
+      "lr_velocity_critic": 0.0003,
+      "reg_coeff_velocity": 0.002,
+      "velocity_error_scale_mps": 0.5,
+      "velocity_estimator_loss_coef": 1
+    },
+    "aux_rewards": [
+      "penalty_action_rate",
+      "limits_dof_pos",
+      "penalty_body_impact",
+      "penalty_slippage",
+      "penalty_ankle_roll"
+    ],
+    "aux_rewards_scaling": {
+      "penalty_action_rate": -0.1,
+      "limits_dof_pos": -10,
+      "penalty_body_impact": -1,
+      "penalty_slippage": -1,
+      "penalty_ankle_roll": -1
+    },
+    "cudagraphs": false,
+    "compile": false
+  }
+}

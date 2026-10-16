@@ -1,0 +1,45 @@
+{
+  "depth_convention": "optical_top_down_v1",
+  "source_shape": [
+    36,
+    64
+  ],
+  "crop": [
+    18,
+    0,
+    16,
+    16
+  ],
+  "output_shape": [
+    18,
+    32
+  ],
+  "sampled_ages": [
+    35,
+    30,
+    25,
+    20,
+    15,
+    10,
+    5,
+    0
+  ],
+  "processing_profile": "optical_z_maxcrop18_reset_v2",
+  "depth_quantity": "optical_z",
+  "invalid_depth_m": 2.5,
+  "clipping": "max",
+  "gaussian_sigma": 1.0,
+  "image_randomization": false,
+  "installation_resample": "reset",
+  "position_error_m": 0.01,
+  "rpy_error_deg": [
+    2.0,
+    10.0,
+    2.0
+  ],
+  "installation_frame": "camera_link",
+  "delay_frames": [
+    0,
+    1
+  ]
+}

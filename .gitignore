@@ -1,0 +1,43 @@
+# Python/runtime artifacts
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+/build/
+/dist/
+
+# Local experiment outputs
+_wandb/
+wandb/
+_smoke_runs/
+runs/
+cache/
+checkpoint/
+tea_debug.log
+*.log
+
+# OS/editor
+.DS_Store
+.vscode/
+.idea/
+# Generated inference media
+model/
+
+# Downloaded public motion data
+pbfm/data/lafan_29dof_10s-clipped.pkl
+pbfm/data/lafan_29dof.pkl
+
+# Private credentials and generated experiment artifacts
+.env
+.env.*
+.netrc
+*.pem
+*.key
+*.onnx
+*.pt
+*.pth
+*.mp4
+/buffers/
+/replay_buffer/

@@ -1,0 +1,902 @@
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+#
+# This source code is licensed under the CC BY-NC 4.0 license found in the
+# LICENSE file in the root directory of this source tree.
+
+import math
+import numbers
+import typing as tp
+
+import gymnasium
+import numpy as np
+import torch
+import torch.nn.functional as F
+from torch import distributions as pyd
+from torch import nn
+from torch.distributions.utils import _standard_normal
+
+from pbfm.agents.base import BaseConfig
+from pbfm.agents.nn_filters import IdentityInputFilterConfig, NNFilter
+
+##########################
+# Initialization utils
+##########################
+
+
+# Initialization for parallel layers
+def parallel_orthogonal_(tensor, gain=1):
+    if tensor.ndimension() == 2:
+        tensor = nn.init.orthogonal_(tensor, gain=gain)
+        return tensor
+    if tensor.ndimension() < 3:
+        raise ValueError("Only tensors with 3 or more dimensions are supported")
+    n_parallel = tensor.size(0)
+    rows = tensor.size(1)
+    cols = tensor.numel() // n_parallel // rows
+    flattened = tensor.new(n_parallel, rows, cols).normal_(0, 1)
+
+    qs = []
+    for flat_tensor in torch.unbind(flattened, dim=0):
+        if rows < cols:
+            flat_tensor.t_()
+
+        # Compute the qr factorization
+        q, r = torch.linalg.qr(flat_tensor)
+        # Make Q uniform according to https://arxiv.org/pdf/math-ph/0609050.pdf
+        d = torch.diag(r, 0)
+        ph = d.sign()
+        q *= ph
+
+        if rows < cols:
+            q.t_()
+        qs.append(q)
+
+    qs = torch.stack(qs, dim=0)
+    with torch.no_grad():
+        tensor.view_as(qs).copy_(qs)
+        tensor.mul_(gain)
+    return tensor
+
+
+def weight_init(m):
+    if isinstance(m, nn.Linear):
+        nn.init.orthogonal_(m.weight.data)
+        if hasattr(m.bias, "data"):
+            m.bias.data.fill_(0.0)
+    elif isinstance(m, DenseParallel):
+        gain = nn.init.calculate_gain("relu")
+        parallel_orthogonal_(m.weight.data, gain)
+        if hasattr(m.bias, "data"):
+            m.bias.data.fill_(0.0)
+    elif hasattr(m, "reset_parameters"):
+        m.reset_parameters()
+
+
+##########################
+# Update utils
+##########################
+
+
+def _soft_update_params(net_params: tp.Any, target_net_params: tp.Any, tau: float):
+    torch._foreach_mul_(target_net_params, 1 - tau)
+    torch._foreach_add_(target_net_params, net_params, alpha=tau)
+
+
+class eval_mode:
+    def __init__(self, *models) -> None:
+        self.models = models
+        self.prev_states = []
+
+    def __enter__(self) -> None:
+        self.prev_states = []
+        for model in self.models:
+            self.prev_states.append(model.training)
+            model.train(False)
+
+    def __exit__(self, *args) -> None:
+        for model, state in zip(self.models, self.prev_states):
+            model.train(state)
+
+
+##########################
+# Creation utils
+##########################
+
+
+class ForwardArchiConfig(BaseConfig):
+    name: tp.Literal["ForwardArchi"] = "ForwardArchi"
+    hidden_dim: int = 1024
+    model: tp.Literal["simple", "residual"] = "simple"  # {'simple', 'residual'}
+    hidden_layers: int = 1
+    embedding_layers: int = 2
+    num_parallel: int = 2
+    ensemble_mode: tp.Literal["batch", "seq", "vmap"] = "batch"  # {'batch', 'seq', 'vmap'}
+    input_filter: NNFilter = IdentityInputFilterConfig()
+
+    def model_post_init(self, context):
+        if self.num_parallel > 1 and self.ensemble_mode == "seq":
+            raise ValueError("seq ensemble mode is not compatible with num_parallel > 1. Use 'batch' or 'vmap' instead.")
+
+    def build(self, obs_space, z_dim: int, action_dim, output_dim=None) -> torch.nn.Module:
+        """Note: Forward model is also used for critics"""
+        if self.ensemble_mode == "seq":
+            return SequetialFMap(obs_space, z_dim, action_dim, self)
+        elif self.ensemble_mode == "vmap":
+            raise NotImplementedError("vmap ensemble mode is currently not supported")
+
+        assert self.ensemble_mode == "batch", "Invalid value for ensemble_mode. Use {'batch', 'seq', 'vmap'}"
+        return _build_batch_forward(self, obs_space, z_dim, action_dim, output_dim)
+
+
+def _build_batch_forward(cfg, obs_space, z_dim, action_dim, output_dim=None):
+    if cfg.model == "residual":
+        forward_cls = ResidualForwardMap
+    elif cfg.model == "simple":
+        forward_cls = ForwardMap
+    else:
+        raise ValueError(f"Unsupported forward_map model {cfg.model}")
+    return forward_cls(obs_space, z_dim, action_dim, cfg, output_dim=output_dim)
+
+
+class ActorArchiConfig(BaseConfig):
+    name: tp.Literal["actor"] = "actor"
+    model: tp.Literal["simple", "residual"] = "simple"
+    hidden_dim: int = 1024
+    hidden_layers: int = 1
+    embedding_layers: int = 2
+    input_filter: NNFilter = IdentityInputFilterConfig()
+
+    def build(self, obs_space, z_dim, action_dim):
+        if self.model == "residual":
+            return ResidualActor(obs_space, z_dim, action_dim, self)
+        elif self.model == "simple":
+            return Actor(obs_space, z_dim, action_dim, self)
+        else:
+            raise ValueError(f"Unsupported actor model {self.model}. Define 'model' or use other configs explicitely")
+
+
+class DiscriminatorArchiConfig(BaseConfig):
+    name: tp.Literal["DiscriminatorArchi"] = "DiscriminatorArchi"
+    hidden_dim: int = 1024
+    hidden_layers: int = 2
+    input_filter: NNFilter = IdentityInputFilterConfig()
+
+    def build(self, obs_space, z_dim) -> "Discriminator":
+        return Discriminator(obs_space, z_dim, self)
+
+
+def linear(input_dim, output_dim, num_parallel=1):
+    if num_parallel > 1:
+        return DenseParallel(input_dim, output_dim, n_parallel=num_parallel)
+    return nn.Linear(input_dim, output_dim)
+
+
+def layernorm(input_dim, num_parallel=1):
+    if num_parallel > 1:
+        return ParallelLayerNorm([input_dim], n_parallel=num_parallel)
+    return nn.LayerNorm(input_dim)
+
+
+##########################
+# Simple MLP models
+##########################
+
+
+class BackwardArchiConfig(BaseConfig):
+    name: tp.Literal["BackwardArchi"] = "BackwardArchi"
+    hidden_dim: int = 256
+    hidden_layers: int = 2
+    norm: bool = True
+    input_filter: NNFilter = IdentityInputFilterConfig()
+
+    def build(self, obs_space, z_dim: int):
+        return BackwardMap(obs_space, z_dim, self)
+
+
+class BackwardMap(nn.Module):
+    def __init__(self, obs_space, z_dim, cfg: BackwardArchiConfig) -> None:
+        super().__init__()
+        self.cfg: BackwardArchiConfig = cfg
+
+        self.input_filter = cfg.input_filter.build(obs_space)
+        filtered_space = self.input_filter.output_space
+
+        assert isinstance(filtered_space, gymnasium.spaces.Box), (
+            f"filtered_space must be a Box space, got {type(filtered_space)}. Did you forget to set input_filter?"
+        )
+        assert len(filtered_space.shape) == 1, "filtered_space must have a 1D shape"
+        seq = [nn.Linear(filtered_space.shape[0], cfg.hidden_dim), nn.LayerNorm(cfg.hidden_dim), nn.Tanh()]
+        for _ in range(cfg.hidden_layers - 1):
+            seq += [nn.Linear(cfg.hidden_dim, cfg.hidden_dim), nn.ReLU()]
+        seq += [nn.Linear(cfg.hidden_dim, z_dim)]
+        if cfg.norm:
+            seq += [Norm()]
+        self.net = nn.Sequential(*seq)
+
+    def forward(self, x: torch.Tensor | dict[str, torch.Tensor]) -> torch.Tensor:
+        x = self.input_filter(x)
+        return self.net(x)
+
+
+def simple_embedding(input_dim, hidden_dim, hidden_layers, num_parallel=1):
+    assert hidden_layers >= 2, "must have at least 2 embedding layers"
+    seq = [linear(input_dim, hidden_dim, num_parallel), layernorm(hidden_dim, num_parallel), nn.Tanh()]
+    for _ in range(hidden_layers - 2):
+        seq += [linear(hidden_dim, hidden_dim, num_parallel), nn.ReLU()]
+    seq += [linear(hidden_dim, hidden_dim // 2, num_parallel), nn.ReLU()]
+    return nn.Sequential(*seq)
+
+
+class ForwardMap(nn.Module):
+    def __init__(
+        self,
+        obs_space,
+        z_dim,
+        action_dim,
+        cfg: ForwardArchiConfig,
+        output_dim=None,
+    ) -> None:
+        super().__init__()
+
+        self.input_filter = cfg.input_filter.build(obs_space)
+        filtered_space = self.input_filter.output_space
+
+        assert isinstance(filtered_space, gymnasium.spaces.Box), (
+            f"filtered_space must be a Box space, got {type(filtered_space)}. Did you forget to set input_filter?"
+        )
+        assert len(filtered_space.shape) == 1, "filtered_space must have a 1D shape"
+        obs_dim = filtered_space.shape[0]
+        self.cfg = cfg
+        self.z_dim = z_dim
+        self.num_parallel = cfg.num_parallel
+        self.hidden_dim = cfg.hidden_dim
+
+        self.embed_z = simple_embedding(obs_dim + z_dim, cfg.hidden_dim, cfg.embedding_layers, cfg.num_parallel)
+        self.embed_sa = simple_embedding(obs_dim + action_dim, cfg.hidden_dim, cfg.embedding_layers, cfg.num_parallel)
+
+        seq = []
+        for _ in range(cfg.hidden_layers):
+            seq += [linear(cfg.hidden_dim, cfg.hidden_dim, cfg.num_parallel), nn.ReLU()]
+        seq += [linear(cfg.hidden_dim, output_dim if output_dim else z_dim, cfg.num_parallel)]
+        self.Fs = nn.Sequential(*seq)
+
+    def forward(self, obs: torch.Tensor | dict[str, torch.Tensor], z: torch.Tensor, action: torch.Tensor):
+        obs = self.input_filter(obs)
+        if self.num_parallel > 1:
+            obs = obs.expand(self.num_parallel, -1, -1)
+            z = z.expand(self.num_parallel, -1, -1)
+            action = action.expand(self.num_parallel, -1, -1)
+        z_embedding = self.embed_z(torch.cat([obs, z], dim=-1))  # num_parallel x bs x h_dim // 2
+        sa_embedding = self.embed_sa(torch.cat([obs, action], dim=-1))  # num_parallel x bs x h_dim // 2
+        return self.Fs(torch.cat([sa_embedding, z_embedding], dim=-1))
+
+
+class SequetialFMap(nn.Module):
+    def __init__(self, obs_space, z_dim, action_dim, cfg, output_dim=None):
+        super().__init__()
+        assert len(obs_space.shape) == 1, "obs_space must have a 1D shape"
+        obs_dim = obs_space.shape[0]
+        self.models = nn.ModuleList(
+            [_build_batch_forward(cfg, obs_dim, z_dim, action_dim, cfg, output_dim, parallel=False) for _ in range(cfg.num_parallel)]
+        )
+
+    def forward(self, obs: torch.Tensor | dict[str, torch.Tensor], z: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
+        predictions = [model(obs, z, action) for model in self.models]
+        return torch.stack(predictions)
+
+
+class SimpleActorArchiConfig(ActorArchiConfig):
+    name: tp.Literal["simple"] = "simple"
+    model: tp.Literal["simple"] = "simple"
+
+    def build(self, obs_space, z_dim: int, action_dim: int) -> "Actor":
+        return Actor(obs_space, z_dim, action_dim, self)
+
+
+class Actor(nn.Module):
+    def __init__(self, obs_space, z_dim, action_dim, cfg: SimpleActorArchiConfig) -> None:
+        super().__init__()
+
+        self.input_filter = cfg.input_filter.build(obs_space)
+        filtered_space = self.input_filter.output_space
+
+        assert isinstance(filtered_space, gymnasium.spaces.Box), (
+            f"filtered_space must be a Box space, got {type(filtered_space)}. Did you forget to set input_filter?"
+        )
+        assert len(filtered_space.shape) == 1, "filtered_space must have a 1D shape"
+        obs_dim = filtered_space.shape[0]
+        self.cfg: SimpleActorArchiConfig = cfg
+        self.embed_z = simple_embedding(obs_dim + z_dim, cfg.hidden_dim, cfg.embedding_layers)
+        self.embed_s = simple_embedding(obs_dim, cfg.hidden_dim, cfg.embedding_layers)
+
+        seq = []
+        for _ in range(cfg.hidden_layers):
+            seq += [linear(cfg.hidden_dim, cfg.hidden_dim), nn.ReLU()]
+        seq += [linear(cfg.hidden_dim, action_dim)]
+        self.policy = nn.Sequential(*seq)
+
+    def forward(self, obs: torch.Tensor | dict[str, torch.Tensor], z, std):
+        obs = self.input_filter(obs)
+        z_embedding = self.embed_z(torch.cat([obs, z], dim=-1))  # bs x h_dim // 2
+        s_embedding = self.embed_s(obs)  # bs x h_dim // 2
+        embedding = torch.cat([s_embedding, z_embedding], dim=-1)
+        mu = torch.tanh(self.policy(embedding))
+        std = torch.ones_like(mu) * std
+        dist = TruncatedNormal(mu, std)
+        return dist
+
+
+class Discriminator(nn.Module):
+    def __init__(self, obs_space, z_dim, cfg: DiscriminatorArchiConfig) -> None:
+        super().__init__()
+        self.cfg = cfg
+
+        self.input_filter = cfg.input_filter.build(obs_space)
+        filtered_space = self.input_filter.output_space
+
+        assert isinstance(filtered_space, gymnasium.spaces.Box), (
+            f"filtered_space must be a Box space, got {type(filtered_space)}. Did you forget to set input_filter?"
+        )
+        assert len(filtered_space.shape) == 1, "filtered_space must have a 1D shape"
+        obs_dim = filtered_space.shape[0]
+        seq = [nn.Linear(obs_dim + z_dim, cfg.hidden_dim), nn.LayerNorm(cfg.hidden_dim), nn.Tanh()]
+        for _ in range(cfg.hidden_layers - 1):
+            seq += [nn.Linear(cfg.hidden_dim, cfg.hidden_dim), nn.ReLU()]
+        seq += [nn.Linear(cfg.hidden_dim, 1)]
+        self.trunk = nn.Sequential(*seq)
+
+    def forward(self, obs: torch.Tensor | dict[str, torch.Tensor], z: torch.Tensor) -> torch.Tensor:
+        s = self.compute_logits(obs, z)
+        return torch.sigmoid(s)
+
+    def compute_logits(self, obs: torch.Tensor | dict[str, torch.Tensor], z: torch.Tensor) -> torch.Tensor:
+        obs = self.input_filter(obs)
+        x = torch.cat([z, obs], dim=1)
+        logits = self.trunk(x)
+        return logits
+
+    def compute_reward(self, obs: torch.Tensor | dict[str, torch.Tensor], z: torch.Tensor, eps: float = 1e-7) -> torch.Tensor:
+        s = self.forward(obs, z)
+        s = torch.clamp(s, eps, 1 - eps)
+        reward = s.log() - (1 - s).log()
+        return reward
+
+
+##########################
+# Residual models
+##########################
+
+
+class ResidualBlock(nn.Module):
+    def __init__(self, dim, num_parallel: int = 1):
+        super().__init__()
+        ln = layernorm(dim, num_parallel)
+        lin = linear(dim, dim, num_parallel)
+        self.mlp = nn.Sequential(ln, lin, nn.Mish())
+
+    def forward(self, x):
+        return x + self.mlp(x)
+
+
+class Block(nn.Module):
+    def __init__(self, input_dim, output_dim, activation, num_parallel: int = 1):
+        super().__init__()
+        ln = layernorm(input_dim, num_parallel)
+        lin = linear(input_dim, output_dim, num_parallel)
+        seq = [ln, lin] + ([nn.Mish()] if activation else [])
+        self.mlp = nn.Sequential(*seq)
+
+    def forward(self, x):
+        return self.mlp(x)
+
+
+def residual_embedding(input_dim, hidden_dim, hidden_layers, num_parallel=1):
+    assert hidden_layers >= 2, "must have at least 2 embedding layers"
+    seq = [Block(input_dim, hidden_dim, True, num_parallel)]
+    for _ in range(hidden_layers - 2):
+        seq += [ResidualBlock(hidden_dim, num_parallel)]
+    seq += [Block(hidden_dim, hidden_dim // 2, True, num_parallel)]
+    return nn.Sequential(*seq)
+
+
+class ResidualForwardMap(nn.Module):
+    def __init__(
+        self,
+        obs_space,
+        z_dim,
+        action_dim,
+        cfg: ForwardArchiConfig,
+        output_dim=None,
+    ) -> None:
+        super().__init__()
+
+        self.input_filter = cfg.input_filter.build(obs_space)
+        filtered_space = self.input_filter.output_space
+
+        assert isinstance(filtered_space, gymnasium.spaces.Box), (
+            f"filtered_space must be a Box space, got {type(filtered_space)}. Did you forget to set input_filter?"
+        )
+        assert len(filtered_space.shape) == 1, "filtered_space must have a 1D shape"
+        obs_dim = filtered_space.shape[0]
+        self.z_dim = z_dim
+        self.num_parallel = cfg.num_parallel
+        self.hidden_dim = cfg.hidden_dim
+
+        self.embed_z = residual_embedding(obs_dim + z_dim, cfg.hidden_dim, cfg.hidden_layers, cfg.num_parallel)
+        self.embed_sa = residual_embedding(obs_dim + action_dim, cfg.hidden_dim, cfg.hidden_layers, cfg.num_parallel)
+
+        seq = [ResidualBlock(cfg.hidden_dim, cfg.num_parallel) for _ in range(cfg.hidden_layers)]
+        seq += [Block(cfg.hidden_dim, output_dim if output_dim else z_dim, False, cfg.num_parallel)]
+        self.Fs = nn.Sequential(*seq)
+
+    def forward(self, obs: torch.Tensor | dict[str, torch.Tensor], z: torch.Tensor, action: torch.Tensor) -> torch.Tensor:
+        obs = self.input_filter(obs)
+        if self.num_parallel > 1:
+            obs = obs.expand(self.num_parallel, -1, -1)
+            z = z.expand(self.num_parallel, -1, -1)
+            action = action.expand(self.num_parallel, -1, -1)
+        z_embedding = self.embed_z(torch.cat([obs, z], dim=-1))  # num_parallel x bs x h_dim // 2
+        sa_embedding = self.embed_sa(torch.cat([obs, action], dim=-1))  # num_parallel x bs x h_dim // 2
+        return self.Fs(torch.cat([sa_embedding, z_embedding], dim=-1))
+
+
+class ResidualActorArchiConfig(ActorArchiConfig):
+    name: tp.Literal["residual"] = "residual"
+    model: tp.Literal["residual"] = "residual"
+
+    def build(self, obs_space, z_dim, action_dim) -> "Actor":
+        return ResidualActor(obs_space, z_dim, action_dim, self)
+
+
+class ResidualActor(nn.Module):
+    def __init__(self, obs_space, z_dim, action_dim, cfg: ResidualActorArchiConfig) -> None:
+        super().__init__()
+
+        self.input_filter = cfg.input_filter.build(obs_space)
+        filtered_space = self.input_filter.output_space
+
+        assert isinstance(filtered_space, gymnasium.spaces.Box), (
+            f"filtered_space must be a Box space, got {type(filtered_space)}. Did you forget to set input_filter?"
+        )
+        assert len(filtered_space.shape) == 1, "filtered_space must have a 1D shape"
+        obs_dim = filtered_space.shape[0]
+        self.cfg: ResidualActorArchiConfig = cfg
+        self.embed_z = residual_embedding(obs_dim + z_dim, cfg.hidden_dim, cfg.embedding_layers)
+        self.embed_s = residual_embedding(obs_dim, cfg.hidden_dim, cfg.embedding_layers)
+
+        seq = [ResidualBlock(cfg.hidden_dim) for _ in range(cfg.hidden_layers)] + [Block(cfg.hidden_dim, action_dim, False)]
+        self.policy = nn.Sequential(*seq)
+
+    def forward(self, obs: torch.Tensor | dict[str, torch.Tensor], z, std):
+        obs = self.input_filter(obs)
+        z_embedding = self.embed_z(torch.cat([obs, z], dim=-1))  # bs x h_dim // 2
+        s_embedding = self.embed_s(obs)  # bs x h_dim // 2
+        embedding = torch.cat([s_embedding, z_embedding], dim=-1)
+        mu = torch.tanh(self.policy(embedding))
+        std = torch.ones_like(mu) * std
+        dist = TruncatedNormal(mu, std)
+        return dist
+
+
+class DirectDepthActorArchiConfig(ActorArchiConfig):
+    """Residual PBFM actor with UFO-rp1's temporal depth encoder."""
+
+    name: tp.Literal["direct_depth"] = "direct_depth"
+    model: tp.Literal["residual"] = "residual"
+    depth_key: str = "depth_image"
+    depth_channels: int = 8
+    depth_height: int = 36
+    depth_width: int = 32
+    depth_latent_dim: int = 256
+    # Keep legacy defaults so old checkpoint configs reconstruct unchanged.
+    depth_first_conv_stride: tp.Literal[1, 2] = 2
+    depth_frame_feature_dim: tp.Literal[128, 256] = 128
+    depth_processing_profile: tp.Literal["legacy_rp1", "optical_z_maxcrop18_reset_v2"] = "legacy_rp1"
+    estimated_velocity_enabled: bool = False
+    velocity_supervision_updates_depth: bool = False
+
+    def build(self, obs_space, z_dim, action_dim) -> "DirectDepthActor":
+        return DirectDepthActor(obs_space, z_dim, action_dim, self)
+
+
+class _FixedAdaptiveAvgPool2x4(nn.Module):
+    """ONNX-friendly adaptive 2x4 pooling for the fixed RP1 feature map."""
+
+    def __init__(self, height: int = 9, width: int = 8):
+        super().__init__()
+        self.height, self.width = height, width
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        if x.ndim != 4 or x.shape[-2:] != (self.height, self.width):
+            raise ValueError(f"Unexpected feature map {tuple(x.shape)}")
+        # Static adaptive-pooling bins support both depth sizes and strides.
+        rows = torch.stack(tuple(
+            x[..., i * self.height // 2:((i + 1) * self.height + 1) // 2, :].mean(dim=-2)
+            for i in range(2)), dim=-2)
+        return torch.stack(
+            tuple(rows[..., i * self.width // 4:((i + 1) * self.width + 3) // 4].mean(dim=-1)
+                  for i in range(4)),
+            dim=-1,
+        )
+
+
+class DepthEncoder(nn.Module):
+    """Encode each uint8 depth frame with a shared CNN, then aggregate by GRU."""
+
+    def __init__(self, *, channels: int = 8, height: int = 36, width: int = 32,
+                 latent_dim: int = 256, first_conv_stride: int = 2, frame_feature_dim: int = 128):
+        super().__init__()
+        if first_conv_stride not in (1, 2) or frame_feature_dim not in (128, 256):
+            raise ValueError("Depth encoder requires stride 1/2 and frame features 128/256")
+        self.channels = int(channels)
+        self.height = int(height)
+        self.width = int(width)
+        self.first_conv_stride = first_conv_stride
+        self.frame_feature_dim = frame_feature_dim
+        self.frame_cnn = nn.Sequential(
+            nn.Conv2d(1, 16, kernel_size=3, stride=first_conv_stride, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1),
+            nn.ReLU(),
+            _FixedAdaptiveAvgPool2x4(*self.feature_map_shape()),
+        )
+        self.frame_projection = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(64 * 2 * 4, frame_feature_dim),
+            nn.ReLU(),
+        )
+        self.gru = nn.GRU(input_size=frame_feature_dim, hidden_size=latent_dim, batch_first=True)
+
+    def feature_map_shape(self) -> tuple[int, int]:
+        """Spatial size after stride-s then stride-2 padded 3x3 convolutions."""
+        s = self.first_conv_stride
+        return tuple(((n + s - 1) // s + 1) // 2 for n in (self.height, self.width))
+
+    def forward(self, depth: torch.Tensor) -> torch.Tensor:
+        expected = (self.channels, self.height, self.width)
+        if depth.ndim != 4 or tuple(depth.shape[1:]) != expected:
+            raise ValueError(f"Expected depth [B, {self.channels}, {self.height}, {self.width}], got {tuple(depth.shape)}")
+        if depth.dtype == torch.uint8:
+            depth = depth.float().div_(255.0)
+        elif depth.is_floating_point():
+            depth = depth.float()
+        else:
+            raise TypeError(f"Expected uint8 depth or normalized floating-point depth, got {depth.dtype}")
+        batch, frames = depth.shape[:2]
+        frame_features = self.frame_projection(
+            self.frame_cnn(depth.reshape(batch * frames, 1, self.height, self.width))
+        )
+        sequence = frame_features.reshape(batch, frames, -1)
+        _, hidden = self.gru(sequence)
+        return hidden[-1]
+
+
+class DirectDepthActor(nn.Module):
+    """Fuse proprioception and the RP1 temporal depth latent."""
+
+    def __init__(self, obs_space, z_dim, action_dim, cfg: DirectDepthActorArchiConfig) -> None:
+        super().__init__()
+        if not isinstance(obs_space, gymnasium.spaces.Dict) or cfg.depth_key not in obs_space.spaces:
+            raise ValueError(f"DirectDepthActor requires observation key {cfg.depth_key!r}")
+        depth_shape = tuple(obs_space[cfg.depth_key].shape)
+        expected_depth_shape = (cfg.depth_channels, cfg.depth_height, cfg.depth_width)
+        if depth_shape != expected_depth_shape:
+            raise ValueError(f"{cfg.depth_key} shape must be {expected_depth_shape}, got {depth_shape}")
+        self.cfg = cfg
+        self.input_filter = cfg.input_filter.build(obs_space)
+        filtered_space = self.input_filter.output_space
+        if not isinstance(filtered_space, gymnasium.spaces.Box) or len(filtered_space.shape) != 1:
+            raise ValueError("DirectDepthActor state input filter must produce a 1D Box")
+        obs_dim = filtered_space.shape[0]
+        self.depth_encoder = DepthEncoder(
+            channels=cfg.depth_channels,
+            height=cfg.depth_height,
+            width=cfg.depth_width,
+            latent_dim=cfg.depth_latent_dim,
+            first_conv_stride=cfg.depth_first_conv_stride,
+            frame_feature_dim=cfg.depth_frame_feature_dim,
+        )
+        if cfg.estimated_velocity_enabled:
+            # Strict deployable whitelist: neither the desired velocity/z nor
+            # any simulator supervision can enter the estimator. Whether its
+            # supervised loss trains the shared depth encoder is explicit.
+            allowed = {"state", "last_action", "history_actor", "heading", "velocity_command"}
+            if not set(cfg.input_filter.key).issubset(allowed):
+                raise ValueError("Estimated-velocity Actor contains non-deployable inputs")
+            self.velocity_input_keys = ("state", "last_action", "history_actor")
+            velocity_in = sum(obs_space[k].shape[0] for k in self.velocity_input_keys)
+            self.velocity_estimator = nn.Sequential(
+                nn.Linear(velocity_in + cfg.depth_latent_dim, 512), nn.ELU(),
+                nn.Linear(512, 256), nn.ELU(), nn.Linear(256, 3),
+            )
+            obs_dim += 3
+        self.embed_z = residual_embedding(obs_dim + z_dim, cfg.hidden_dim, cfg.embedding_layers)
+        self.embed_s = residual_embedding(obs_dim, cfg.hidden_dim, cfg.embedding_layers)
+        self.fusion = Block(cfg.hidden_dim + cfg.depth_latent_dim, cfg.hidden_dim, True)
+        self.policy = nn.Sequential(
+            *[ResidualBlock(cfg.hidden_dim) for _ in range(cfg.hidden_layers)],
+            Block(cfg.hidden_dim, action_dim, False),
+        )
+
+    def forward_from_depth_latent(
+        self,
+        obs: torch.Tensor | dict[str, torch.Tensor],
+        z: torch.Tensor,
+        std: float,
+        depth_latent: torch.Tensor,
+    ):
+        if not isinstance(obs, dict):
+            raise TypeError("DirectDepthActor requires dictionary observations")
+        state = self.input_filter(obs)
+        velocity_estimate = None
+        if self.cfg.estimated_velocity_enabled:
+            velocity_estimate = self.estimate_velocity_from_depth_latent(obs, depth_latent)
+            # RL never learns to falsify the velocity estimate. It is trained
+            # only against simulator measurements, in metres/sec, yaw frame.
+            state = torch.cat((state, velocity_estimate.detach()), dim=-1)
+        z_embedding = self.embed_z(torch.cat([state, z], dim=-1))
+        state_embedding = self.embed_s(state)
+        fused = self.fusion(torch.cat([state_embedding, z_embedding, depth_latent], dim=-1))
+        mu = torch.tanh(self.policy(fused))
+        distribution = TruncatedNormal(mu, torch.ones_like(mu) * std)
+        if velocity_estimate is not None:
+            # The training stage consumes this SAME forward's prediction for
+            # supervised loss; rollout/export need only distribution.mean.
+            distribution.velocity_estimate = velocity_estimate
+        return distribution
+
+    def estimate_velocity_from_depth_latent(self, obs, depth_latent):
+        if not self.cfg.estimated_velocity_enabled:
+            raise RuntimeError("Current-velocity estimator is disabled")
+        features = torch.cat(
+            [obs[k].float().detach() for k in self.velocity_input_keys]
+            + [depth_latent if self.cfg.velocity_supervision_updates_depth else depth_latent.detach()], dim=-1,
+        )
+        return self.velocity_estimator(features)
+
+    def forward(self, obs: dict[str, torch.Tensor], z: torch.Tensor, std: float):
+        if not isinstance(obs, dict):
+            raise TypeError("DirectDepthActor requires dictionary observations")
+        depth_latent = self.depth_encoder(obs[self.cfg.depth_key])
+        return self.forward_from_depth_latent(obs, z, std, depth_latent)
+
+
+##########################
+# Helper modules
+##########################
+
+
+class DenseParallel(nn.Module):
+    def __init__(
+        self,
+        in_features: int,
+        out_features: int,
+        n_parallel: int,
+        bias: bool = True,
+        device=None,
+        dtype=None,
+        reset_params=True,
+    ) -> None:
+        factory_kwargs = {"device": device, "dtype": dtype}
+        super(DenseParallel, self).__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.n_parallel = n_parallel
+        if n_parallel is None or (n_parallel == 1):
+            self.weight = nn.Parameter(torch.empty((out_features, in_features), **factory_kwargs))
+            if bias:
+                self.bias = nn.Parameter(torch.empty(out_features, **factory_kwargs))
+            else:
+                self.register_parameter("bias", None)
+        else:
+            self.weight = nn.Parameter(torch.empty((n_parallel, in_features, out_features), **factory_kwargs))
+            if bias:
+                self.bias = nn.Parameter(torch.empty((n_parallel, 1, out_features), **factory_kwargs))
+            else:
+                self.register_parameter("bias", None)
+            if self.bias is None:
+                raise NotImplementedError
+        if reset_params:
+            self.reset_parameters()
+
+    def load_module_list_weights(self, module_list) -> None:
+        with torch.no_grad():
+            assert len(module_list) == self.n_parallel
+            weight_list = [m.weight.T for m in module_list]
+            target_weight = torch.stack(weight_list, dim=0)
+            self.weight.data.copy_(target_weight.data)
+            if self.bias:
+                bias_list = [ln.bias.unsqueeze(0) for ln in module_list]
+                target_bias = torch.stack(bias_list, dim=0)
+                self.bias.data.copy_(target_bias.data)
+
+    # TODO why do these layers have their own reset scheme?
+    def reset_parameters(self) -> None:
+        nn.init.kaiming_uniform_(self.weight, a=np.sqrt(5))
+        if self.bias is not None:
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
+            bound = 1 / np.sqrt(fan_in) if fan_in > 0 else 0
+            nn.init.uniform_(self.bias, -bound, bound)
+
+    def forward(self, input):
+        if self.n_parallel is None or (self.n_parallel == 1):
+            return F.linear(input, self.weight, self.bias)
+        else:
+            return torch.baddbmm(self.bias, input, self.weight)
+
+    def extra_repr(self) -> str:
+        return "in_features={}, out_features={}, n_parallel={}, bias={}".format(
+            self.in_features, self.out_features, self.n_parallel, self.bias is not None
+        )
+
+
+class ParallelLayerNorm(nn.Module):
+    def __init__(self, normalized_shape, n_parallel, eps=1e-5, elementwise_affine=True, device=None, dtype=None) -> None:
+        factory_kwargs = {"device": device, "dtype": dtype}
+        super(ParallelLayerNorm, self).__init__()
+        if isinstance(normalized_shape, numbers.Integral):
+            normalized_shape = [
+                normalized_shape,
+            ]
+        assert len(normalized_shape) == 1
+        self.n_parallel = n_parallel
+        self.normalized_shape = list(normalized_shape)
+        self.eps = eps
+        self.elementwise_affine = elementwise_affine
+        if self.elementwise_affine:
+            if n_parallel is None or (n_parallel == 1):
+                self.weight = nn.Parameter(torch.empty([*self.normalized_shape], **factory_kwargs))
+                self.bias = nn.Parameter(torch.empty([*self.normalized_shape], **factory_kwargs))
+            else:
+                self.weight = nn.Parameter(torch.empty([n_parallel, 1, *self.normalized_shape], **factory_kwargs))
+                self.bias = nn.Parameter(torch.empty([n_parallel, 1, *self.normalized_shape], **factory_kwargs))
+        else:
+            self.register_parameter("weight", None)
+            self.register_parameter("bias", None)
+
+        self.reset_parameters()
+
+    def reset_parameters(self) -> None:
+        if self.elementwise_affine:
+            nn.init.ones_(self.weight)
+            nn.init.zeros_(self.bias)
+
+    def load_module_list_weights(self, module_list) -> None:
+        with torch.no_grad():
+            assert len(module_list) == self.n_parallel
+            if self.elementwise_affine:
+                ln_weights = [ln.weight.unsqueeze(0) for ln in module_list]
+                ln_biases = [ln.bias.unsqueeze(0) for ln in module_list]
+                target_ln_weights = torch.stack(ln_weights, dim=0)
+                target_ln_bias = torch.stack(ln_biases, dim=0)
+                self.weight.data.copy_(target_ln_weights.data)
+                self.bias.data.copy_(target_ln_bias.data)
+
+    def forward(self, input):
+        norm_input = F.layer_norm(input, self.normalized_shape, None, None, self.eps)
+        if self.elementwise_affine:
+            return (norm_input * self.weight) + self.bias
+        else:
+            return norm_input
+
+    def extra_repr(self) -> str:
+        return "{normalized_shape}, eps={eps}, elementwise_affine={elementwise_affine}".format(**self.__dict__)
+
+
+class TruncatedNormal(pyd.Normal):
+    def __init__(self, loc, scale, low=-1.0, high=1.0, eps=1e-6) -> None:
+        super().__init__(loc, scale, validate_args=False)
+        self.low = low
+        self.high = high
+        self.eps = eps
+        self.noise_upper_limit = high - self.loc
+        self.noise_lower_limit = low - self.loc
+
+    def _clamp(self, x) -> torch.Tensor:
+        clamped_x = torch.clamp(x, self.low + self.eps, self.high - self.eps)
+        x = x - x.detach() + clamped_x.detach()
+        return x
+
+    def sample(self, clip=None, sample_shape=torch.Size()) -> torch.Tensor:  # type: ignore
+        shape = self._extended_shape(sample_shape)
+        eps = _standard_normal(shape, dtype=self.loc.dtype, device=self.loc.device)
+        eps *= self.scale
+        if clip is not None:
+            eps = torch.clamp(eps, -clip, clip)
+        x = self.loc + eps
+        return self._clamp(x)
+
+
+class Norm(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+
+    def forward(self, x) -> torch.Tensor:
+        return math.sqrt(x.shape[-1]) * F.normalize(x, dim=-1)
+
+
+class EMA(nn.Module):
+    """exponential moving average"""
+
+    def __init__(self, tau=0.99, epsilon=1e-8, shape=(1,), translate=False, scale=False) -> None:
+        super().__init__()
+        self.tau = tau
+        self.epsilon = epsilon
+        self.register_buffer("mean", torch.zeros(shape, dtype=torch.float32))
+        self.register_buffer("mean_square", torch.zeros(shape, dtype=torch.float32))
+        self.register_buffer("counter", torch.LongTensor([0]))
+        # ``eval()`` does not freeze this stateful normalizer: forward updates
+        # its moments explicitly.  A persistent freeze state is therefore part
+        # of the module/checkpoint contract.
+        self.register_buffer("frozen", torch.tensor(False, dtype=torch.bool))
+        self.register_buffer("frozen_mean", torch.zeros(shape, dtype=torch.float32))
+        self.register_buffer("frozen_std", torch.ones(shape, dtype=torch.float32))
+        self.register_buffer("frozen_at_global_step", torch.LongTensor([-1]))
+        self.translate = translate
+        self.scale = scale
+
+    @property
+    def is_frozen(self) -> bool:
+        return bool(self.frozen.item())
+
+    def freeze(self, *, global_step: int = -1) -> None:
+        """Freeze the currently bias-corrected normalization coordinates."""
+
+        if int(self.counter.item()) <= 0:
+            raise RuntimeError("Cannot freeze EMA before observing at least one batch")
+        with torch.no_grad():
+            self.frozen_mean.copy_(self.M.detach())
+            self.frozen_std.copy_(torch.sqrt(self.S.detach()).clamp_min(math.sqrt(self.epsilon)))
+            self.frozen.fill_(True)
+            self.frozen_at_global_step.fill_(int(global_step))
+
+    @property
+    def used_mean(self) -> torch.Tensor:
+        if self.is_frozen:
+            return self.frozen_mean
+        return self.M
+
+    @property
+    def used_std(self) -> torch.Tensor:
+        if not self.scale:
+            return torch.ones_like(self.mean)
+        if self.is_frozen:
+            return self.frozen_std
+        return torch.sqrt(self.S)
+
+    def forward(self, x):
+        if not self.is_frozen:
+            m = x.mean()
+            sm = x.pow(2).mean()
+            self.mean.data = self.tau * self.mean + (1 - self.tau) * m
+            self.mean_square.data = self.tau * self.mean_square + (1 - self.tau) * sm
+            self.counter += 1  # type: ignore
+
+        translate_mean = self.used_mean if self.translate else 0
+        scale_std = self.used_std if self.scale else 1
+        return (x - translate_mean) / scale_std
+
+    @property
+    def S(self):
+        norm = 1 - self.tau**self.counter
+        ema_mean = self.mean / norm
+        ema_mean_square = self.mean_square / norm
+        var = torch.clamp(ema_mean_square - ema_mean**2, self.epsilon)
+        return var
+
+    @property
+    def M(self):
+        norm = 1 - self.tau**self.counter
+        ema_mean = self.mean / norm
+        return ema_mean
+
+
+class RewardNormalizerConfig(BaseConfig):
+    name: tp.Literal["RewardNormalizer"] = "RewardNormalizer"
+    translate: bool = False
+    scale: bool = False
+
+    def build(self) -> nn.Module:
+        return EMA(translate=self.translate, scale=self.scale)

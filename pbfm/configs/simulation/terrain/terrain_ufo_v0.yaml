@@ -1,0 +1,165 @@
+# @package _global_
+
+defaults:
+  - terrain_base
+
+terrain:
+  # Selected only by --agent fb_terrain; original FB remains unchanged.
+  enabled: true
+  terrain_type: mixed  # flat, slope, stairs_up, stairs_down, rough, platforms, mixed, rp1_simple
+  seed: 0
+  # Fixed six-family distribution. Ascent and descent are separate so their
+  # state coverage and success can be measured independently.
+  terrain_mix: {flat: 0.15, slope: 0.15, stairs_up: 0.20, stairs_down: 0.20, rough: 0.15, platforms: 0.15}
+  # Tiles form one connected global map. Both stair families return to z=0 at
+  # their outer seams, matching all adjacent terrain columns.
+  patch_size: [8.0, 8.0]
+  # Shared flat border around the complete grid. Combined with half a tile,
+  # this leaves 21 m from every outer spawn origin to the world boundary.
+  border_width: 17.0
+  num_rows: 10
+  difficulty_range: [0.0, 1.0]
+  heightfield: {horizontal_scale: 0.1, vertical_scale: 0.005}
+  spawn: {patch_radius: 0.45, center_range: 1.25}
+
+  # Training-only upright reset coverage. Regions are sampled per terrain;
+  # Actor/F/B/Critic never receive the region identifier.
+  reset:
+    seam_reset_prob: 0.20
+    # Stair resets remain at their center platform; seam coverage remains
+    # enabled for every other terrain family.
+    seam_excluded_terrains: [stairs_up, stairs_down]
+    seam_inset: 0.35
+    slope_random_prob: 0.30
+    slope_radius_range: [1.25, 3.0]
+    # Retained only for the explicit legacy `terrain_type=stairs` mode.
+    stairs_probabilities: {center: 1.0, pre_descent: 0.0, pre_ascent: 0.0, intercycle: 0.0, tread: 0.0}
+    stairs_edge_margin: 0.35
+    rough_random_prob: 0.50
+    platforms_random_prob: 0.30
+    platforms_edge_margin: 0.25
+    adaptive_lift_footprint_radius: 0.65
+    adaptive_lift_extra_clearance: 0.05
+    # Generic reset queries start this far above the assigned tile origin.
+    # This avoids casting from inside raised terrain after random XY sampling.
+    ground_probe_clearance: 1.5
+  slope:
+    min_angle_deg: 5.0
+    max_angle_deg: 8.0
+    platform_width: 1.5
+    border_width: 0.5
+
+  stairs:
+    step_height_range: [0.10, 0.20]
+    step_depth: 0.30
+    # Upright-only center reset platform. Its small footprint makes a rollout
+    # encounter the first transition instead of circling on local flat ground.
+    platform_width: 0.8
+    num_steps: 10
+    # The old combined up/platform/down inference terrain still needs 14 m.
+    legacy_patch_size: [14.0, 14.0]
+    legacy_platform_width: 1.0
+    legacy_num_steps: 6
+    plateau_width: 0.8
+    # Elevated-region reset probes start above the collision geometry.
+    pre_descent_edge_margin: 0.35
+    pre_descent_speed_threshold: 0.10
+    # Query ground from above the tallest possible plateau. The normal reset
+    # probe can otherwise begin inside an elevated stair collision box.
+    pre_descent_ground_probe_clearance: 1.5
+    border_width: 0.5
+
+  platforms:
+    # Irregular non-overlapping rectangular blocks. Difficulty interpolates
+    # from 5-10 cm platforms to 10-18 cm platforms.
+    easy_height_range: [0.05, 0.10]
+    hard_height_range: [0.10, 0.18]
+    center_width: 1.2
+    border_width: 0.5
+    # A resolvable flat corridor separates every pair of raised blocks.
+    gap_width: 0.25
+    min_platform_width: 0.60
+    raised_fraction: 1.0
+    row_count_range: [5, 7]
+    column_count_range: [4, 7]
+    num_spawn_patches: 12
+
+  rough:
+    amplitude_range: [0.03, 0.05]
+    spatial_scale: 20.0
+    octaves: 2
+    persistence: 0.25
+    lacunarity: 2.0
+    border_width: 0.5
+
+  # Inference-only square-symmetric traversal: flat -> 10 stairs up -> short top ->
+  # 10 stairs down -> flat. It is not part of the mixed training distribution.
+  course:
+    patch_size: [22.0, 22.0]
+    flat_run: 0.50
+    step_height: 0.12
+    step_depth: 0.30
+    num_steps: 10
+    top_platform_length: 0.80
+    connector_length: 1.00
+    include_ramp: false
+    ramp_length: 2.50
+    ramp_angle_deg: 8.0
+    border_width: 0.5
+
+  terrain_priv:
+    # One scan produces raw pelvis clearances for Actor and relative geometry
+    # for F/Critic. flat_zero is the fixed-flat evaluation optimization.
+    mode: raycast  # raycast, flat_zero
+    reference: local_ground
+    clip: 0.5
+    max_ray_distance: 3.0
+    x_min: -0.4
+    x_max: 1.6
+    y_min: -0.6
+    y_max: 0.6
+    resolution: 0.1
+    debug_vis: false
+
+  # Opt-in RP1-compatible direct-depth policy. `fb_depth` enables this block;
+  # the existing `fb_terrain` map policy leaves it disabled.
+  direct_depth:
+    enabled: false
+    reference_project: UFO-rp1
+    reference_commit: 8c364e1001734097aac58e5033a1b5076925d3c5
+    baseline_type: rp1_direct_depth
+    # Conventional optical image order: row zero is the top of the image.
+    # This is intentionally incompatible with legacy vertically flipped
+    # direct-depth checkpoints.
+    depth_convention: optical_top_down_v1
+    # Store one uint8 frame per transition and reconstruct the 8-frame stack.
+    replay_storage_dtype: compact_uint8
+    width: 64
+    height: 36
+    horizontal_fov_deg: 89.51
+    vertical_fov_deg: 58.29
+    min_distance: 0.0
+    max_distance: 2.5
+    crop: [0, 0, 16, 16]
+    history_length: 37
+    history_skip_frames: 5
+    num_output_frames: 8
+    delayed_frame_ranges: [0, 1]
+    # Fixed per episode, independently sampled for each simulated camera.
+    # Matches UFO-RP1's depth-camera installation randomization.
+    position_error: 0.05
+    angle_error_deg: 5.0
+    # RP1 terrain uses geom group 0; legacy UFO terrain rays use group 5.
+    include_geom_groups: [0, 2, 5]
+    exclude_parent_body: false
+    debug_terrain_reference: false
+    mount_body: torso_link
+    mount_pos: [0.0487988662332928, 0.01, 0.4378029937970051]
+    camera_frame_quat_wxyz: [0.9135367613482678, 0.004363309284746571, 0.4067366430758002, 0.0]
+
+  coverage:
+    policy_margin: 2.0
+    boundary_safety_margin: 0.5
+    # Internal tile seams are traversable. This guard applies only to the
+    # outside edge of the complete 10x5 terrain grid.
+    fail_on_boundary_violation: false
