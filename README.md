@@ -1,19 +1,29 @@
-# P-BFM
+<h1 align="center">
+  P-BFM: Perceptive Behavioral Foundation Models for Humanoid Control via Unsupervised Reinforcement Learning
+</h1>
 
-**Perceptive Behavioral Foundation Models for Humanoid Control via Unsupervised Reinforcement Learning**
+<p align="center">
+  <a href="https://roboparty.github.io/P-BFM/"><img alt="Website" src="https://img.shields.io/badge/Website-Project_Page-2563eb?style=for-the-badge" /></a>
+  <a href="https://roboparty.github.io/P-BFM/#overview"><img alt="Video" src="https://img.shields.io/badge/Video-Overview-7c3aed?style=for-the-badge" /></a>
+  <a href="https://arxiv.org/abs/2610.15833"><img alt="Paper" src="https://img.shields.io/badge/Paper-arXiv%3A2610.15833-b31b1b?style=for-the-badge" /></a>
+  <a href="https://roboparty.github.io/P-BFM/interactive/"><img alt="Interactive demo" src="https://img.shields.io/badge/Demo-Try_the_Policy-0f766e?style=for-the-badge" /></a>
+</p>
 
-- Project website: https://roboparty.github.io/P-BFM/
-- Affiliation: RoboPartyLab
-- Contact: xuewangusst@gmail.com
+<p align="center">
+  <a href="README.md">English</a> | <a href="README_zh-CN.md">中文</a>
+</p>
 
-## Repository branches
+<p align="center">
+  <img src="docs/assets/pbfm-wordmark.svg" alt="P-BFM" height="64" />
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://lab.roboparty.com/"><img src="docs/assets/robopartylab.png" alt="RoboPartyLab" height="64" /></a>
+</p>
 
-- `main`: PBFM training, evaluation and inference for Unitree G1.
-- `pages`: project website, paper, figures, and demonstration videos. GitHub Pages publishes from the root of this branch.
+P-BFM is a perceptive behavioral foundation model for terrain-adaptive humanoid control. It maps **motion references, target body states, and reward functions** into a shared intent space. A single frozen policy combines these intents with depth perception and explicit heading and velocity instructions to execute whole-body behaviors across terrains.
 
-Website updates should be committed to `pages`, independently of code changes on `main`.
+Training uses **40 flat-ground LaFAN motion sequences and online interaction with simulated terrains**, without terrain-specific motion demonstrations. The policy transfers zero-shot to a **Unitree G1 with onboard depth sensing**, supporting motion tracking, goal reaching, reward inference, teleoperation, and terrain-aware recovery.
 
-[中文说明](README_zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) · [Training](docs/TRAINING.md) · [Inference/export](docs/INFERENCE.md)
+[Architecture](docs/ARCHITECTURE.md) · [Training](docs/TRAINING.md) · [Inference / export](docs/INFERENCE.md)
 
 ## Layout
 
@@ -115,3 +125,19 @@ validation.
 
 PBFM builds on [UFO](https://github.com/Roboparty/UFO). Original notices and the
 upstream CC BY-NC 4.0 [license](LICENSE) are retained.
+
+
+## Project and community
+
+- Project website and demos: https://roboparty.github.io/P-BFM/
+- Paper: https://arxiv.org/abs/2610.15833
+- Team: [RoboPartyLab](https://lab.roboparty.com/)
+- Contact: [xuewangusst@gmail.com](mailto:xuewangusst@gmail.com)
+- To join our discussion group, add **15251239451** on WeChat.
+
+## Repository branches
+
+- `main`: PBFM training, evaluation and inference for Unitree G1.
+- `pages`: project website, paper, figures, and demonstration videos. GitHub Pages publishes from the root of this branch.
+
+Website updates should be committed to `pages`, independently of code changes on `main`.
