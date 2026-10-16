@@ -138,7 +138,8 @@ footer { max-width: 1184px; margin: 0 auto; padding: 30px 0; border-top: 1px sol
 .contact { flex-basis: 100%; text-align: center; color: var(--muted); font-size: var(--text-small); padding-top: 5px; }
 .contact a { color: var(--accent); }
 .visitor-count { display: block; margin-bottom: 8px; }
-.visitor-count strong { color: var(--accent); font-variant-numeric: tabular-nums; }
+.visitor-count strong, .community-contact strong { color: var(--accent); font-variant-numeric: tabular-nums; }
+.community-contact { display: block; margin-top: 8px; }
 @media (max-width: 900px) {
   .adaptation-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .nav { padding-inline: 28px; }
