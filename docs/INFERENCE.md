@@ -23,8 +23,7 @@ python -m pbfm.inference.tracking --model-folder /path/to/run \
 Terrain geometry is read from that checkpoint's configuration. The family name
 alone does not specify the direction of travel: RP1 center-outward traversal of
 `low_stairs_down` goes uphill. Check reset position, heading and actual geometry
-before labelling a video. The camera and reference are not changed by publishing
-this source.
+before labelling a video.
 
 ## Context
 
@@ -49,7 +48,7 @@ python -m scripts.export_backward_encoder_onnx \
 python -m scripts.verify_depth_policy_trace --help
 ```
 
-The historical production `policy.onnx` includes **depth encoding, the velocity
+The exported `policy.onnx` includes **depth encoding, the velocity
 estimator, observation normalization and the Actor**. It is not a split actor-only
 graph. Backward encoding is a separate export. No critic or simulator-only velocity
 label is an input to the deployed policy. Inspect the generated metadata for the

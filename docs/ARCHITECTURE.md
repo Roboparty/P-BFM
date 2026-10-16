@@ -18,13 +18,12 @@ evaluation/ → offline rollouts, quality metrics and diagnostics
 
 ## Configuration: one location
 
-`pbfm/configs/legacy_large.json` is the serialized historical training template.
-`simulation/` contains the original Hydra scene/DR/observation YAMLs;
+`pbfm/configs/legacy_large.json` is the serialized training template.
+`simulation/` contains Hydra scene/DR/observation YAMLs;
 `robots/` contains the curated G1 specification; `depth_contract.json` records
-the depth input contract. All are packaged resources. Values and YAML composition
-are preserved; only their location changes. Old checkpoint resource paths are
-translated at `utils/resource_paths.py`. Unknown external datasets are never
-silently replaced.
+the depth input contract. All are packaged resources. `utils/resource_paths.py`
+resolves bundled assets referenced by checkpoints without substituting external
+motion datasets.
 
 ## Keep these boundaries
 
@@ -42,8 +41,5 @@ and optimizer state, while `training/checkpoint.py` also owns step/rank bookkeep
 and replay shards. Likewise, robot parsers in `robots/` are not the robot assets
 under `data/robots/`.
 
-Class identifiers such as `FBcprAuxAgent` remain unchanged to load historical
-checkpoints. Refactoring them cosmetically would change the serialization boundary.
-No online network, parameter ordering, reward definition or training schedule is
-replaced. The subsequent reset correctness fix stores explicit successors in replay;
-see [the compatibility and memory notes](LEGACY_LARGE.md#reset-boundary-correction).
+For training schedules, checkpoint loading and replay storage requirements, see
+[Training](TRAINING.md).

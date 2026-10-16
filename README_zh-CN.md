@@ -1,7 +1,7 @@
 # P-BFM
 
-旧大网络 PBFM 的精简发布版。只整理职责、资源路径和入口，不改网络数学、奖励、
-DR、深度处理或 checkpoint 参数键。正式代码位于 `main`，网站仍由 `pages` 发布。
+PBFM 面向 Unitree G1，结合深度感知、行为表示与显式方向和速度指令，
+支持训练、评估以及 tracking / goal / reward 三种推理。代码位于 `main`，网站由 `pages` 发布。
 
 ## 从哪里开始读
 
@@ -19,21 +19,19 @@ DR、深度处理或 checkpoint 参数键。正式代码位于 `main`，网站�
 
 顶层只有四个职责目录：`pbfm/`、`scripts/`、`tests/`、`docs/`。
 配置统一放进包内 `pbfm/configs/`，确保安装后也能找到资源。
-旧 experiments、服务器 watcher、迁移记录和重复入口不进入此版本；原始归档没有删除。
+动作数据、模型、replay 和视频独立保存，不包含在代码仓库中。
 
-## 保留的训练设置
+## 训练设置
 
 Actor/F=2048×6；QD=1024×4，QAux=2048×4，QH/QV=1024×3。
 四项独立 Critic，每项保留双 Q。BCE/log-odds，D=.01、Aux=.02、QH/QV=.002；
-动态 Aux、LaFAN-only、slippage=-4、stumble=-2、Crop18、速度估计与深度监督不变。
+动态 Aux、LaFAN-only、slippage=-4、stumble=-2、Crop18、速度估计与深度监督。
 
 从头训练命令见 [README](README.md)。使用专用 scratch 入口，课程从 0 开始、总计
-192020480 步。不要直接把保留的 384M resume 模板当作 192M 从头训练配置。
+192020480 步。课程设置、续训和存储要求见 [训练指南](docs/TRAINING.md)。
 
-推理和导出见 [INFERENCE](docs/INFERENCE.md)。本历史版的完整 policy ONNX 内含
+推理和导出见 [INFERENCE](docs/INFERENCE.md)。完整 policy ONNX 内含
 深度编码器与速度估计器；Backward 单独导出，不应误当成只含动作网络的 split ONNX。
 
-保留历史大网络和 QV 人工窗口目标；replay/reset 已修正为保存重置前真实后继状态。
-旧模型仍可加载，但旧 replay 不能直接用于修正版续训，需要在新目录重建 replay。
-显式后继状态会增加 replay 内存/显存占用；没有启动或修改正在运行的训练。
-验证范围和历史结果见 [LEGACY_LARGE](docs/LEGACY_LARGE.md)。
+PBFM 基于 [UFO](https://github.com/Roboparty/UFO)，保留上游版权声明及
+CC BY-NC 4.0 [许可证](LICENSE)。
