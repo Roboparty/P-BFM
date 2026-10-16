@@ -95,9 +95,7 @@ def _trajectory_output_keys(agent: Agent) -> list[str]:
         "truncated",
         "step_count",
         "reward",
-        # Action-outcome-aligned flags. Unlike the legacy trajectory fields,
-        # these live in the same slot as (s_t, a_t) and are safe for Bellman
-        # discounts even when MJLab returns an auto-reset observation.
+        # Action-outcome-aligned flags (also retained for archived models).
         "transition_terminated",
         "transition_truncated",
     ]

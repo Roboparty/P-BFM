@@ -73,6 +73,8 @@ class HumanoidVerseMjlabCore:
         creation_config: "HumanoidVerseMjlabConfig",
         motion_lib_override=None,
     ) -> None:
+        if mjlab_env.cfg.auto_reset:
+            raise ValueError("PBFM owns task reset; mjlab auto_reset must be False")
         self.config = hv_config
         self.mjlab_env = mjlab_env
         self.robot = mjlab_env.scene["robot"]
@@ -549,12 +551,13 @@ class HumanoidVerseMjlabCore:
             )
         return violations
 
-    def get_observation(self, *, to_numpy: bool = True, include_last_action: bool = True, include_history_actor: bool = True):
+    def get_observation(self, *, to_numpy: bool = True, include_last_action: bool = True, include_history_actor: bool = True, env_ids=None):
         return observations.get_observation(
             self,
             to_numpy=to_numpy,
             include_last_action=include_last_action,
             include_history_actor=include_history_actor,
+            env_ids=env_ids,
         )
 
     def _normalized_action(self, actions: torch.Tensor) -> torch.Tensor:
@@ -630,20 +633,20 @@ class HumanoidVerseMjlabCore:
             self.extras["current_noise_curriculum_value"] = torch.tensor(
                 self.current_noise_curriculum_value, dtype=torch.float32, device=self.device
             )
-        if torch.any(reset):
-            reset_ids = reset.nonzero(as_tuple=False).flatten()
-            self.last_episode_length_buf[reset_ids] = self.episode_length_buf[reset_ids]
-            self._update_average_episode_length(reset_ids)
-            self._update_reward_penalty_curriculum()
-            observations._update_obs_noise_curriculum(self)
-            self.reset_idx(reset_ids)
-        else:
-            self.simulator.refresh()
+        # The vector adapter saves the real successor before resetting finished lanes.
+        self.simulator.refresh()
         return None, reward, reset, {
-            "time_outs": time_outs.bool(),
+            "time_outs": time_outs.bool().clone(),
             "boundary_resets": boundary_resets,
             "aux_rewards": self.extras["aux_rewards"],
         }
+
+    def reset_finished(self, env_ids: torch.Tensor) -> None:
+        self.last_episode_length_buf[env_ids] = self.episode_length_buf[env_ids]
+        self._update_average_episode_length(env_ids)
+        self._update_reward_penalty_curriculum()
+        observations._update_obs_noise_curriculum(self)
+        self.reset_idx(env_ids)
 
     def reset_all(self, target_states: dict[str, torch.Tensor] | None = None):
         env_ids = torch.arange(self.num_envs, dtype=torch.long, device=self.device)

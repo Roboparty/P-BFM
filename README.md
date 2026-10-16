@@ -115,8 +115,9 @@ PYTHONPATH=. uv run python -m pytest tests
 
 External-data/hardware checks are explicitly skipped when their inputs are
 unavailable. CPU and small-model ONNX tests are not full training or real-robot
-validation. This historical baseline deliberately retains the old QV-window
-and replay/reset boundary definitions; it does **not** include later fixes.
+validation. The network and QV-window objective remain historical. The replay/reset
+path now preserves pre-reset successors; old replay cannot be resumed as new-format
+training data. Explicit successor storage increases replay memory use.
 See [the baseline record](docs/LEGACY_LARGE.md) before comparing experiments.
 
 PBFM builds on [UFO](https://github.com/Roboparty/UFO). Original notices and the

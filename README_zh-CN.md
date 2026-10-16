@@ -33,5 +33,7 @@ Actor/F=2048×6；QD=1024×4，QAux=2048×4，QH/QV=1024×3。
 推理和导出见 [INFERENCE](docs/INFERENCE.md)。本历史版的完整 policy ONNX 内含
 深度编码器与速度估计器；Backward 单独导出，不应误当成只含动作网络的 split ONNX。
 
-本次整理不加入后来 QV 人工窗口、replay/reset 边界修复，不启动或修改正在运行的训练。
+保留历史大网络和 QV 人工窗口目标；replay/reset 已修正为保存重置前真实后继状态。
+旧模型仍可加载，但旧 replay 不能直接用于修正版续训，需要在新目录重建 replay。
+显式后继状态会增加 replay 内存/显存占用；没有启动或修改正在运行的训练。
 验证范围和历史结果见 [LEGACY_LARGE](docs/LEGACY_LARGE.md)。

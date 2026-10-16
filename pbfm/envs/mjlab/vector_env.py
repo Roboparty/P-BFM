@@ -5,6 +5,7 @@ from typing import Any, Dict, Union
 import gymnasium
 import numpy as np
 import torch
+from torch.utils._pytree import tree_map
 from gymnasium import Env
 from gymnasium.vector import VectorEnv
 
@@ -112,18 +113,32 @@ class HumanoidVerseMjlabVectorEnv(VectorEnv):
         terminated = torch.logical_and(reset.bool(), ~time_outs)
         truncated = time_outs
         observation = self.base_env.get_observation(
-            to_numpy=to_numpy,
+            to_numpy=False,
             include_last_action=self.include_last_action,
             include_history_actor=self.include_history_actor,
         )
-        qpos, qvel = self._get_qpos_qvel(to_numpy=to_numpy)
+        qpos, qvel = self._get_qpos_qvel(to_numpy=False)
+        if torch.any(reset):
+            env_ids = reset.nonzero(as_tuple=False).flatten()
+            new_info["final_env_ids"] = env_ids
+            new_info["final_observation"] = tree_map(lambda value: value[env_ids].clone(), observation)
+            new_info["final_qpos"], new_info["final_qvel"] = qpos[env_ids].clone(), qvel[env_ids].clone()
+            self.base_env.reset_finished(env_ids)
+            reset_observation = self.base_env.get_observation(
+                to_numpy=False, include_last_action=self.include_last_action,
+                include_history_actor=self.include_history_actor, env_ids=env_ids,
+            )
+            for key in observation:
+                observation[key][env_ids] = reset_observation[key]
+            qpos, qvel = self._get_qpos_qvel(to_numpy=False)
         new_info["qpos"] = qpos
         new_info["qvel"] = qvel
         if to_numpy:
+            observation = tree_map(lambda value: value.detach().cpu().numpy(), observation)
             reward = reward.detach().cpu().numpy()
             terminated = terminated.detach().cpu().numpy()
             truncated = truncated.detach().cpu().numpy()
-            new_info["aux_rewards"] = {k: v.detach().cpu().numpy() for k, v in new_info["aux_rewards"].items()}
+            new_info = tree_map(lambda value: value.detach().cpu().numpy(), new_info)
         return observation, reward, terminated, truncated, new_info
 
     def close(self):

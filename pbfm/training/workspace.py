@@ -69,6 +69,26 @@ REWARD_EVAL_LOG_FILENAME = "reward_eval_log.csv"
 TRACKING_EVAL_LOG_FILENAME = "tracking_eval_log.csv"
 
 
+def transition_successor(observation, info):
+    """Keep the action result separate from the observation used for the next rollout."""
+    successor = {"observation": {
+        key: torch.as_tensor(value).clone() for key, value in observation.items() if key not in {"time", "history"}
+    }}
+    for key in ("qpos", "qvel"):
+        if key in info:
+            successor[key] = torch.as_tensor(info[key]).clone()
+    if "final_env_ids" in info:
+        for key, value in successor["observation"].items():
+            ids = torch.as_tensor(info["final_env_ids"], device=value.device, dtype=torch.long)
+            value[ids] = torch.as_tensor(info["final_observation"][key], device=value.device, dtype=value.dtype)
+        for key in ("qpos", "qvel"):
+            if key in successor:
+                value = successor[key]
+                ids = torch.as_tensor(info["final_env_ids"], device=value.device, dtype=torch.long)
+                value[ids] = torch.as_tensor(info[f"final_{key}"], device=value.device, dtype=value.dtype)
+    return successor
+
+
 def clone_motion_lib_for_collector(motion_lib, *, num_envs: int):
     """Create an independent runtime view over immutable loaded-FK tensors.
 
@@ -336,6 +356,7 @@ class Workspace:
         new_td: dict[str, tp.Any],
         new_terminated: np.ndarray,
         new_truncated: np.ndarray,
+        new_info: dict | None = None,
     ) -> dict[str, torch.Tensor]:
         """Capture action-outcome-aligned Q_H metadata before context switch."""
 
@@ -346,6 +367,11 @@ class Workspace:
         if state.context_id is None or state.source_type is None or state.heading_valid is None:
             raise RuntimeError("Heading-enabled collector produced incomplete context metadata")
         next_root_heading = self._collector_root_heading_xy(vector_env)
+        if new_info is not None and "final_env_ids" in new_info:
+            from pbfm.utils.torch_utils import wxyz_to_xyzw
+            ids = torch.as_tensor(new_info["final_env_ids"], device=self.agent.device, dtype=torch.long)
+            final_qpos = torch.as_tensor(new_info["final_qpos"], device=self.agent.device)
+            next_root_heading[ids] = root_heading_xy(wxyz_to_xyzw(final_qpos[:, 3:7]))
         next_target, next_valid = self.agent.next_rollout_heading_target(state, step_count)
         next_z = self.agent.next_rollout_z(state, step_count)
         next_heading = heading_observation(next_root_heading, next_target, next_valid)
@@ -364,10 +390,8 @@ class Workspace:
             next_step_count,
             done,
         )
-        # MJLab auto-reset returns the reset observation for a completed env,
-        # not the terminal body's heading. Such transitions cannot provide a
-        # valid next-heading reward and are excluded from Q_H rather than
-        # assigning the reset yaw to the previous action.
+        # Keep the historical H/V episode-boundary loss masks; this fix changes
+        # successor storage, not their artificial reference-window objective.
         reward_valid = state.heading_valid.to(device=self.agent.device, dtype=torch.bool) & ~done.unsqueeze(-1)
         valid_float = reward_valid.to(dtype=torch.float32)
         # heading_observation is zero-centered, so its first component is
@@ -458,7 +482,7 @@ class Workspace:
                 optimizer_steps=optimizer_steps,
             )
 
-        episode_boundary = np.logical_or(state.terminated, state.truncated)
+        episode_boundary = np.logical_or(new_terminated, new_truncated)
         heading_metadata = self._heading_transition_metadata(
             vector_env=self.prior_env,
             state=state.rollout,
@@ -467,7 +491,10 @@ class Workspace:
             new_td=new_td,
             new_terminated=new_terminated,
             new_truncated=new_truncated,
+            new_info=new_info,
         )
+        successor = transition_successor(new_td, new_info)
+        successor.update(terminated=new_terminated[..., None], truncated=new_truncated[..., None])
         data = {
             "observation": tree_map(lambda x: x[None, ...], obs),
             "action": action[None, ...],
@@ -476,6 +503,7 @@ class Workspace:
             "transition_terminated": new_terminated[None, ..., None],
             "transition_truncated": new_truncated[None, ..., None],
             "step_count": step_count[None, ..., None],
+            "next": tree_map(lambda value: value[None, ...], successor),
         }
         for key in (
             "heading_next",
@@ -699,9 +727,12 @@ class Workspace:
         if checkpoint_buffer_dir.exists():
             print("Loading checkpointed buffer")
             if self.cfg.use_trajectory_buffer:
-                replay_buffer["train"] = TrajectoryDictBufferMultiDim.load(checkpoint_buffer_dir, device=self.cfg.buffer_device)
+                replay_buffer["train"] = TrajectoryDictBufferMultiDim.load_for_training(checkpoint_buffer_dir, device=self.cfg.buffer_device)
             else:
-                replay_buffer["train"] = DictBuffer.load(checkpoint_buffer_dir, device=self.cfg.buffer_device)
+                raise ValueError(
+                    "Unversioned transition replay cannot prove pre-reset successors. "
+                    "Preserve the archive and resume model-only with fresh trajectory replay."
+                )
             print(f"Loaded buffer of size {len(replay_buffer['train'])}")
         else:
             if self.cfg.use_trajectory_buffer:
@@ -710,15 +741,16 @@ class Workspace:
                     capacity=self.cfg.buffer_size // self.cfg.online_parallel_envs,  # make sure to divide by num_envs
                     device=self.cfg.buffer_device,
                     n_dim=2,
-                    end_key="truncated",
+                    end_key="done",
                     output_key_t=config._trajectory_output_keys(self.cfg.agent),
-                    output_key_tp1=["observation", "terminated"],
+                    output_key_tp1=["observation", "terminated", "truncated"],
+                    explicit_next=True,
                     compact_depth_history=compact_depth_history,
                     depth_history_offsets=RP1DirectDepthConfig().sampled_ages,
                 )
                 if compact_depth_history:
                     print(
-                        "[INFO] Compact RP1 depth replay enabled: storing one uint8 frame per transition "
+                        "[INFO] Compact RP1 depth replay enabled: storing current and successor uint8 frames "
                         "and reconstructing the 8-frame history when sampling",
                         flush=True,
                     )
@@ -731,7 +763,7 @@ class Workspace:
             )
             if prior_checkpoint_buffer_dir.exists():
                 loaded_prior_checkpoint_buffer = True
-                replay_buffer["prior"] = TrajectoryDictBufferMultiDim.load(
+                replay_buffer["prior"] = TrajectoryDictBufferMultiDim.load_for_training(
                     prior_checkpoint_buffer_dir,
                     device=self.cfg.buffer_device,
                 )
@@ -750,6 +782,7 @@ class Workspace:
                     end_key="episode_boundary",
                     output_key_t=config._prior_trajectory_output_keys(self.cfg.agent),
                     output_key_tp1=["observation"],
+                    explicit_next=True,
                     compact_depth_history=True,
                     depth_history_offsets=RP1DirectDepthConfig().sampled_ages,
                 )
@@ -812,6 +845,9 @@ class Workspace:
         )
         if isinstance(self.cfg.env, HumanoidVerseMjlabConfig):
             train_env._env._training_terrain_global_step = self._checkpoint_global_time
+        for name in ("train", "prior"):
+            if name in replay_buffer and isinstance(replay_buffer[name], TrajectoryDictBufferMultiDim):
+                replay_buffer[name].end_episodes()
         td, info = train_env.reset()
         if self.cfg.fail_on_nonfinite:
             diagnostics._assert_finite(
@@ -925,6 +961,9 @@ class Workspace:
                     evaluation_time_checkers[name].update_last_step(global_time)
                 if uses_humanoidverse_eval:
                     # reset if there is a pbfm evaluation
+                    for name in ("train", "prior"):
+                        if name in replay_buffer and isinstance(replay_buffer[name], TrajectoryDictBufferMultiDim):
+                            replay_buffer[name].end_episodes()
                     td, info = train_env.reset()
                     if self.cfg.fail_on_nonfinite:
                         diagnostics._assert_finite(
@@ -936,13 +975,7 @@ class Workspace:
                             optimizer_steps=self._optimizer_steps,
                         )
                     terminated = np.zeros(self.cfg.online_parallel_envs, dtype=bool)
-                    # The pre-eval record already closes the previous segment.
-                    # Also mark this first post-reset observation: compact depth
-                    # replay interprets flags at an observation as a history
-                    # boundary. Clearing it would reuse the last old frame.
-                    # This is an incoming-boundary marker, not the outcome of
-                    # the action about to be collected (transition_* metadata).
-                    truncated = np.ones(self.cfg.online_parallel_envs, dtype=bool)
+                    truncated = np.zeros(self.cfg.online_parallel_envs, dtype=bool)
                     done = np.zeros(self.cfg.online_parallel_envs, dtype=bool)
                     main_rollout_state = RolloutContextState()
                     # The priority evaluator temporarily switches the shared
@@ -1141,6 +1174,7 @@ class Workspace:
                 new_td=new_td,
                 new_terminated=new_terminated,
                 new_truncated=new_truncated,
+                new_info=new_info,
             )
             # Q_D needs outcome flags even when BehaviorContext heading is
             # disabled. Heading-enabled collection already produced the same
@@ -1193,15 +1227,26 @@ class Workspace:
                 # Make sure we set truncated since at the next iteration we are
                 # forced to reset the shared training environment after eval.
                 new_truncated = np.ones_like(new_truncated, dtype=bool)
-                truncated = np.ones_like(new_truncated, dtype=bool)
+                heading_metadata["transition_truncated"] = torch.ones(
+                    (self.cfg.online_parallel_envs, 1), device=self.agent.device, dtype=torch.bool,
+                )
+                if "heading_context_continues" in heading_metadata:
+                    heading_metadata["heading_context_continues"].zero_()
 
+            successor = transition_successor(new_td, new_info)
             if Version(gymnasium.__version__) >= Version("1.0"):
                 if self.cfg.use_trajectory_buffer:
                     data = {
                         "observation": tree_map(lambda x: x[None, ...], obs),
                         "action": action[None, ...],
-                        "terminated": terminated[None, ..., None],
-                        "truncated": truncated[None, ..., None],
+                        "terminated": new_terminated[None, ..., None],
+                        "truncated": new_truncated[None, ..., None],
+                        "done": np.logical_or(new_terminated, new_truncated)[None, ..., None],
+                        "next": {
+                            **tree_map(lambda value: value[None, ...], successor),
+                            "terminated": new_terminated[None, ..., None],
+                            "truncated": new_truncated[None, ..., None],
+                        },
                         "step_count": step_count[None, ..., None],
                         "reward": new_reward[None, ..., None],
                     }
@@ -1217,14 +1262,8 @@ class Workspace:
                     if "aux_rewards" in new_info:
                         data["aux_rewards"] = {k: v[None, ..., None] for k, v in new_info["aux_rewards"].items() if not k.startswith("_")}
                 else:
-                    # We add only transitions corresponding to environments that have not reset in the previous step.
-                    # For environments that have reset in the previous step, the new observation corresponds to the state after reset.
-                    indexes = ~done
-
-                    real_next_obs = tree_map(lambda x: x.astype(np.float32 if x.dtype == np.float64 else x.dtype)[indexes], new_td)
-                    # TODO again, we need to remove "time" from the observation (to stay consistent with obs_space)
-                    _ = real_next_obs.pop("time")
-                    _ = real_next_obs.pop("history", None)
+                    # Same-step reset still executes the first action of the new episode.
+                    indexes = np.ones_like(new_terminated, dtype=bool)
 
                     data = {
                         "observation": tree_map(lambda x: x[indexes], obs),
@@ -1232,7 +1271,7 @@ class Workspace:
                         "step_count": step_count[indexes],
                         "reward": new_reward[indexes].reshape(-1, 1),
                         "next": {
-                            "observation": real_next_obs,
+                            "observation": successor["observation"],
                             "terminated": new_terminated[indexes].reshape(-1, 1),
                             "truncated": new_truncated[indexes].reshape(-1, 1),
                         },
@@ -1244,10 +1283,10 @@ class Workspace:
                         data["history_context"] = history_context[indexes]
                     if "qpos" in info:
                         data["qpos"] = info["qpos"][indexes]
-                        data["next"]["qpos"] = new_info["qpos"][indexes]
+                        data["next"]["qpos"] = successor["qpos"]
                     if "qvel" in info:
                         data["qvel"] = info["qvel"][indexes]
-                        data["next"]["qvel"] = new_info["qvel"][indexes]
+                        data["next"]["qvel"] = successor["qvel"]
                     if "aux_rewards" in new_info:
                         data["aux_rewards"] = {
                             k: v[indexes].reshape(-1, 1) for k, v in new_info["aux_rewards"].items() if not k.startswith("_")

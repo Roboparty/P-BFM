@@ -1,4 +1,6 @@
 import dataclasses
+import json
+from pathlib import Path
 import typing
 from collections.abc import Mapping
 from typing import Dict, List, Tuple, Union
@@ -165,6 +167,7 @@ class TrajectoryDictBuffer:
             start_idx=self.start_idx[traj_idx],
             storage_length=self.capacity,
             priorities=self.priorities[traj_idx],
+            offset=offset,
         )
         idxs = idxs.to(torch.long).unbind(-1)
         for k in self.output_key_t:
@@ -201,6 +204,7 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
     output_key_tp1: List[str] = dataclasses.field(default_factory=lambda: ["observation"])
     end_key: Tuple[str] | str = "done"
     compact_depth_history: bool = False
+    explicit_next: bool = False
     depth_history_offsets: Tuple[int, ...] = (35, 30, 25, 20, 15, 10, 5, 0)
 
     def __post_init__(self) -> None:
@@ -232,6 +236,8 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
     def extend(self, data: Dict) -> None:
         """Extend the buffer with new data.
         We use a dictionary representation for the storage."""
+        if self.explicit_next and "next" not in data:
+            raise ValueError("Explicit-successor replay requires next observations and outcome flags")
         data = self._compact_depth_for_storage(data)
         super().extend(data)
         self._recompute_start_stop = True
@@ -242,19 +248,52 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
         if "observation" not in data or not isinstance(data["observation"], Mapping):
             raise ValueError("Compact depth replay requires an observation mapping")
         compact_data = dict(data)
-        observation = dict(data["observation"])
-        compact_data["observation"] = observation
-        if "depth_image" not in observation:
-            raise ValueError("compact_depth_history requires observation.depth_image")
-        depth = observation["depth_image"]
-        expected_ndim = self.n_dim + 3
-        if depth.ndim != expected_ndim or depth.shape[-3] != len(self.depth_history_offsets):
-            raise ValueError(
-                "Expected depth_image shape [time, env, frames, height, width] with "
-                f"frames={len(self.depth_history_offsets)}, got {tuple(depth.shape)}"
-            )
-        observation["depth_image"] = depth.select(dim=-3, index=depth.shape[-3] - 1)
+        containers = [(data, compact_data)]
+        if self.explicit_next:
+            compact_data["next"] = dict(data["next"])
+            containers.append((data["next"], compact_data["next"]))
+        for source, destination in containers:
+            observation = dict(source["observation"])
+            destination["observation"] = observation
+            if "depth_image" not in observation:
+                raise ValueError("compact_depth_history requires observation.depth_image")
+            depth = observation["depth_image"]
+            expected_ndim = self.n_dim + 3
+            if depth.ndim != expected_ndim or depth.shape[-3] != len(self.depth_history_offsets):
+                raise ValueError(
+                    "Expected depth_image shape [time, env, frames, height, width] with "
+                    f"frames={len(self.depth_history_offsets)}, got {tuple(depth.shape)}"
+                )
+            observation["depth_image"] = depth.select(dim=-3, index=depth.shape[-3] - 1)
         return compact_data
+
+    @classmethod
+    def load_for_training(cls, path, device=None):
+        # Old replay lost pre-reset states; metadata changes cannot recover them.
+        with (Path(path) / "config.json").open() as handle:
+            saved = json.load(handle)
+        if not saved.get("explicit_next", False):
+            raise ValueError(
+                "Legacy replay has no explicit pre-reset successors. Preserve it for historical inference; "
+                "resume model-only in a new work directory with a fresh replay and replay warmup."
+            )
+        return cls.load(path, device=device)
+
+    def end_episodes(self):
+        """Close collection history when a restored/shared environment is reset."""
+        if self.empty():
+            return
+        last = (self._idx - 1) % self.capacity
+        get_key(self.storage, self.end_key)[last] = True
+        if self.explicit_next:
+            self.storage["next"]["truncated"][last] = True
+            if "truncated" in self.storage:
+                self.storage["truncated"][last] = True
+            if "transition_truncated" in self.storage:
+                self.storage["transition_truncated"][last] = True
+            if "heading_context_continues" in self.storage:
+                self.storage["heading_context_continues"][last] = False
+        self._recompute_start_stop = True
 
     def _available_depth_history(self, idxs: tuple[torch.Tensor, ...]) -> torch.Tensor:
         """Return available same-episode history for each sampled observation."""
@@ -266,11 +305,12 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
         available = torch.remainder(time_idx - logical_start, self.capacity).clamp_max(max_lookback)
 
         offsets = torch.arange(max_lookback + 1, device=time_idx.device, dtype=torch.long)
-        lookback_time = torch.remainder(time_idx[:, None] - offsets[None, :], self.capacity)
+        # Explicit rows mark the END of an action, so history starts on the following row.
+        lookback_time = torch.remainder(time_idx[:, None] - offsets[None, :] - int(self.explicit_next), self.capacity)
         lookback_env = env_idx[:, None].expand_as(lookback_time)
         boundary = get_key(self.storage, self.end_key)[lookback_time, lookback_env]
         boundary = boundary.reshape(boundary.shape[0], boundary.shape[1], -1).any(dim=-1)
-        if key_exists(self.storage, "terminated"):
+        if not self.explicit_next and key_exists(self.storage, "terminated"):
             terminated = self.storage["terminated"][lookback_time, lookback_env]
             boundary |= terminated.reshape(terminated.shape[0], terminated.shape[1], -1).any(dim=-1)
         sentinel = torch.full_like(lookback_time, max_lookback + 1)
@@ -281,6 +321,7 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
         self,
         observation: dict[str, torch.Tensor],
         idxs: tuple[torch.Tensor, ...],
+        *, successor: bool = False,
     ) -> dict[str, torch.Tensor]:
         if not self.compact_depth_history:
             return observation
@@ -288,11 +329,33 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
         time_idx, env_idx = (index.to(torch.long) for index in idxs)
         offsets = torch.as_tensor(self.depth_history_offsets, device=time_idx.device, dtype=torch.long)
         available_history = self._available_depth_history(idxs)
-        effective_offsets = torch.minimum(offsets[None, :], available_history[:, None])
+        history_offsets = (offsets - 1).clamp_min(0) if successor else offsets
+        effective_offsets = torch.minimum(history_offsets[None, :], available_history[:, None])
         source_time = torch.remainder(time_idx[:, None] - effective_offsets, self.capacity)
         source_env = env_idx[:, None].expand_as(source_time)
         restored["depth_image"] = self.storage["observation"]["depth_image"][source_time, source_env]
+        if successor:
+            # The newest frame is the saved pre-reset result, never the next episode's frame.
+            restored["depth_image"][:, -1] = observation["depth_image"]
         return restored
+
+    def _gather_transitions(self, indices):
+        idxs = indices.to(torch.long).unbind(-1)
+        output = {key: tree_map(lambda value: value[idxs], self.storage[key]) for key in self.output_key_t}
+        if "observation" in output:
+            output["observation"] = self._restore_depth_history(output["observation"], idxs)
+        if self.output_key_tp1:
+            if self.explicit_next:
+                source = self.storage["next"]
+            else:
+                source = self.storage
+                idxs = ((idxs[0] + 1) % self.capacity, *idxs[1:])
+            output["next"] = {key: tree_map(lambda value: value[idxs], source[key]) for key in self.output_key_tp1}
+            if "observation" in output["next"]:
+                output["next"]["observation"] = self._restore_depth_history(
+                    output["next"]["observation"], idxs, successor=self.explicit_next,
+                )
+        return output
 
     def sample(self, batch_size: int = 1, seq_length: int | None = None):
         seq_length = seq_length or self.seq_length
@@ -314,10 +377,7 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
             )
             self._recompute_start_stop = False
 
-        output, offset = {}, 0
-        if len(self.output_key_tp1) > 0:
-            output["next"] = {}
-            offset = 1
+        offset = int(bool(self.output_key_tp1) and not self.explicit_next)
         num_slices = batch_size // seq_length
         traj_idx = self.lengths >= (seq_length + offset)
         if not traj_idx.any():
@@ -329,19 +389,9 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
             start_idx=self.start_idx[traj_idx],
             storage_length=self.capacity,
             priorities=None,
+            offset=offset,
         )
-        idxs = idxs.to(torch.long).unbind(-1)
-        for k in self.output_key_t:
-            output[k] = tree_map(lambda x: x[idxs], self.storage[k])
-        if "observation" in output:
-            output["observation"] = self._restore_depth_history(output["observation"], idxs)
-        # increment the time index to get the next states
-        idxs = ((idxs[0] + 1) % self.capacity, *idxs[1:])
-        for k in self.output_key_tp1:
-            output["next"][k] = tree_map(lambda x: x[idxs], self.storage[k])
-        if "observation" in output.get("next", {}):
-            output["next"]["observation"] = self._restore_depth_history(output["next"]["observation"], idxs)
-        return output
+        return self._gather_transitions(idxs)
 
     def get_full_buffer(self) -> Dict:
         """We assume to return transition based"""
@@ -354,42 +404,21 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
             )
             self._recompute_start_stop = False
 
-        output, offset = {}, 0
-        if len(self.output_key_tp1) > 0:
-            output["next"] = {}
-            offset = 1
+        offset = int(bool(self.output_key_tp1) and not self.explicit_next)
+        slices = []
         for start, length in zip(self.start_idx, self.lengths):
-            time_idxs = (start[0] + torch.arange(length - offset, device=self.device)) % self.capacity
-            idxs = (time_idxs, torch.full_like(time_idxs, start[1]))
-            for k in self.output_key_t:
-                if k not in output:
-                    output[k] = []
-                value = tree_map(lambda x: x[idxs], self.storage[k])
-                if k == "observation":
-                    value = self._restore_depth_history(value, idxs)
-                output[k].append(value)
-            time_idxs = (start[0] + 1 + torch.arange(length - offset, device=self.device)) % self.capacity
-            idxs = (time_idxs, torch.full_like(time_idxs, start[1]))
-            for k in self.output_key_tp1:
-                if k not in output["next"]:
-                    output["next"][k] = []
-                value = tree_map(lambda x: x[idxs], self.storage[k])
-                if k == "observation":
-                    value = self._restore_depth_history(value, idxs)
-                output["next"][k].append(value)
-        for k in self.output_key_t:
-            output[k] = tree_concat(output[k])
-        for k in self.output_key_tp1:
-            output["next"][k] = tree_concat(output["next"][k])
-        return output
+            indices = start.expand(int(length) - offset, -1).clone()
+            indices[:, 0] = (start[0] + torch.arange(len(indices), device=self.device)) % self.capacity
+            slices.append(self._gather_transitions(indices))
+        return tree_concat(slices)
 
 
-def get_idxs(seq_length, num_slices, lengths, start_idx, storage_length, priorities: torch.Tensor | None = None):
+def get_idxs(seq_length, num_slices, lengths, start_idx, storage_length, priorities: torch.Tensor | None = None, offset=1):
     if priorities is not None:
         traj_idx = torch.multinomial(priorities, num_slices, replacement=True)
     else:
         traj_idx = torch.randint(lengths.shape[0], (num_slices,), device=lengths.device)
-    end_point = lengths[traj_idx] - seq_length - 1
+    end_point = lengths[traj_idx] - seq_length - offset + 1
     relative_starts = (torch.rand(num_slices, device=lengths.device) * end_point).floor().to(start_idx.dtype)
     starts = torch.cat(
         [

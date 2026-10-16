@@ -71,14 +71,66 @@ flat LaFAN tracking evaluation, at 192004096, recorded mean EMD
 evaluation performed by publishing this branch and not a terrain-success metric.
 
 The pre-cleanup source was compared with the original training queue snapshot.
-This cleanup removes archived jobs and relocates resources/diagnostics. Model,
-loss and replay implementations are retained; configuration file contents are
+This cleanup removes archived jobs and relocates resources/diagnostics. Model and
+loss implementations are retained; configuration file contents are
 unchanged. Upstream UFO attribution and license are retained.
 
-Historical QV artificial-window truncation and replay/reset boundary behavior
-remain intentionally unchanged. This branch does not contain later boundary
-fixes. CPU checks cannot establish deployment safety, new training convergence
+Historical QV artificial-window truncation remains unchanged. The reset/replay
+correction below is a separate change, not a change of the QV objective.
+CPU checks cannot establish deployment safety, new training convergence
 or bitwise reproducibility across CUDA/hardware versions.
+
+## Reset boundary correction
+
+The environment captures `final_observation`, including depth/history and velocity
+supervision, before resetting finished lanes. Replay stores this explicit action
+successor; reset observations are used only for the next rollout action. Episode
+ends mark the current transition, and the last legal sampling position is included.
+Partial resets update only the selected lanes' proprioceptive histories. Collection
+restart/evaluation boundaries also separate compressed depth histories.
+
+The network, loss formulas, reward/DR settings and saved model format are unchanged.
+H/V's historical episode-boundary masks and reference-window targets are retained;
+this fix must not be presented as resolving the QV artificial-window question.
+New training therefore is **not bitwise equivalent** to the historical run above.
+
+New replay records `explicit_next=true`. Old replay remains readable for historical
+inference, but training refuses to append new transitions to it: the missing true
+terminal observations cannot be reconstructed. Keep the archive and resume model-only
+in a new work directory, using the existing replay-warmup setting before updates.
+No archive is deleted or silently migrated.
+
+Explicit successors add storage for body/history observations and one uint8 depth
+frame per transition (not eight depth frames). Replay capacity is unchanged, so
+memory and checkpoint disk requirements increase. Recheck GPU memory headroom before
+launching an eight-GPU run; the old peak-memory figures no longer apply.
+
+CPU validation of this correction: **525 tests passed, 3 skipped**, including 17 new
+reset/replay tests. These exercise the production collector loop with a controlled
+CPU environment, both timeout and termination, partial reset histories, explicit
+successor sampling, ring overwrite, save/load, legacy replay rejection, and final-yaw
+metadata. The skips require external LaFAN data, a CUDA edge query, and the
+opt-in real-simulator reset test described below.
+The existing small-model ONNX tests pass. Against the pre-fix release, the same
+synthetic CPU batch yields bitwise-equal outputs, all 361 state tensors, 177 update
+metrics and populated optimizer state after one update. This checks that the model
+math is unchanged, not that changed replay produces identical training trajectories.
+The opt-in GPU reset test also passed in real MJLab physics with four environments.
+It forces one lane to time out and checks pre-reset qpos/qvel, depth and history,
+the reset observation and the unaffected lanes' single history advance. Run it with
+`PBFM_TEST_RESET_GPU=1 PBFM_TEST_RESET_DATA=/path/to/lafan.pkl
+python -m pytest tests/test_reset_transitions.py -k real_mjlab`.
+
+A four-rank NCCL/DDP smoke run of the unchanged full-size networks completed
+32768 global transitions and seven optimizer updates per rank. Each rank used
+16 environments, batch size 1024 and a 4096-transition replay; evaluation and
+replay checkpoint writing were disabled by the existing smoke preset. The final
+model/optimizer checkpoint was written successfully and the maximum difference
+between rank parameters and floating buffers was **0.0**. Nonfinite checks were
+enabled. Reloading that full-size checkpoint and its optimizers on a separate GPU
+also succeeded, with all model parameters finite. This is not a full-capacity
+eight-GPU memory test, training convergence
+test, historical-checkpoint rollout or training-resume validation.
 
 ## Release checks (2026-10-16)
 
@@ -95,7 +147,8 @@ normalization and saved velocity estimates. They do not load the full 192M model
 An exact reduced-model comparison also checks one optimizer update, all critic
 outputs, command contexts, all three intent encodings, optimizer state and loading
 the pre-cleanup checkpoint (361 state tensors, zero numerical tolerance).
-No new eight-GPU training or real-checkpoint rollout was launched for publication.
+No new eight-GPU training or historical-checkpoint rollout was launched for
+publication; the subsequent reset correction's four-rank smoke is recorded above.
 
 Unchanged configuration SHA-256 values at their new paths:
 

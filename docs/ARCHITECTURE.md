@@ -44,5 +44,6 @@ under `data/robots/`.
 
 Class identifiers such as `FBcprAuxAgent` remain unchanged to load historical
 checkpoints. Refactoring them cosmetically would change the serialization boundary.
-No online network, parameter ordering, reward definition, replay algorithm or
-training schedule is silently replaced as part of layout cleanup.
+No online network, parameter ordering, reward definition or training schedule is
+replaced. The subsequent reset correctness fix stores explicit successors in replay;
+see [the compatibility and memory notes](LEGACY_LARGE.md#reset-boundary-correction).

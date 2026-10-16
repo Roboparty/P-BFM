@@ -64,10 +64,9 @@ def prior_transition_discount(
     """Return the behavior-prior discount aligned with the sampled action.
 
     Both main and canonical-plane collectors store the outcome of the action
-    in the current replay slot.  This is required because MJLab auto-reset
-    returns reset observations and because ``truncated`` includes artificial
-    terrain-boundary resets.  The legacy fallback is retained for old replay
-    buffers that predate action-outcome metadata.
+    in the current replay slot. This keeps the historical conservative mask
+    for artificial terrain-boundary resets even with explicit successors.
+    The fallback is retained for archived replay that predates these fields.
     """
 
     if "transition_terminated" in prior_batch and "transition_truncated" in prior_batch:
@@ -714,9 +713,9 @@ class FBcprAuxAgent(AgentExecutionMixin):
                     "Heading-context replay metadata is incomplete; start a new replay buffer. "
                     f"main_missing={missing_main} prior_missing={missing_prior}"
                 )
-            # Trajectory replay obtains next observations from the next slot,
-            # whose command may already have switched. Rebind s_{t+1} to the
-            # context that generated action_t.
+            # Environment successors contain command placeholders (archived
+            # replay may contain already switched commands). Bind s_{t+1}
+            # to the context that generated action_t.
             main_next_obs = dict(main_next_obs)
             main_next_obs["heading"] = main_batch["heading_next"].to(self.device)
             if self.cfg.model.velocity_critic_enabled:

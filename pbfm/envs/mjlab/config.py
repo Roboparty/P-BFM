@@ -641,6 +641,8 @@ class HumanoidVerseMjlabConfig(BaseConfig):
 
     def build(self, num_envs: int = 1, *, motion_lib=None) -> tp.Tuple["HumanoidVerseMjlabVectorEnv", tp.Any]:
         assert num_envs >= 1
+        if self.auto_reset:
+            raise ValueError("PBFM owns task reset; auto_reset must be False")
         from mjlab.envs import ManagerBasedRlEnv
 
         from .core import HumanoidVerseMjlabCore

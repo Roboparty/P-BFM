@@ -97,24 +97,25 @@ def _compute_reference_and_privileged_obs(self) -> None:
     self._max_local_self = torch.cat([v for v in obs_dict.values()], dim=-1)
 
 
-def _raw_actor_obs(self) -> dict[str, torch.Tensor]:
+def _raw_actor_obs(self, env_ids=None) -> dict[str, torch.Tensor]:
+    ids = slice(None) if env_ids is None else env_ids
     if not self._creation_config.evaluation_fast_path:
         _compute_reference_and_privileged_obs(self)
     dof_pos_rel = self.dof_pos - (self.default_dof_pos + self.default_dof_pos_offset)
     obs_data = {
-        "actions": _apply_obs_scale_noise(self, "actions", self.actions),
-        "base_ang_vel": _apply_obs_scale_noise(self, "base_ang_vel", self.base_ang_vel),
-        "dof_pos": _apply_obs_scale_noise(self, "dof_pos", dof_pos_rel),
-        "dof_vel": _apply_obs_scale_noise(self, "dof_vel", self.dof_vel),
-        "projected_gravity": _apply_obs_scale_noise(self, "projected_gravity", self.projected_gravity),
+        "actions": _apply_obs_scale_noise(self, "actions", self.actions[ids]),
+        "base_ang_vel": _apply_obs_scale_noise(self, "base_ang_vel", self.base_ang_vel[ids]),
+        "dof_pos": _apply_obs_scale_noise(self, "dof_pos", dof_pos_rel[ids]),
+        "dof_vel": _apply_obs_scale_noise(self, "dof_vel", self.dof_vel[ids]),
+        "projected_gravity": _apply_obs_scale_noise(self, "projected_gravity", self.projected_gravity[ids]),
     }
     if not self._creation_config.evaluation_fast_path:
-        obs_data["max_local_self"] = _apply_obs_scale_noise(self, "max_local_self", self._max_local_self)
+        obs_data["max_local_self"] = _apply_obs_scale_noise(self, "max_local_self", self._max_local_self[ids])
     history_config = self.config.obs.obs_auxiliary["history_actor"]
     history_tensors = []
     for key in sorted(history_config.keys()):
         history_length = history_config[key]
-        history_tensor = self.history_handler.query(key)[:, :history_length]
+        history_tensor = self.history_handler.query(key)[ids, :history_length]
         history_tensors.append(history_tensor.reshape(history_tensor.shape[0], -1))
     history_actor = torch.cat(history_tensors, dim=1)
     history_actor = _apply_obs_scale_noise(self, "history_actor", history_actor)
@@ -125,7 +126,10 @@ def _raw_actor_obs(self) -> dict[str, torch.Tensor]:
     self.obs_buf_dict_raw = {"actor_obs": raw}
     for key in history_config.keys():
         value = obs_data[key]
-        self.history_handler.add(key, value)
+        if env_ids is None:
+            self.history_handler.add(key, value)
+        else:
+            self.history_handler.add(key, value, env_ids=env_ids)
     return raw
 
 
@@ -176,8 +180,9 @@ def _log_terrain_priv_stats(self, terrain_priv: torch.Tensor) -> None:
         )
 
 
-def get_observation(self, *, to_numpy: bool = True, include_last_action: bool = True, include_history_actor: bool = True):
-    raw_obs = _raw_actor_obs(self)
+def get_observation(self, *, to_numpy: bool = True, include_last_action: bool = True, include_history_actor: bool = True, env_ids=None):
+    ids = slice(None) if env_ids is None else env_ids
+    raw_obs = _raw_actor_obs(self, env_ids)
     obs = {
         "state": torch.cat([raw_obs["dof_pos"], raw_obs["dof_vel"], raw_obs["projected_gravity"], raw_obs["base_ang_vel"]], dim=-1),
     }
@@ -185,37 +190,37 @@ def get_observation(self, *, to_numpy: bool = True, include_last_action: bool = 
         obs["privileged_state"] = raw_obs["max_local_self"]
     if include_last_action:
         obs["last_action"] = raw_obs["actions"]
-    obs["time"] = self.episode_length_buf.unsqueeze(-1)
+    obs["time"] = self.episode_length_buf[ids].unsqueeze(-1).clone()
     if include_history_actor:
         obs["history_actor"] = raw_obs["history_actor"]
     # Behavior heading is a workspace/inference command, not privileged
     # simulator state. The environment contributes only a fixed-shape
     # placeholder so the observation contract is stable; collectors
     # overwrite it after atomically advancing their BehaviorContext.
-    obs["heading"] = torch.zeros((self.num_envs, 2), device=self.device, dtype=torch.float32)
+    obs["heading"] = torch.zeros((obs["state"].shape[0], 2), device=self.device, dtype=torch.float32)
     if self._creation_config.velocity_context_enabled:
-        obs["velocity_command"] = torch.zeros((self.num_envs, 3), device=self.device, dtype=torch.float32)
+        obs["velocity_command"] = torch.zeros((obs["state"].shape[0], 3), device=self.device, dtype=torch.float32)
     if self._creation_config.include_velocity_estimator_target:
         from pbfm.agents.behavior_context import root_heading_xy
         from pbfm.agents.velocity_context import world_to_yaw
         # Same instant as this observation (including reset observations).
         # Training-only critic/supervision field: Actor must never read it.
-        world_velocity = self.robot_root_states[:, 7:10]
-        xy = world_to_yaw(world_velocity[:, :2], root_heading_xy(self.base_quat))
+        world_velocity = self.robot_root_states[ids, 7:10]
+        xy = world_to_yaw(world_velocity[:, :2], root_heading_xy(self.base_quat[ids]))
         obs["velocity_target_yaw"] = torch.cat((xy, world_velocity[:, 2:3]), dim=-1).detach().clone()
     if self.terrain_enabled:
         if self.direct_depth_enabled:
             if self._direct_depth_runtime is None:
                 raise RuntimeError("direct-depth runtime was not initialized")
-            obs["depth_image"] = self._direct_depth_runtime.observation()
+            obs["depth_image"] = self._direct_depth_runtime.observation()[ids]
         else:
             terrain_observations = self._latest_terrain_observations or _terrain_observations(self)
             _root_clearance, terrain_actor, terrain_priv = terrain_observations
-            obs["terrain_actor"] = terrain_actor
+            obs["terrain_actor"] = terrain_actor[ids]
         if not self._creation_config.evaluation_fast_path:
             terrain_observations = self._latest_terrain_observations or _terrain_observations(self)
             _root_clearance, _terrain_actor, terrain_priv = terrain_observations
-            obs["terrain_priv"] = terrain_priv
+            obs["terrain_priv"] = terrain_priv[ids]
             if not self._terrain_stats_logged:
                 _log_terrain_priv_stats(self, terrain_priv)
                 self._terrain_stats_logged = True

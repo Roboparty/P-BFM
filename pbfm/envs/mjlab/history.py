@@ -33,11 +33,12 @@ class HistoryHandler:
         for key in self.history.keys():
             self.history[key][reset_ids] *= 0.
 
-    def add(self, key: str, value: Tensor):
+    def add(self, key: str, value: Tensor, env_ids=None):
         assert key in self.history.keys(), f"Key {key} not found in history"
-        val = self.history[key].clone()
-        self.history[key][:, 1:] = val[:, :-1]
-        self.history[key][:, 0] = value.clone()
+        ids = slice(None) if env_ids is None else env_ids
+        val = self.history[key][ids].clone()
+        self.history[key][ids, 1:] = val[:, :-1]
+        self.history[key][ids, 0] = value
         
     def query(self, key: str):
         assert key in self.history.keys(), f"Key {key} not found in history"
