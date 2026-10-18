@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="P-BFM: Perceptive Behavioral Foundation Models for Humanoid Control via Unsupervised Reinforcement Learning. Explore real-robot demonstrations of goal reaching, motion tracking, reward inference, and teleoperation."><title>P-BFM — Perceptive Behavioral Foundation Models</title><link rel="stylesheet" href="style.css?v=cf347a7427ac"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230c1118'/%3E%3Cpath d='M9 25V7h9a6 6 0 010 12h-5v6zm4-10h5a2 2 0 000-4h-5z' fill='%23aee3d4'/%3E%3C/svg%3E">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="description" content="P-BFM: Perceptive Behavioral Foundation Models for Humanoid Control via Unsupervised Reinforcement Learning. Explore real-robot demonstrations of goal reaching, motion tracking, reward inference, and teleoperation."><title>P-BFM — Perceptive Behavioral Foundation Models</title><link rel="stylesheet" href="style.css?v=cbdb89e16fd9"><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230c1118'/%3E%3Cpath d='M9 25V7h9a6 6 0 010 12h-5v6zm4-10h5a2 2 0 000-4h-5z' fill='%23aee3d4'/%3E%3C/svg%3E">
 <link rel="canonical" href="https://roboparty.github.io/P-BFM/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="P-BFM · RoboPartyLab">
@@ -28,6 +28,28 @@
   <div class="hero-links"><a class="button button-primary" href="./interactive/">Try the policy</a><a class="button" href="#overview">Watch overview</a><a class="button" href="https://arxiv.org/abs/2610.15833" target="_blank" rel="noopener">Paper</a><a class="button" href="https://github.com/Roboparty/P-BFM" target="_blank" rel="noopener">Code</a></div>
   <a class="affiliation" href="https://lab.roboparty.com/" target="_blank" rel="noopener"><img src="paper/robopartylab.png" alt="RoboPartyLab"></a></div>
   <button class="background-toggle" type="button" aria-pressed="false">Play background</button>
+</section>
+<section class="content paper-authors" aria-label="Authors and affiliations">
+  <ul class="author-list" role="list">
+    <li>Xue Wang<sup>1,3,*</sup></li>
+    <li>Yitang Li<sup>2,*</sup></li>
+    <li>Yiming Zhang<sup>3,*</sup></li>
+    <li>Siqin Wang<sup>1</sup></li>
+    <li>Junhan Sun<sup>3,4</sup></li>
+    <li>Zhihao Liu<sup>3,5</sup></li>
+    <li>Yaojie Shen<sup>3,4</sup></li>
+    <li>Jingbo Yuan<sup>3</sup></li>
+    <li>Hao Zhao<sup>2</sup></li>
+    <li>Qingdu Li<sup>1,†</sup></li>
+  </ul>
+  <ul class="author-affiliations" role="list">
+    <li><sup>1</sup> University of Shanghai for Science and Technology</li>
+    <li><sup>2</sup> Tsinghua University</li>
+    <li><sup>3</sup> RoboPartyLab</li>
+    <li><sup>4</sup> Zhejiang University</li>
+    <li><sup>5</sup> Harbin Institute of Technology</li>
+  </ul>
+  <p class="author-notes"><span><sup>*</sup> Equal contribution</span><span><sup>†</sup> Corresponding author</span></p>
 </section>
 <section id="idea" class="content research-overview">
   <div class="overview-copy"><h2>Same intent.<br> Different terrain.</h2><p>P-BFM separates <strong>what behavior to perform</strong> from <strong>how to execute it</strong>. Depth perception guides terrain adaptation; explicit heading and velocity instructions guide root motion.</p><p>One frozen policy supports motion tracking, goal reaching, reward inference, and teleoperation on a Unitree G1.</p><aside class="training-note" aria-label="Training data and interaction"><strong>40 flat-ground LaFAN motion sequences</strong><p>Terrain adaptation is learned through online interaction in simulation, without terrain-specific demonstrations.</p></aside><a class="text-link" href="#method">How P-BFM works</a></div>

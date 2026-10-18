@@ -48,6 +48,14 @@ h1 small { display: block; font-size: clamp(25px, 2.4vw, 34px); font-weight: 450
 .affiliation img { display: block; width: 100%; filter: brightness(0) invert(1); }
 .background-toggle { position: absolute; bottom: 16px; right: 24px; background: #0b1b24aa; border: 1px solid #ffffff70; color: #fff; border-radius: 5px; padding: 8px 12px; font: inherit; font-size: var(--text-caption); cursor: pointer; }
 .content, .demo { width: min(1280px, 100%); margin: auto; padding: 64px 48px; }
+.paper-authors { padding-block: 36px; text-align: center; border-bottom: 1px solid var(--line); }
+.author-list, .author-affiliations { display: flex; flex-wrap: wrap; justify-content: center; list-style: none; padding: 0; }
+.author-list { gap: 10px 26px; margin: 0; font-size: var(--text-body); font-weight: 600; }
+.author-list li { white-space: nowrap; }
+.paper-authors sup { font-size: .7em; line-height: 0; }
+.author-affiliations { gap: 8px 24px; margin: 22px 0 0; color: var(--muted); font-size: var(--text-small); }
+.author-affiliations sup { color: var(--accent); font-weight: 600; }
+.author-notes { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 24px; margin-top: 18px; color: var(--muted); font-size: var(--text-caption); }
 .eyebrow { color: var(--accent); font-size: var(--text-caption); font-weight: 700; letter-spacing: .4px; margin-bottom: 12px; }
 h2 { font-size: clamp(34px, 3.4vw, 48px); font-weight: 650; line-height: 1.2; letter-spacing: -1px; text-wrap: balance; }
 h3 { font-size: 26px; line-height: 1.4; font-weight: 600; }
