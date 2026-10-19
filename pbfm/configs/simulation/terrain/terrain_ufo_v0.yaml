@@ -6,7 +6,7 @@ defaults:
 terrain:
   # Selected only by --agent fb_terrain; original FB remains unchanged.
   enabled: true
-  terrain_type: mixed  # flat, slope, stairs_up, stairs_down, rough, platforms, mixed, rp1_simple
+  terrain_type: mixed  # flat, slope, stairs_up, stairs_down, rough, platforms, mixed, training_mix
   seed: 0
   # Fixed six-family distribution. Ascent and descent are separate so their
   # state coverage and success can be measured independently.

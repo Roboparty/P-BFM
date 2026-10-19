@@ -25,8 +25,8 @@ from pbfm.inference.goal import _find_goal_json, load_and_validate_goal_json
 from pbfm.inference.runtime import (
     DEFAULT_INFERENCE_DATA_PATH,
     MujocoQposRenderer,
-    _assign_rp1_training_tile,
-    _is_rp1_training_family,
+    _assign_training_tile,
+    _is_training_family,
     _target_states_from_obs,
     _terrain_env_cfg,
     _tracking_z,
@@ -37,13 +37,13 @@ from pbfm.inference.runtime import (
     resolve_inference_robot_config,
 )
 from pbfm.evaluation.diagnostics.terrain_transfer import clone_same_z_for_terrains, tensor_checksum
-from pbfm.terrains.rp1_simple import (
-    RP1_CENTER_PLATFORM_WIDTH,
-    RP1_STAIR_LEVELS,
-    RP1_STAIR_STEP_HEIGHT_RANGE,
-    RP1_STAIR_STEP_WIDTH,
-    RP1_TERRAIN_COMPONENT_NAMES,
-    rp1_center_reset_profile,
+from pbfm.terrains.presets import (
+    TRAINING_CENTER_PLATFORM_WIDTH,
+    TRAINING_STAIR_LEVELS,
+    TRAINING_STAIR_STEP_HEIGHT_RANGE,
+    TRAINING_STAIR_STEP_WIDTH,
+    TRAINING_TERRAIN_COMPONENT_NAMES,
+    center_reset_profile,
 )
 from pbfm.agents.inference_context import build_tracking_commands, reward_velocity_command, tracking_context_arrays
 from pbfm.utils.helpers import get_backward_observation
@@ -59,7 +59,7 @@ SUPPORTED_TERRAINS = (
     "rough",
     "platforms",
     "course",
-) + RP1_TERRAIN_COMPONENT_NAMES
+) + TRAINING_TERRAIN_COMPONENT_NAMES
 
 
 def _stairs_step_center_offset(step: int, *, platform_width: float, step_depth: float) -> float:
@@ -233,8 +233,8 @@ def _summarize_stair_mechanics(
         return max(abs(float(xyz[0]) - center_x), abs(float(xyz[1]) - center_y))
 
     for side in ("left", "right"):
-        for level in range(1, RP1_STAIR_LEVELS + 1):
-            boundary = RP1_CENTER_PLATFORM_WIDTH / 2.0 + (level - 1) * RP1_STAIR_STEP_WIDTH
+        for level in range(1, TRAINING_STAIR_LEVELS + 1):
+            boundary = TRAINING_CENTER_PLATFORM_WIDTH / 2.0 + (level - 1) * TRAINING_STAIR_STEP_WIDTH
             for previous, current in zip(frames[:-1], frames[1:]):
                 previous_rho = radial_distance(previous["feet"][side]["toe_xyz"])
                 current_rho = radial_distance(current["feet"][side]["toe_xyz"])
@@ -271,8 +271,8 @@ def _summarize_stair_mechanics(
         for side in ("left", "right"):
             rho = radial_distance(frame["feet"][side]["toe_xyz"])
             edge_distance = min(
-                abs(rho - (RP1_CENTER_PLATFORM_WIDTH / 2.0 + level * RP1_STAIR_STEP_WIDTH))
-                for level in range(RP1_STAIR_LEVELS)
+                abs(rho - (TRAINING_CENTER_PLATFORM_WIDTH / 2.0 + level * TRAINING_STAIR_STEP_WIDTH))
+                for level in range(TRAINING_STAIR_LEVELS)
             )
             foot = frame["feet"][side]
             candidate = (
@@ -631,7 +631,7 @@ def _compute_goal_or_tracking_z(args, model, base_cfg):
         # Store the prompt pose in terrain-local coordinates. MotionLib root Z
         # is already the clearance above the canonical motion plane, so keep it
         # unchanged; each rollout adds its physical terrain origin exactly once.
-        # Subtracting the encoding env's Z here makes depressed RP1 tile origins
+        # Subtracting the encoding env's Z here makes depressed terrain tile origins
         # count twice and spawns the robot far above the local ground.
         target_states["root_states"] = target_states["root_states"].clone()
         target_states["root_states"][:, :2] = 0.0
@@ -797,11 +797,11 @@ def _run_rollout(
     checksum = tensor_checksum(z)
     renderer = None
     try:
-        if _is_rp1_training_family(terrain):
-            _assign_rp1_training_tile(
+        if _is_training_family(terrain):
+            _assign_training_tile(
                 wrapped_env._env,
                 family=terrain,
-                difficulty_row=int(args.rp1_difficulty_row),
+                difficulty_row=int(args.difficulty_row),
             )
         if target_states is None:
             target_states = _default_target_states(wrapped_env)
@@ -1117,10 +1117,10 @@ def _run_rollout(
         elif terrain in {"low_stairs_up", "low_stairs_down"}:
             step_height, terrain_difficulty, terrain_level = _stairs_step_height(
                 wrapped_env,
-                step_height_range=RP1_STAIR_STEP_HEIGHT_RANGE,
+                step_height_range=TRAINING_STAIR_STEP_HEIGHT_RANGE,
             )
             stair_step_height_for_diagnostics = step_height
-            profile, vertical_direction = rp1_center_reset_profile(terrain)
+            profile, vertical_direction = center_reset_profile(terrain)
             separated_direction = "stairs_up" if vertical_direction == "ascent" else "stairs_down"
             stairs_metrics = {
                 "terrain_asset_family": terrain,
@@ -1138,8 +1138,8 @@ def _run_rollout(
                     planar_radii=planar_radii,
                     cumulative_planar_path=cumulative_planar_path,
                     step_height=step_height,
-                    num_steps=RP1_STAIR_LEVELS,
-                    center_width=RP1_CENTER_PLATFORM_WIDTH,
+                    num_steps=TRAINING_STAIR_LEVELS,
+                    center_width=TRAINING_CENTER_PLATFORM_WIDTH,
                     fall_clearance=float(args.fall_clearance),
                     max_allowed_body_impact=float(args.max_body_impact),
                 ),
@@ -1165,7 +1165,7 @@ def _run_rollout(
         stair_mechanics_summary = None
         if collect_stair_mechanics:
             if stair_step_height_for_diagnostics is None:
-                raise RuntimeError("stair mechanics diagnostics did not resolve the RP1 step height")
+                raise RuntimeError("stair mechanics diagnostics did not resolve the terrain step height")
             stair_mechanics_summary = _summarize_stair_mechanics(
                 mechanics_frames,
                 tile_center_xy=wrapped_env._env.env_origins[0, :2].detach().cpu().tolist(),
@@ -1274,10 +1274,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--prompt-type", choices=["reward", "goal", "tracking"], required=True)
     parser.add_argument("--terrains", default="flat,slope,stairs,rough")
     parser.add_argument(
-        "--rp1-difficulty-row",
+        "--difficulty-row", "--rp1-difficulty-row",
+        dest="difficulty_row",
         type=int,
         default=4,
-        help="Curriculum row [0, 9] used by exact RP1 training-family rollouts.",
+        help="Curriculum row [0, 9] used by exact training-family rollouts.",
     )
     parser.add_argument(
         "--patch-size",

@@ -3,8 +3,8 @@ import mujoco
 import numpy as np
 import pytest
 
-from pbfm.terrains.rp1_simple import (
-    make_rp1_simple_generator_cfg, _make_rp1_guard_sub_terrains,
+from pbfm.terrains.presets import (
+    make_training_mix_generator_cfg, _make_training_guard_sub_terrains,
     make_terrain_entity_cfg,
 )
 
@@ -22,7 +22,7 @@ def ray_height(model, data, x, y):
 @pytest.mark.parametrize("difficulty", [0., .5, 1.])
 @pytest.mark.parametrize("guard", [False, True])
 def test_all_tiles_have_half_meter_zero_height_border(difficulty, guard):
-    terrains = _make_rp1_guard_sub_terrains() if guard else make_rp1_simple_generator_cfg().sub_terrains
+    terrains = _make_training_guard_sub_terrains() if guard else make_training_mix_generator_cfg().sub_terrains
     for name, cfg in terrains.items():
         cfg.size = (5., 5.)
         spec = mujoco.MjSpec()
@@ -41,7 +41,7 @@ def test_all_tiles_have_half_meter_zero_height_border(difficulty, guard):
 
 def test_stairs_keep_height_and_have_five_rises_with_zero_border():
     for name in ("low_stairs_up", "low_stairs_down"):
-        cfg = make_rp1_simple_generator_cfg().sub_terrains[name]
+        cfg = make_training_mix_generator_cfg().sub_terrains[name]
         cfg.size = (5., 5.)
         spec = mujoco.MjSpec()
         spec.worldbody.add_body(name="terrain")
@@ -57,14 +57,14 @@ def test_stairs_keep_height_and_have_five_rises_with_zero_border():
 
 
 def test_all_stairs_inference_uses_same_border():
-    generator = make_terrain_entity_cfg("rp1_simple", env_spacing=2., inference_all_stairs=True).terrain_generator
+    generator = make_terrain_entity_cfg("training_mix", env_spacing=2., inference_all_stairs=True).terrain_generator
     assert all(cfg.border_width == .5 for cfg in generator.sub_terrains.values())
 
 
 def test_heightfield_asset_lookup_before_scene_name_index_refresh():
     from types import SimpleNamespace
-    from pbfm.terrains.rp1_primitives import enforce_flat_hfield_border
-    cfg = make_rp1_simple_generator_cfg().sub_terrains['perlin_rough']
+    from pbfm.terrains.primitives import enforce_flat_hfield_border
+    cfg = make_training_mix_generator_cfg().sub_terrains['perlin_rough']
     cfg.size = (5.,5.)
     cfg.exact_flat_border = False
     spec = mujoco.MjSpec()

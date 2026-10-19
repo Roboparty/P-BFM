@@ -10,7 +10,15 @@ import torch
 
 from pbfm.evaluation import terrain
 from pbfm.inference import goal, reward, runtime, tracking
-from pbfm.terrains.rp1_simple import RP1_TERRAIN_COMPONENT_NAMES
+from pbfm.terrains.presets import TRAINING_TERRAIN_COMPONENT_NAMES
+
+
+@pytest.mark.parametrize("option", ["--difficulty-row", "--rp1-difficulty-row"])
+def test_terrain_evaluation_accepts_canonical_and_archived_row_option(option, monkeypatch):
+    monkeypatch.setattr(sys, "argv", [
+        "terrain", "--model-folder", "/tmp/pbfm-test", "--prompt-type", "tracking", option, "7",
+    ])
+    assert terrain.parse_args().difficulty_row == 7
 
 
 @pytest.mark.parametrize("entrypoint", [tracking, goal, reward, terrain])
@@ -45,7 +53,7 @@ def test_saved_non_g1_config_cannot_bypass_inference_validation(tmp_path):
         )
 
 
-@pytest.mark.parametrize("family", [None, *RP1_TERRAIN_COMPONENT_NAMES])
+@pytest.mark.parametrize("family", [None, *TRAINING_TERRAIN_COMPONENT_NAMES])
 def test_tracking_cli_exposes_explicit_terrain_options(family, monkeypatch):
     args = ["tracking", "--model-folder", "/tmp/pbfm-test"]
     if family is not None:
@@ -69,7 +77,7 @@ def test_tracking_cli_exposes_explicit_terrain_options(family, monkeypatch):
      ({}, 0.8, "renderer setup"),
      ({}, 0.8, "renderer close")],
 )
-def test_tracking_generic_and_rp1_rollouts_keep_context_export_and_rendering(options, expected_z, failure, monkeypatch, tmp_path):
+def test_tracking_generic_and_training_rollouts_keep_context_export_and_rendering(options, expected_z, failure, monkeypatch, tmp_path):
     (tmp_path / "checkpoint").mkdir()
     xml = tmp_path / "g1.xml"
     xml.touch()
@@ -127,7 +135,7 @@ def test_tracking_generic_and_rp1_rollouts_keep_context_export_and_rendering(opt
         "load_model_from_checkpoint_dir": Mock(return_value=model),
         "load_mjlab_env_cfg": Mock(return_value=(cfg, False)),
         "get_backward_observation": Mock(return_value=({"state": torch.zeros(3, 1)}, expert)),
-        "_export_tracking_onnx": export, "_terrain_env_cfg": terrain_cfg, "_assign_rp1_training_tile": tile,
+        "_export_tracking_onnx": export, "_terrain_env_cfg": terrain_cfg, "_assign_training_tile": tile,
         "MujocoQposRenderer": renderer, "policy_qpos_from_env": Mock(return_value=qpos),
     }
     for name, value in patches.items():

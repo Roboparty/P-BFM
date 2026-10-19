@@ -12,7 +12,7 @@ class CurriculumTests(unittest.TestCase):
         return NS(_creation_config=NS(terrain_training_curriculum=True,
                   terrain_curriculum_interval=19200000, terrain_curriculum_start_global_step=192020480,
                   terrain_curriculum_easy_fraction=.25), _training_terrain_global_step=step,
-                  terrain_enabled=True, terrain_mode='rp1_simple', device='cpu',
+                  terrain_enabled=True, terrain_mode='training_mix', device='cpu',
                   mjlab_env=NS(scene={'terrain':terrain}), env_origins=torch.zeros(32,3))
 
     def test_schedule_boundaries(self):

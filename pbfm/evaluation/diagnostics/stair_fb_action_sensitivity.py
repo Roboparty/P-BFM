@@ -38,8 +38,8 @@ from pbfm.evaluation.diagnostics.direct_depth_actor_diagnostics import (
     _to_device,
 )
 from pbfm.inference.runtime import (
-    _assign_rp1_training_tile,
-    _is_rp1_training_family,
+    _assign_training_tile,
+    _is_training_family,
     _terrain_env_cfg,
     checkpoint_load_device,
     load_mjlab_env_cfg,
@@ -48,10 +48,10 @@ from pbfm.inference.runtime import (
 from pbfm.evaluation.diagnostics.terrain_transfer import tensor_checksum
 from pbfm.evaluation.terrain import (
     DEFAULT_INFERENCE_DATA_PATH,
-    RP1_CENTER_PLATFORM_WIDTH,
-    RP1_STAIR_LEVELS,
-    RP1_STAIR_STEP_HEIGHT_RANGE,
-    RP1_STAIR_STEP_WIDTH,
+    TRAINING_CENTER_PLATFORM_WIDTH,
+    TRAINING_STAIR_LEVELS,
+    TRAINING_STAIR_STEP_HEIGHT_RANGE,
+    TRAINING_STAIR_STEP_WIDTH,
     _compute_reward_z,
     _default_target_states,
     _root_ground_clearance,
@@ -351,8 +351,8 @@ def _radial_distance(xyz: Sequence[float], center_xy: Sequence[float]) -> float:
 def _edge_distance(xyz: Sequence[float], center_xy: Sequence[float]) -> float:
     rho = _radial_distance(xyz, center_xy)
     return min(
-        abs(rho - (RP1_CENTER_PLATFORM_WIDTH / 2.0 + level * RP1_STAIR_STEP_WIDTH))
-        for level in range(RP1_STAIR_LEVELS)
+        abs(rho - (TRAINING_CENTER_PLATFORM_WIDTH / 2.0 + level * TRAINING_STAIR_STEP_WIDTH))
+        for level in range(TRAINING_STAIR_LEVELS)
     )
 
 
@@ -387,8 +387,8 @@ def _build_eval_env(
         }
     )
     wrapped_env, _ = env_cfg.build(num_envs=1)
-    if _is_rp1_training_family(terrain):
-        _assign_rp1_training_tile(wrapped_env._env, family=terrain, difficulty_row=difficulty_row)
+    if _is_training_family(terrain):
+        _assign_training_tile(wrapped_env._env, family=terrain, difficulty_row=difficulty_row)
     return wrapped_env
 
 
@@ -404,7 +404,7 @@ def _rollout_and_collect(
     core = env._env
     initial_root = core.robot_root_states[0, :3].clone()
     initial_ground_height = float(initial_root[2].item()) - _root_ground_clearance(env)
-    step_height, terrain_difficulty, terrain_level = _stairs_step_height(env, step_height_range=RP1_STAIR_STEP_HEIGHT_RANGE)
+    step_height, terrain_difficulty, terrain_level = _stairs_step_height(env, step_height_range=TRAINING_STAIR_STEP_HEIGHT_RANGE)
     action_clip = float(core.config.robot.control.action_clip_value)
     tile_center_xy = core.env_origins[0, :2].detach().cpu().tolist()
 
@@ -791,7 +791,7 @@ def main() -> None:
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--reward-task", default="move-ego-0-0.7")
     parser.add_argument("--terrain", default="low_stairs_down")
-    parser.add_argument("--rp1-difficulty-row", type=int, default=4)
+    parser.add_argument("--difficulty-row", "--rp1-difficulty-row", dest="difficulty_row", type=int, default=4)
     parser.add_argument("--episode-length", type=int, default=750)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--seed", type=int, default=4728)
@@ -865,7 +865,7 @@ def main() -> None:
         device=args.device,
         seed=int(args.seed),
         terrain=str(args.terrain),
-        difficulty_row=int(args.rp1_difficulty_row),
+        difficulty_row=int(args.difficulty_row),
         episode_length=int(args.episode_length),
     )
     try:
@@ -894,7 +894,7 @@ def main() -> None:
             device=args.device,
             seed=int(args.seed),
             terrain=str(args.terrain),
-            difficulty_row=int(args.rp1_difficulty_row),
+            difficulty_row=int(args.difficulty_row),
             episode_length=max(int(args.short_rollout_steps) + 64, int(args.episode_length)),
         )
         try:
@@ -969,7 +969,7 @@ def main() -> None:
         "reward_task": str(args.reward_task),
         "reward_z_checksum": tensor_checksum(z),
         "terrain": str(args.terrain),
-        "rp1_difficulty_row": int(args.rp1_difficulty_row),
+        "difficulty_row": int(args.difficulty_row),
         "deterministic_eval": {
             "disable_dr": True,
             "disable_obs_noise": True,

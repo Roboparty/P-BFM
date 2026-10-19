@@ -19,9 +19,9 @@ from pbfm.perception.instinct_direct_depth import (
     DEPTH_CONVENTION,
     REFERENCE_COMMIT,
     REFERENCE_PROJECT,
-    RP1DirectDepthConfig,
-    RP1DirectDepthRuntime,
-    preprocess_rp1_depth,
+    DirectDepthConfig,
+    DirectDepthRuntime,
+    preprocess_depth,
     raycast_ranges_to_image_plane,
 )
 from pbfm.training.checkpoint import _depth_observation_contract, _validate_checkpoint_depth_observation_contract
@@ -53,8 +53,8 @@ def test_model_checkpoint_uses_atomic_cpu_safetensors_snapshot(tmp_path) -> None
     assert not list(output.glob(".model.safetensors.tmp-*"))
 
 
-def test_rp1_direct_depth_contract() -> None:
-    cfg = RP1DirectDepthConfig()
+def test_training_direct_depth_contract() -> None:
+    cfg = DirectDepthConfig()
     cfg.validate()
     assert REFERENCE_PROJECT == "UFO-rp1"
     assert REFERENCE_COMMIT == "8c364e1001734097aac58e5033a1b5076925d3c5"
@@ -71,7 +71,7 @@ def test_rp1_direct_depth_contract() -> None:
 
 
 def test_top_down_crop_gaussian_quantization_matches_stage_by_stage() -> None:
-    cfg = RP1DirectDepthConfig()
+    cfg = DirectDepthConfig()
     raw = torch.linspace(-0.25, 3.0, 2 * 36 * 64, dtype=torch.float32).reshape(2, 36, 64)
     raw[0, 1, 16] = torch.nan
     raw[0, 1, 17] = torch.inf
@@ -82,18 +82,18 @@ def test_top_down_crop_gaussian_quantization_matches_stage_by_stage() -> None:
     kernel = (gaussian[:, None] * gaussian[None, :]).reshape(1, 1, 3, 3) / 16.0
     blurred = F.conv2d(F.pad(cropped[:, None], (1, 1, 1, 1), mode="reflect"), kernel)[:, 0]
     expected = blurred.clamp(0.0, 2.5).div(2.5).mul(255.0).round().to(torch.uint8)
-    actual = preprocess_rp1_depth(raw, cfg, enable_noise=False)
+    actual = preprocess_depth(raw, cfg, enable_noise=False)
     assert actual.dtype == torch.uint8
     assert actual.shape == (2, 36, 32)
     torch.testing.assert_close(actual, expected, rtol=0.0, atol=0.0)
 
 
 def test_depth_preprocessing_preserves_optical_vertical_order() -> None:
-    cfg = RP1DirectDepthConfig()
+    cfg = DirectDepthConfig()
     raw = torch.zeros((1, cfg.height, cfg.width), dtype=torch.float32)
     raw[:, 0] = 0.25
     raw[:, -1] = 2.25
-    actual = preprocess_rp1_depth(raw, cfg, enable_noise=False)
+    actual = preprocess_depth(raw, cfg, enable_noise=False)
     assert actual[:, 0].float().mean() < actual[:, -1].float().mean()
 
 
@@ -116,7 +116,7 @@ def test_direct_depth_checkpoint_contract_rejects_legacy_resume() -> None:
 
 
 def test_invalid_ranges_become_zero_and_valid_ranges_use_image_plane_depth() -> None:
-    cfg = RP1DirectDepthConfig()
+    cfg = DirectDepthConfig()
     camera = cfg.camera_config()
     ranges = torch.ones((1, cfg.height * cfg.width), dtype=torch.float32)
     ranges[0, 0] = -1.0
@@ -132,8 +132,8 @@ def test_invalid_ranges_become_zero_and_valid_ranges_use_image_plane_depth() -> 
 
 
 def test_history_is_oldest_to_newest_and_supports_real_zero_or_one_frame_delay() -> None:
-    cfg = RP1DirectDepthConfig()
-    runtime = RP1DirectDepthRuntime(2, "cpu", cfg, enable_noise=False)
+    cfg = DirectDepthConfig()
+    runtime = DirectDepthRuntime(2, "cpu", cfg, enable_noise=False)
     value = torch.zeros((), dtype=torch.uint8)
     runtime.current_frame = lambda _sensor: torch.full(  # type: ignore[method-assign]
         (2, cfg.output_height, cfg.output_width), int(value), dtype=torch.uint8
@@ -152,17 +152,17 @@ def test_history_is_oldest_to_newest_and_supports_real_zero_or_one_frame_delay()
     torch.testing.assert_close(runtime.observation()[:, :, 0, 0], expected_one_delay.expand(2, -1))
 
 
-def test_rp1_noise_pipeline_is_seed_reproducible() -> None:
-    cfg = RP1DirectDepthConfig()
+def test_training_noise_pipeline_is_seed_reproducible() -> None:
+    cfg = DirectDepthConfig()
     raw = torch.linspace(0.0, 2.5, 4 * 36 * 64).reshape(4, 36, 64)
     torch.manual_seed(123)
-    first = preprocess_rp1_depth(raw, cfg, enable_noise=True)
+    first = preprocess_depth(raw, cfg, enable_noise=True)
     torch.manual_seed(123)
-    second = preprocess_rp1_depth(raw, cfg, enable_noise=True)
+    second = preprocess_depth(raw, cfg, enable_noise=True)
     torch.testing.assert_close(first, second, rtol=0.0, atol=0.0)
 
 
-def test_rp1_encoder_actor_and_preset_schema() -> None:
+def test_training_encoder_actor_and_preset_schema() -> None:
     encoder = DepthEncoder()
     convolutions = [module for module in encoder.frame_cnn if isinstance(module, torch.nn.Conv2d)]
     assert [(module.in_channels, module.out_channels, module.stride) for module in convolutions] == [

@@ -83,7 +83,7 @@ export OMP_NUM_THREADS=1 MUJOCO_GL=egl NCCL_NVLS_ENABLE=0
 export UFO_CACHE_DIR=/path/to/writable-disk/pbfm-cache
 
 uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=8 \
-  scripts/train_legacy_scratch.py --gpu-ids single --terrain-mode rp1_simple \
+  scripts/train_legacy_scratch.py --gpu-ids single --terrain-mode training_mix \
   --num-envs 1024 --num-env-steps 192020480 --seed 4831 \
   --data-path /path/to/lafan_29dof_10s-clipped.pkl \
   --work-dir /path/to/new-run

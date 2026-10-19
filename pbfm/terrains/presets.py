@@ -1,4 +1,4 @@
-"""Physical terrain presets for the opt-in UFO terrain feasibility experiment."""
+"""Robot-independent physical terrain presets for training and evaluation."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from mjlab.terrains import (
     TerrainGeneratorCfg,
 )
 
-from pbfm.terrains.rp1_primitives import (
+from pbfm.terrains.primitives import (
     NeutralHfDiscreteObstaclesTerrainCfg,
     NeutralHfPerlinNoiseTerrainCfg,
     NeutralHfPyramidSlopedTerrainCfg,
@@ -33,7 +33,7 @@ from pbfm.terrains.rp1_primitives import (
 
 TerrainMode = Literal[
     "plane", "flat", "slope", "stairs", "stairs_up", "stairs_down", "rough", "platforms",
-    "mixed", "rp1_simple", "course",
+    "mixed", "training_mix", "course",
 ]
 SUPPORTED_TERRAINS: tuple[TerrainMode, ...] = (
     "plane",
@@ -45,11 +45,11 @@ SUPPORTED_TERRAINS: tuple[TerrainMode, ...] = (
     "rough",
     "platforms",
     "mixed",
-    "rp1_simple",
+    "training_mix",
     "course",
 )
 TERRAIN_COMPONENT_NAMES = ("flat", "slope", "stairs_up", "stairs_down", "rough", "platforms")
-RP1_TERRAIN_COMPONENT_NAMES = (
+TRAINING_TERRAIN_COMPONENT_NAMES = (
     "flat",
     "perlin_rough",
     "low_stairs_up",
@@ -58,10 +58,10 @@ RP1_TERRAIN_COMPONENT_NAMES = (
     "hf_pyramid_slope_inv",
     "boxes",
 )
-RP1_TERRAIN_PROPORTIONS = {
+TRAINING_TERRAIN_PROPORTIONS = {
     # The asset names describe the height profile towards the tile center.
-    # From RP1's center reset, ``low_stairs_down`` is ascent and
-    # ``low_stairs_up`` is descent (see RP1_CENTER_RESET_PROFILES below).
+    # From a center reset, ``low_stairs_down`` is ascent and
+    # ``low_stairs_up`` is descent (see TRAINING_CENTER_RESET_PROFILES below).
     "flat": 0.20,
     "perlin_rough": 0.10,
     "low_stairs_up": 0.20,
@@ -71,12 +71,12 @@ RP1_TERRAIN_PROPORTIONS = {
     "boxes": 0.10,
 }
 # MJLab names the stair assets by their height profile when approaching the
-# tile center. RP1 resets at that center, so the initial policy traversal is
+# tile center. Training resets at that center, so the initial policy traversal is
 # the opposite direction: the pyramid starts high and descends outwards,
 # while the inverted pyramid starts low and ascends outwards. Keep the raw
 # asset names for geometry/checkpoint compatibility and use these profiles in
 # training diagnostics and same-z evaluation output.
-RP1_CENTER_RESET_PROFILES = {
+TRAINING_CENTER_RESET_PROFILES = {
     "flat": "flat",
     "perlin_rough": "perlin_rough",
     "low_stairs_up": "low_stairs_descent_from_center",
@@ -85,7 +85,7 @@ RP1_CENTER_RESET_PROFILES = {
     "hf_pyramid_slope_inv": "hf_pyramid_slope_inv",
     "boxes": "boxes",
 }
-RP1_CENTER_RESET_VERTICAL_DIRECTIONS = {
+TRAINING_CENTER_RESET_VERTICAL_DIRECTIONS = {
     "flat": "non_stair",
     "perlin_rough": "non_stair",
     "low_stairs_up": "descent",
@@ -94,42 +94,47 @@ RP1_CENTER_RESET_VERTICAL_DIRECTIONS = {
     "hf_pyramid_slope_inv": "non_stair",
     "boxes": "non_stair",
 }
-RP1_TERRAIN_REFERENCE_PROJECT = "UFO-rp1"
-RP1_TERRAIN_REFERENCE_COMMIT = "8c364e1001734097aac58e5033a1b5076925d3c5"
-RP1_PATCH_SIZE = 5.0
+TRAINING_TERRAIN_REFERENCE_PROJECT = "UFO-rp1"
+TRAINING_TERRAIN_REFERENCE_COMMIT = "8c364e1001734097aac58e5033a1b5076925d3c5"
+TRAINING_PATCH_SIZE = 5.0
 # Inside each tile: adjacent non-flat interiors have a 1 m flat corridor.
-RP1_TILE_FLAT_BORDER_WIDTH = 0.5
-RP1_CENTER_PLATFORM_WIDTH = 1.2
-RP1_NONFLAT_GUARD_WIDTH = 10.0
-RP1_FLAT_SAFETY_WIDTH = 2.0
-RP1_TERRAIN_BORDER_WIDTH = RP1_NONFLAT_GUARD_WIDTH + RP1_FLAT_SAFETY_WIDTH
-RP1_GUARD_TILE_RINGS = int(RP1_NONFLAT_GUARD_WIDTH / RP1_PATCH_SIZE)
-RP1_GUARD_HEIGHT_LIFT = 0.05
-RP1_GUARD_FAMILIES = ("perlin_rough", "boxes")
-RP1_STAIR_LEVELS = 5
-RP1_STAIR_STEP_HEIGHT_RANGE = (0.10, 0.20)
-RP1_ROUGH_HEIGHT_RANGE = (0.02, 0.06)
-RP1_BOX_HEIGHT_RANGE = (0.05, 0.15)
-RP1_BOX_WIDTH_RANGE = (0.3, 1.0)
-RP1_BOX_WIDTH_SAMPLING_STRIDE_CELLS = 1
-RP1_STAIR_BORDER_WIDTH = 0.5
-RP1_STAIR_STEP_WIDTH = 0.3
-RP1_STAIR_PLATFORM_WIDTH = RP1_CENTER_PLATFORM_WIDTH
-RP1_OUTER_WALL_HEIGHT = 5.0
-RP1_OUTER_WALL_THICKNESS = 0.05
-RP1_OUTER_WALL_COLOR = (0.5, 0.5, 0.5, 1.0)
+TRAINING_TILE_FLAT_BORDER_WIDTH = 0.5
+TRAINING_CENTER_PLATFORM_WIDTH = 1.2
+TRAINING_NONFLAT_GUARD_WIDTH = 10.0
+TRAINING_FLAT_SAFETY_WIDTH = 2.0
+TRAINING_TERRAIN_BORDER_WIDTH = TRAINING_NONFLAT_GUARD_WIDTH + TRAINING_FLAT_SAFETY_WIDTH
+TRAINING_GUARD_TILE_RINGS = int(TRAINING_NONFLAT_GUARD_WIDTH / TRAINING_PATCH_SIZE)
+TRAINING_GUARD_HEIGHT_LIFT = 0.05
+TRAINING_GUARD_FAMILIES = ("perlin_rough", "boxes")
+TRAINING_STAIR_LEVELS = 5
+TRAINING_STAIR_STEP_HEIGHT_RANGE = (0.10, 0.20)
+TRAINING_ROUGH_HEIGHT_RANGE = (0.02, 0.06)
+TRAINING_BOX_HEIGHT_RANGE = (0.05, 0.15)
+TRAINING_BOX_WIDTH_RANGE = (0.3, 1.0)
+TRAINING_BOX_WIDTH_SAMPLING_STRIDE_CELLS = 1
+TRAINING_STAIR_BORDER_WIDTH = 0.5
+TRAINING_STAIR_STEP_WIDTH = 0.3
+TRAINING_STAIR_PLATFORM_WIDTH = TRAINING_CENTER_PLATFORM_WIDTH
+TRAINING_OUTER_WALL_HEIGHT = 5.0
+TRAINING_OUTER_WALL_THICKNESS = 0.05
+TRAINING_OUTER_WALL_COLOR = (0.5, 0.5, 0.5, 1.0)
 
 
-def rp1_center_reset_profile(asset_family: str) -> tuple[str, str]:
-    """Return the direction-correct center-reset label for one RP1 asset."""
+def normalize_terrain_mode(mode: str) -> str:
+    """Read the terrain name used by archived environment configurations."""
+    return "training_mix" if mode == "rp1_simple" else mode
+
+
+def center_reset_profile(asset_family: str) -> tuple[str, str]:
+    """Return the direction-correct center-reset label for a terrain asset."""
 
     try:
         return (
-            RP1_CENTER_RESET_PROFILES[asset_family],
-            RP1_CENTER_RESET_VERTICAL_DIRECTIONS[asset_family],
+            TRAINING_CENTER_RESET_PROFILES[asset_family],
+            TRAINING_CENTER_RESET_VERTICAL_DIRECTIONS[asset_family],
         )
     except KeyError as error:
-        raise ValueError(f"unknown RP1 terrain asset family: {asset_family!r}") from error
+        raise ValueError(f"unknown terrain asset family: {asset_family!r}") from error
 
 
 def _get(config: Any, path: str, default: Any) -> Any:
@@ -144,8 +149,9 @@ def _get(config: Any, path: str, default: Any) -> Any:
 
 
 def terrain_component_names(mode: TerrainMode) -> tuple[str, ...]:
-    if mode == "rp1_simple":
-        return RP1_TERRAIN_COMPONENT_NAMES
+    mode = normalize_terrain_mode(mode)
+    if mode == "training_mix":
+        return TRAINING_TERRAIN_COMPONENT_NAMES
     if mode == "mixed":
         return TERRAIN_COMPONENT_NAMES
     if mode == "plane":
@@ -167,8 +173,9 @@ def _terrain_mix(config: Any) -> dict[str, float]:
 
 def make_ufo_v0_generator_cfg(mode: TerrainMode, config: Any) -> TerrainGeneratorCfg:
     """Create collision terrain and spawn origins from one MJLab generator."""
-    if mode == "rp1_simple":
-        return make_rp1_simple_generator_cfg()
+    mode = normalize_terrain_mode(mode)
+    if mode == "training_mix":
+        return make_training_mix_generator_cfg()
     selected = terrain_component_names(mode)
     weights = _terrain_mix(config)
     if mode != "mixed":
@@ -295,75 +302,75 @@ def make_ufo_v0_generator_cfg(mode: TerrainMode, config: Any) -> TerrainGenerato
     )
 
 
-def make_rp1_simple_generator_cfg() -> TerrainGeneratorCfg:
+def make_training_mix_generator_cfg() -> TerrainGeneratorCfg:
     """Build 5 m tiles with a 0.5 m z=0 flat border on every side."""
     return TerrainGeneratorCfg(
         seed=0,
-        size=(RP1_PATCH_SIZE, RP1_PATCH_SIZE),
-        border_width=RP1_TERRAIN_BORDER_WIDTH,
+        size=(TRAINING_PATCH_SIZE, TRAINING_PATCH_SIZE),
+        border_width=TRAINING_TERRAIN_BORDER_WIDTH,
         num_rows=10,
         num_cols=7,
         curriculum=True,
         difficulty_range=(0.0, 1.0),
         color_scheme="none",
         sub_terrains={
-            "flat": BoxFlatTerrainCfg(proportion=RP1_TERRAIN_PROPORTIONS["flat"]),
+            "flat": BoxFlatTerrainCfg(proportion=TRAINING_TERRAIN_PROPORTIONS["flat"]),
             "perlin_rough": NeutralHfPerlinNoiseTerrainCfg(
-                proportion=RP1_TERRAIN_PROPORTIONS["perlin_rough"],
-                height_range=RP1_ROUGH_HEIGHT_RANGE,
+                proportion=TRAINING_TERRAIN_PROPORTIONS["perlin_rough"],
+                height_range=TRAINING_ROUGH_HEIGHT_RANGE,
                 octaves=2,
                 persistence=0.25,
                 lacunarity=2.0,
                 scale=20.0,
                 horizontal_scale=0.2,
                 resolution=0.2,
-                border_width=RP1_TILE_FLAT_BORDER_WIDTH,
+                border_width=TRAINING_TILE_FLAT_BORDER_WIDTH,
                 exact_flat_border=True,
                 geom_group=0,
             ),
             "low_stairs_up": BoxPyramidStairsTerrainCfg(
-                proportion=RP1_TERRAIN_PROPORTIONS["low_stairs_up"],
-                step_height_range=RP1_STAIR_STEP_HEIGHT_RANGE,
-                step_width=RP1_STAIR_STEP_WIDTH,
-                platform_width=RP1_STAIR_PLATFORM_WIDTH,
-                border_width=RP1_TILE_FLAT_BORDER_WIDTH,
+                proportion=TRAINING_TERRAIN_PROPORTIONS["low_stairs_up"],
+                step_height_range=TRAINING_STAIR_STEP_HEIGHT_RANGE,
+                step_width=TRAINING_STAIR_STEP_WIDTH,
+                platform_width=TRAINING_STAIR_PLATFORM_WIDTH,
+                border_width=TRAINING_TILE_FLAT_BORDER_WIDTH,
             ),
             "low_stairs_down": BoxInvertedPyramidStairsTerrainCfg(
-                proportion=RP1_TERRAIN_PROPORTIONS["low_stairs_down"],
-                step_height_range=RP1_STAIR_STEP_HEIGHT_RANGE,
-                step_width=RP1_STAIR_STEP_WIDTH,
-                platform_width=RP1_STAIR_PLATFORM_WIDTH,
-                border_width=RP1_TILE_FLAT_BORDER_WIDTH,
+                proportion=TRAINING_TERRAIN_PROPORTIONS["low_stairs_down"],
+                step_height_range=TRAINING_STAIR_STEP_HEIGHT_RANGE,
+                step_width=TRAINING_STAIR_STEP_WIDTH,
+                platform_width=TRAINING_STAIR_PLATFORM_WIDTH,
+                border_width=TRAINING_TILE_FLAT_BORDER_WIDTH,
             ),
             "low_platforms": BoxRandomGridTerrainCfg(
-                proportion=RP1_TERRAIN_PROPORTIONS["low_platforms"],
+                proportion=TRAINING_TERRAIN_PROPORTIONS["low_platforms"],
                 grid_width=0.8,
                 grid_height_range=(0.03, 0.10),
-                platform_width=RP1_CENTER_PLATFORM_WIDTH,
+                platform_width=TRAINING_CENTER_PLATFORM_WIDTH,
                 merge_similar_heights=True,
                 height_merge_threshold=0.025,
                 max_merge_distance=3,
-                border_width=RP1_TILE_FLAT_BORDER_WIDTH,
+                border_width=TRAINING_TILE_FLAT_BORDER_WIDTH,
             ),
             "hf_pyramid_slope_inv": NeutralHfPyramidSlopedTerrainCfg(
-                proportion=RP1_TERRAIN_PROPORTIONS["hf_pyramid_slope_inv"],
+                proportion=TRAINING_TERRAIN_PROPORTIONS["hf_pyramid_slope_inv"],
                 slope_range=(0.0, 0.2),
-                platform_width=RP1_CENTER_PLATFORM_WIDTH,
+                platform_width=TRAINING_CENTER_PLATFORM_WIDTH,
                 inverted=True,
-                border_width=RP1_TILE_FLAT_BORDER_WIDTH,
+                border_width=TRAINING_TILE_FLAT_BORDER_WIDTH,
                 exact_flat_border=True,
                 horizontal_scale=0.2,
                 geom_group=0,
             ),
             "boxes": NeutralHfDiscreteObstaclesTerrainCfg(
-                proportion=RP1_TERRAIN_PROPORTIONS["boxes"],
+                proportion=TRAINING_TERRAIN_PROPORTIONS["boxes"],
                 num_obstacles=50,
                 obstacle_height_mode="choice",
-                obstacle_width_range=RP1_BOX_WIDTH_RANGE,
-                obstacle_height_range=RP1_BOX_HEIGHT_RANGE,
-                obstacle_width_sampling_stride_cells=RP1_BOX_WIDTH_SAMPLING_STRIDE_CELLS,
-                platform_width=RP1_CENTER_PLATFORM_WIDTH,
-                border_width=RP1_TILE_FLAT_BORDER_WIDTH,
+                obstacle_width_range=TRAINING_BOX_WIDTH_RANGE,
+                obstacle_height_range=TRAINING_BOX_HEIGHT_RANGE,
+                obstacle_width_sampling_stride_cells=TRAINING_BOX_WIDTH_SAMPLING_STRIDE_CELLS,
+                platform_width=TRAINING_CENTER_PLATFORM_WIDTH,
+                border_width=TRAINING_TILE_FLAT_BORDER_WIDTH,
                 exact_flat_border=True,
                 horizontal_scale=0.2,
                 vertical_scale=0.005,
@@ -374,34 +381,34 @@ def make_rp1_simple_generator_cfg() -> TerrainGeneratorCfg:
     )
 
 
-def _make_rp1_guard_sub_terrains() -> dict[str, Any]:
+def _make_training_guard_sub_terrains() -> dict[str, Any]:
     """Create efficient non-flat heightfields for the non-spawn guard ring."""
     return {
         "perlin_rough": NeutralHfPerlinNoiseTerrainCfg(
             proportion=0.5,
-            height_range=RP1_ROUGH_HEIGHT_RANGE,
+            height_range=TRAINING_ROUGH_HEIGHT_RANGE,
             octaves=2,
             persistence=0.25,
             lacunarity=2.0,
             scale=20.0,
             horizontal_scale=0.2,
             resolution=0.2,
-            border_width=RP1_TILE_FLAT_BORDER_WIDTH,
+            border_width=TRAINING_TILE_FLAT_BORDER_WIDTH,
             exact_flat_border=True,
-            interior_height_offset=RP1_GUARD_HEIGHT_LIFT,
+            interior_height_offset=TRAINING_GUARD_HEIGHT_LIFT,
             geom_group=0,
         ),
         "boxes": NeutralHfDiscreteObstaclesTerrainCfg(
             proportion=0.5,
             num_obstacles=50,
             obstacle_height_mode="choice",
-            obstacle_width_range=RP1_BOX_WIDTH_RANGE,
-            obstacle_height_range=RP1_BOX_HEIGHT_RANGE,
-            obstacle_width_sampling_stride_cells=RP1_BOX_WIDTH_SAMPLING_STRIDE_CELLS,
-            platform_width=RP1_CENTER_PLATFORM_WIDTH,
-            border_width=RP1_TILE_FLAT_BORDER_WIDTH,
+            obstacle_width_range=TRAINING_BOX_WIDTH_RANGE,
+            obstacle_height_range=TRAINING_BOX_HEIGHT_RANGE,
+            obstacle_width_sampling_stride_cells=TRAINING_BOX_WIDTH_SAMPLING_STRIDE_CELLS,
+            platform_width=TRAINING_CENTER_PLATFORM_WIDTH,
+            border_width=TRAINING_TILE_FLAT_BORDER_WIDTH,
             exact_flat_border=True,
-            interior_height_offset=RP1_GUARD_HEIGHT_LIFT,
+            interior_height_offset=TRAINING_GUARD_HEIGHT_LIFT,
             horizontal_scale=0.2,
             vertical_scale=0.005,
             geom_group=0,
@@ -409,7 +416,7 @@ def _make_rp1_guard_sub_terrains() -> dict[str, Any]:
     }
 
 
-def add_rp1_nonflat_guard_ring(
+def add_training_nonflat_guard_ring(
     spec: mujoco.MjSpec,
     generator: TerrainGeneratorCfg,
 ) -> tuple[int, int]:
@@ -422,24 +429,24 @@ def add_rp1_nonflat_guard_ring(
     """
     terrain_body = spec.body("terrain")
     if terrain_body is None:
-        raise ValueError("RP1 guard ring requires a compiled terrain body")
+        raise ValueError("Terrain guard ring requires a compiled terrain body")
     tile_x, tile_y = (float(value) for value in generator.size)
-    rings_x = int(round(RP1_NONFLAT_GUARD_WIDTH / tile_x))
-    rings_y = int(round(RP1_NONFLAT_GUARD_WIDTH / tile_y))
-    if not math.isclose(rings_x * tile_x, RP1_NONFLAT_GUARD_WIDTH) or not math.isclose(
-        rings_y * tile_y, RP1_NONFLAT_GUARD_WIDTH
+    rings_x = int(round(TRAINING_NONFLAT_GUARD_WIDTH / tile_x))
+    rings_y = int(round(TRAINING_NONFLAT_GUARD_WIDTH / tile_y))
+    if not math.isclose(rings_x * tile_x, TRAINING_NONFLAT_GUARD_WIDTH) or not math.isclose(
+        rings_y * tile_y, TRAINING_NONFLAT_GUARD_WIDTH
     ):
-        raise ValueError("RP1 non-flat guard width must be an integer number of terrain tiles")
-    if not math.isclose(float(generator.border_width), RP1_TERRAIN_BORDER_WIDTH):
+        raise ValueError("Terrain non-flat guard width must be an integer number of terrain tiles")
+    if not math.isclose(float(generator.border_width), TRAINING_TERRAIN_BORDER_WIDTH):
         raise ValueError(
-            "RP1 generator border must equal the non-flat guard plus flat safety width"
+            "Terrain generator border must equal the non-flat guard plus flat safety width"
         )
 
     num_rows = int(generator.num_rows)
     num_cols = len(generator.sub_terrains) if generator.curriculum else int(generator.num_cols)
     core_x_min = -num_rows * tile_x / 2.0
     core_y_min = -num_cols * tile_y / 2.0
-    guard_cfgs = _make_rp1_guard_sub_terrains()
+    guard_cfgs = _make_training_guard_sub_terrains()
     for guard_cfg in guard_cfgs.values():
         guard_cfg.size = (tile_x, tile_y)
     rng = np.random.default_rng(int(generator.seed or 0) + 104_729)
@@ -450,7 +457,7 @@ def add_rp1_nonflat_guard_ring(
         for col in range(-rings_y, num_cols + rings_y):
             if 0 <= row < num_rows and 0 <= col < num_cols:
                 continue
-            family = RP1_GUARD_FAMILIES[tile_count % len(RP1_GUARD_FAMILIES)]
+            family = TRAINING_GUARD_FAMILIES[tile_count % len(TRAINING_GUARD_FAMILIES)]
             guard_cfg = guard_cfgs[family]
             phase = ((tile_count % 10) + 0.5) / 10.0
             difficulty = lower + phase * (upper - lower)
@@ -476,26 +483,26 @@ def add_rp1_nonflat_guard_ring(
     return tile_count, geom_count
 
 
-def add_rp1_outer_walls(spec: mujoco.MjSpec, generator: TerrainGeneratorCfg) -> None:
+def add_training_outer_walls(spec: mujoco.MjSpec, generator: TerrainGeneratorCfg) -> None:
     """Add four collision walls outside the 10 m guard and 2 m flat safety ring."""
     terrain_body = spec.body("terrain")
     if terrain_body is None:
-        raise ValueError("RP1 outer walls require a compiled terrain body")
+        raise ValueError("Terrain outer walls require a compiled terrain body")
     num_cols = len(generator.sub_terrains) if generator.curriculum else generator.num_cols
     outer_x = generator.num_rows * generator.size[0] + 2.0 * generator.border_width
     outer_y = num_cols * generator.size[1] + 2.0 * generator.border_width
-    half_height = RP1_OUTER_WALL_HEIGHT / 2.0
-    half_thickness = RP1_OUTER_WALL_THICKNESS / 2.0
+    half_height = TRAINING_OUTER_WALL_HEIGHT / 2.0
+    half_thickness = TRAINING_OUTER_WALL_THICKNESS / 2.0
     walls = (
         (
             "rp1_outer_wall_x_negative",
             (-outer_x / 2.0 - half_thickness, 0.0, half_height),
-            (half_thickness, outer_y / 2.0 + RP1_OUTER_WALL_THICKNESS, half_height),
+            (half_thickness, outer_y / 2.0 + TRAINING_OUTER_WALL_THICKNESS, half_height),
         ),
         (
             "rp1_outer_wall_x_positive",
             (outer_x / 2.0 + half_thickness, 0.0, half_height),
-            (half_thickness, outer_y / 2.0 + RP1_OUTER_WALL_THICKNESS, half_height),
+            (half_thickness, outer_y / 2.0 + TRAINING_OUTER_WALL_THICKNESS, half_height),
         ),
         (
             "rp1_outer_wall_y_negative",
@@ -510,7 +517,7 @@ def add_rp1_outer_walls(spec: mujoco.MjSpec, generator: TerrainGeneratorCfg) -> 
     )
     for name, pos, size in walls:
         wall = terrain_body.add_geom(name=name, type=mujoco.mjtGeom.mjGEOM_BOX, pos=pos, size=size)
-        wall.rgba = RP1_OUTER_WALL_COLOR
+        wall.rgba = TRAINING_OUTER_WALL_COLOR
         wall.group = 0
         wall.contype = 1
         wall.conaffinity = 1
@@ -524,28 +531,29 @@ def make_terrain_entity_cfg(
     inference_all_stairs: bool = False,
     inference_all_flat: bool = False,
 ) -> TerrainEntityCfg:
+    mode = normalize_terrain_mode(mode)
     if mode == "plane":
         return TerrainEntityCfg(terrain_type="plane", env_spacing=env_spacing)
     if mode not in SUPPORTED_TERRAINS:
         raise ValueError(f"Unsupported terrain mode: {mode!r}. Expected one of {SUPPORTED_TERRAINS}")
     generator = make_ufo_v0_generator_cfg(mode, config)
-    if mode == "rp1_simple":
+    if mode == "training_mix":
         if inference_all_stairs and inference_all_flat:
             raise ValueError("inference_all_stairs and inference_all_flat are mutually exclusive")
         if inference_all_stairs:
             generator.sub_terrains = {
                 name: BoxPyramidStairsTerrainCfg(
-                    proportion=RP1_TERRAIN_PROPORTIONS[name],
+                    proportion=TRAINING_TERRAIN_PROPORTIONS[name],
                     step_height_range=(0.15, 0.15),
-                    step_width=RP1_STAIR_STEP_WIDTH,
-                    platform_width=RP1_STAIR_PLATFORM_WIDTH,
-                    border_width=RP1_TILE_FLAT_BORDER_WIDTH,
+                    step_width=TRAINING_STAIR_STEP_WIDTH,
+                    platform_width=TRAINING_STAIR_PLATFORM_WIDTH,
+                    border_width=TRAINING_TILE_FLAT_BORDER_WIDTH,
                 )
                 for name in generator.sub_terrains
             }
         elif inference_all_flat:
             generator.sub_terrains = {
-                name: BoxFlatTerrainCfg(proportion=RP1_TERRAIN_PROPORTIONS[name])
+                name: BoxFlatTerrainCfg(proportion=TRAINING_TERRAIN_PROPORTIONS[name])
                 for name in generator.sub_terrains
             }
     return TerrainEntityCfg(

@@ -24,10 +24,10 @@ from pbfm.training.evaluation.tracking import _calc_metrics, emd_numpy
 from pbfm.agents.presets import build_fb_depth_agent
 from pbfm.motion.observations import compute_humanoid_observations_max
 from pbfm.inference.runtime import (
-    _assign_rp1_training_tile,
+    _assign_training_tile,
     _camera_lookat_from_root,
     _inference_scene_option,
-    _is_rp1_training_family,
+    _is_training_family,
     _limit_absolute_near_clip,
     _style_untextured_terrain,
 )
@@ -42,9 +42,9 @@ from pbfm.evaluation.terrain import (
 )
 from pbfm.terrains import make_terrain_entity_cfg, terrain_component_names
 from pbfm.terrains.coverage import validate_motion_terrain_coverage
-from pbfm.terrains.rp1_simple import (
-    RP1_STAIR_STEP_HEIGHT_RANGE,
-    RP1_TERRAIN_COMPONENT_NAMES,
+from pbfm.terrains.presets import (
+    TRAINING_STAIR_STEP_HEIGHT_RANGE,
+    TRAINING_TERRAIN_COMPONENT_NAMES,
     make_ufo_v0_generator_cfg,
 )
 from pbfm.terrains.terrain_height_sensor import (
@@ -74,14 +74,14 @@ def _preset():
     )
 
 
-def test_terrain_transfer_exposes_exact_rp1_training_families() -> None:
-    assert set(RP1_TERRAIN_COMPONENT_NAMES).issubset(SUPPORTED_TERRAINS)
-    assert _is_rp1_training_family("low_stairs_down")
-    assert not _is_rp1_training_family("stairs")
-    assert RP1_STAIR_STEP_HEIGHT_RANGE == (0.10, 0.20)
+def test_terrain_transfer_exposes_exact_training_families() -> None:
+    assert set(TRAINING_TERRAIN_COMPONENT_NAMES).issubset(SUPPORTED_TERRAINS)
+    assert _is_training_family("low_stairs_down")
+    assert not _is_training_family("stairs")
+    assert TRAINING_STAIR_STEP_HEIGHT_RANGE == (0.10, 0.20)
 
 
-def test_assign_rp1_training_tile_uses_requested_family_and_row() -> None:
+def test_assign_training_tile_uses_requested_family_and_row() -> None:
     origins = torch.arange(10 * 7 * 3, dtype=torch.float32).reshape(10, 7, 3)
     terrain = SimpleNamespace(
         terrain_origins=origins,
@@ -89,18 +89,18 @@ def test_assign_rp1_training_tile_uses_requested_family_and_row() -> None:
         terrain_types=torch.zeros(1, dtype=torch.long),
     )
     core = SimpleNamespace(
-        terrain_component_names=RP1_TERRAIN_COMPONENT_NAMES,
+        terrain_component_names=TRAINING_TERRAIN_COMPONENT_NAMES,
         mjlab_env=SimpleNamespace(scene={"terrain": terrain}),
         env_origins=torch.zeros(1, 3),
     )
 
-    _assign_rp1_training_tile(core, family="low_stairs_down", difficulty_row=4)
+    _assign_training_tile(core, family="low_stairs_down", difficulty_row=4)
 
     assert terrain.terrain_levels.item() == 4
-    assert terrain.terrain_types.item() == RP1_TERRAIN_COMPONENT_NAMES.index("low_stairs_down")
+    assert terrain.terrain_types.item() == TRAINING_TERRAIN_COMPONENT_NAMES.index("low_stairs_down")
     torch.testing.assert_close(
         core.env_origins[0],
-        origins[4, RP1_TERRAIN_COMPONENT_NAMES.index("low_stairs_down")],
+        origins[4, TRAINING_TERRAIN_COMPONENT_NAMES.index("low_stairs_down")],
     )
 
 
@@ -316,7 +316,7 @@ def test_separated_stairs_reset_at_center_and_exclude_lie_down() -> None:
     assert lie_down.tolist() == [False, False, True, True]
 
 
-def test_rp1_reset_diagnostics_count_true_assigned_families() -> None:
+def test_training_reset_diagnostics_count_true_assigned_families() -> None:
     component_names = (
         "flat",
         "perlin_rough",

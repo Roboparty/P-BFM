@@ -24,7 +24,7 @@ MAXCROP_PROFILE = "optical_z_maxcrop18_reset_v2"
 
 
 @dataclass(frozen=True)
-class RP1DirectDepthConfig:
+class DirectDepthConfig:
     processing_profile: str = "legacy_rp1"
     depth_convention: str = DEPTH_CONVENTION
     width: int = 64
@@ -77,16 +77,16 @@ class RP1DirectDepthConfig:
                 f"direct-depth convention must be {DEPTH_CONVENTION!r}, got {self.depth_convention!r}"
             )
         if (self.width, self.height) != (64, 36):
-            raise ValueError("RP1 direct depth requires a 64x36 source image")
+            raise ValueError("Direct depth requires a 64x36 source image")
         if self.processing_profile not in {"legacy_rp1", MAXCROP_PROFILE}:
             raise ValueError(f"Unknown depth processing profile: {self.processing_profile}")
         expected = (18, 32) if self.processing_profile == MAXCROP_PROFILE else (36, 32)
         if (self.output_height, self.output_width) != expected:
             raise ValueError(f"Depth profile requires output shape {expected}")
         if self.history_length != 37 or self.sampled_ages != (35, 30, 25, 20, 15, 10, 5, 0):
-            raise ValueError("RP1 direct depth requires the 37-frame, skip-5 history contract")
+            raise ValueError("Direct depth requires the 37-frame, skip-5 history contract")
         if self.delayed_frame_ranges != (0, 1):
-            raise ValueError("RP1 direct depth requires an inclusive per-episode delay of 0 or 1 frame")
+            raise ValueError("Direct depth requires an inclusive per-episode delay of 0 or 1 frame")
         if self.position_error < 0.0 or self.angle_error_rad < 0.0:
             raise ValueError("camera installation error bounds must be non-negative")
         if not 0.0 <= self.min_distance < self.max_distance:
@@ -119,8 +119,8 @@ class RP1DirectDepthConfig:
         return self.max_distance / float(rays[..., 2].min()) + 1.0e-4
 
 
-def depth_config_for_profile(profile: str, base: RP1DirectDepthConfig | None = None) -> RP1DirectDepthConfig:
-    cfg = base or RP1DirectDepthConfig()
+def depth_config_for_profile(profile: str, base: DirectDepthConfig | None = None) -> DirectDepthConfig:
+    cfg = base or DirectDepthConfig()
     if profile == "legacy_rp1":
         return cfg
     if profile != MAXCROP_PROFILE:
@@ -216,9 +216,9 @@ def _sanitize_depth(depth: torch.Tensor, max_depth: float) -> torch.Tensor:
     )
 
 
-def preprocess_rp1_depth(
+def preprocess_depth(
     raw_depth: torch.Tensor,
-    cfg: RP1DirectDepthConfig,
+    cfg: DirectDepthConfig,
     *,
     enable_noise: bool,
 ) -> torch.Tensor:
@@ -241,8 +241,8 @@ def preprocess_rp1_depth(
     return normalized.mul(255.0).round().to(torch.uint8)
 
 
-class RP1DirectDepthRuntime:
-    """Maintain RP1's delayed 8-frame input in a 37-frame uint8 ring."""
+class DirectDepthRuntime:
+    """Maintain delayed 8-frame input in a 37-frame uint8 ring."""
 
     output_dtype = torch.uint8
     bytes_per_value = torch.empty((), dtype=output_dtype).element_size()
@@ -251,7 +251,7 @@ class RP1DirectDepthRuntime:
         self,
         num_envs: int,
         device: str | torch.device,
-        cfg: RP1DirectDepthConfig,
+        cfg: DirectDepthConfig,
         *,
         enable_noise: bool,
         fixed_delay_frames: int | None = None,
@@ -261,7 +261,7 @@ class RP1DirectDepthRuntime:
             cfg.delayed_frame_ranges[0] <= int(fixed_delay_frames) <= cfg.delayed_frame_ranges[1]
         ):
             raise ValueError(
-                "fixed_delay_frames must lie inside the frozen RP1 delay range "
+                "fixed_delay_frames must lie inside the configured delay range "
                 f"{cfg.delayed_frame_ranges}, got {fixed_delay_frames}"
             )
         self.cfg = cfg
@@ -292,7 +292,7 @@ class RP1DirectDepthRuntime:
     def current_frame(self, sensor) -> torch.Tensor:
         metric_depth = raycast_ranges_to_image_plane(
             sensor.data.distances, self.camera, invalid_to_max=self.cfg.processing_profile == MAXCROP_PROFILE)
-        return preprocess_rp1_depth(metric_depth, self.cfg, enable_noise=self.enable_noise)
+        return preprocess_depth(metric_depth, self.cfg, enable_noise=self.enable_noise)
 
     def _sample_history(self, current_index: int) -> torch.Tensor:
         frame_indices = torch.remainder(
@@ -343,8 +343,8 @@ __all__ = [
     "DEPTH_CONVENTION",
     "REFERENCE_COMMIT",
     "REFERENCE_PROJECT",
-    "RP1DirectDepthConfig",
-    "RP1DirectDepthRuntime",
-    "preprocess_rp1_depth",
+    "DirectDepthConfig",
+    "DirectDepthRuntime",
+    "preprocess_depth",
     "raycast_ranges_to_image_plane",
 ]

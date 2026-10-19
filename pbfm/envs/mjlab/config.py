@@ -24,10 +24,10 @@ from pbfm.perception.instinct_direct_depth import (
     REFERENCE_PROJECT as DIRECT_DEPTH_REFERENCE_PROJECT,
 )
 from pbfm.perception.instinct_direct_depth import (
-    RP1DirectDepthConfig,
+    DirectDepthConfig,
 )
-from pbfm.terrains import make_terrain_entity_cfg
-from pbfm.terrains.rp1_simple import add_rp1_nonflat_guard_ring, add_rp1_outer_walls
+from pbfm.terrains import make_terrain_entity_cfg, normalize_terrain_mode
+from pbfm.terrains.presets import add_training_nonflat_guard_ring, add_training_outer_walls
 from pbfm.terrains.terrain_height_sensor import PbfmTerrainHeightSensorCfg, WorldUpTerrainHeightSensorCfg
 from pbfm.terrains.terrain_observation import RobotCentricGridPatternCfg
 from pbfm.utils.resource_paths import remap_resource_path
@@ -42,8 +42,8 @@ G1_MJLAB_MJCF_PATH = "pbfm/data/robots/g1_mjlab/g1_29dof.xml"
 G1_MJLAB_ACTUATOR_SOURCE = "g1-mode_15"
 
 
-def _rp1_direct_depth_config(config) -> RP1DirectDepthConfig | None:
-    """Parse and validate the RP1-compatible direct-depth Hydra block."""
+def _direct_depth_config(config) -> DirectDepthConfig | None:
+    """Parse and validate the direct-depth Hydra block."""
     if not bool(config.terrain.get("enabled", False)):
         return None
     raw = config.terrain.get("direct_depth", None)
@@ -66,7 +66,7 @@ def _rp1_direct_depth_config(config) -> RP1DirectDepthConfig | None:
         convention="world",
         input_order="wxyz",
     )
-    cfg = RP1DirectDepthConfig(
+    cfg = DirectDepthConfig(
         depth_convention=str(raw.depth_convention),
         width=int(raw.width),
         height=int(raw.height),
@@ -364,8 +364,8 @@ def make_mjlab_ufo_env_cfg(
         )
     ]
     terrain_enabled = bool(config.terrain.get("enabled", False))
-    terrain_mode = str(config.terrain.get("terrain_type", "plane")) if terrain_enabled else "plane"
-    direct_depth_cfg = _rp1_direct_depth_config(config)
+    terrain_mode = normalize_terrain_mode(str(config.terrain.get("terrain_type", "plane"))) if terrain_enabled else "plane"
+    direct_depth_cfg = _direct_depth_config(config)
     terrain_observation_mode = str(config.terrain.terrain_priv.get("mode", "raycast")) if terrain_enabled else "raycast"
     if terrain_observation_mode not in {"raycast", "flat_zero"}:
         raise ValueError(f"Unsupported terrain observation mode: {terrain_observation_mode!r}")
@@ -388,14 +388,14 @@ def make_mjlab_ufo_env_cfg(
                     pattern=grid_pattern,
                     ray_alignment="yaw",
                     max_distance=float(terrain_priv_cfg.max_ray_distance),
-                    include_geom_groups=(0,) if terrain_mode == "rp1_simple" else (5,),
-                    padding_ray_group=0 if terrain_mode == "rp1_simple" else 5,
+                    include_geom_groups=(0,) if terrain_mode == "training_mix" else (5,),
+                    padding_ray_group=0 if terrain_mode == "training_mix" else 5,
                     reduction="none",
                     debug_vis=bool(terrain_priv_cfg.get("debug_vis", False)),
                 )
             )
         if bool(config.rewards.get("terrain_aware_auxiliary", False)) and not evaluation_fast_path:
-            terrain_ray_groups = (0,) if terrain_mode in {"rp1_simple", "plane", "flat"} else (5,)
+            terrain_ray_groups = (0,) if terrain_mode in {"training_mix", "plane", "flat"} else (5,)
             sensors.extend(
                 (
                     ContactSensorCfg(
@@ -446,7 +446,7 @@ def make_mjlab_ufo_env_cfg(
                 terrain_reference_camera = replace(
                     direct_depth_cfg.camera_config(),
                     name="g1_direct_depth_terrain_reference",
-                    include_geom_groups=(0, 5) if terrain_mode == "rp1_simple" else (5,),
+                    include_geom_groups=(0, 5) if terrain_mode == "training_mix" else (5,),
                 )
                 sensors.append(
                     make_depth_camera_sensor_cfg(
@@ -464,14 +464,14 @@ def make_mjlab_ufo_env_cfg(
         else make_terrain_entity_cfg("plane", env_spacing=float(config.env_spacing))
     )
     scene_spec_fn = None
-    if terrain_mode == "rp1_simple":
+    if terrain_mode == "training_mix":
         terrain_generator = terrain_entity_cfg.terrain_generator
         if terrain_generator is None:
-            raise ValueError("rp1_simple terrain requires a terrain generator")
+            raise ValueError("training_mix terrain requires a terrain generator")
 
         def scene_spec_fn(spec: mujoco.MjSpec) -> None:
-            add_rp1_nonflat_guard_ring(spec, terrain_generator)
-            add_rp1_outer_walls(spec, terrain_generator)
+            add_training_nonflat_guard_ring(spec, terrain_generator)
+            add_training_outer_walls(spec, terrain_generator)
     observations = {
         "actor": ObservationGroupCfg(
             terms={"joint_pos": ObservationTermCfg(func=_obs_joint_pos)},

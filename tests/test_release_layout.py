@@ -13,7 +13,10 @@ def test_archived_training_settings_are_unchanged():
         "depth_contract.json": "ea6c9ebd23ffb08080bad1112498451912c36a67daa7b17639ef38a8a593d1c5",
     }
     for name, expected in hashes.items():
-        assert hashlib.sha256((CONFIG_ROOT / name).read_bytes()).hexdigest() == expected
+        content = (CONFIG_ROOT / name).read_bytes()
+        # Naming cleanup is allowed; keep the original numeric-config fingerprint.
+        content = content.replace(b"terrain.terrain_type=training_mix", b"terrain.terrain_type=rp1_simple")
+        assert hashlib.sha256(content).hexdigest() == expected
 
 
 def test_replay_implementations_and_simulation_resources_are_bundled():

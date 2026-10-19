@@ -522,7 +522,7 @@ def run_gradient_diagnostic(
 
 
 def _stairs_column(root_y: np.ndarray) -> np.ndarray:
-    # Frozen rp1_simple layout: seven 5 m columns centered around world y=0.
+    # Frozen training_mix layout: seven 5 m columns centered around world y=0.
     return np.floor((root_y + 17.5) / 5.0).astype(np.int64)
 
 
@@ -627,7 +627,7 @@ class PairedDepthRenderer:
             disable_eval_prioritization=True,
             smoke=True,
             agent="fb_depth",
-            terrain_mode="rp1_simple",
+            terrain_mode="training_mix",
             prior_plane_envs=0,
             disable_dr=True,
             disable_obs_noise=True,
@@ -934,7 +934,7 @@ def run_closed_loop_intervention(
         disable_eval_prioritization=True,
         smoke=True,
         agent="fb_depth",
-        terrain_mode="rp1_simple",
+        terrain_mode="training_mix",
         prior_plane_envs=0,
         disable_dr=True,
         disable_obs_noise=True,

@@ -29,7 +29,7 @@ from pbfm.motion.data import prepare_manifest_dataset_path, prepare_manifest_rob
 from pbfm.inference.export.backward_encoder import UnsupportedBackwardEncoderExport, export_backward_encoder_from_model
 from pbfm.utils.helpers import export_meta_policy_as_onnx
 from pbfm.utils.resource_paths import resolve_resource_path
-from pbfm.terrains.rp1_simple import RP1_TERRAIN_COMPONENT_NAMES, rp1_center_reset_profile
+from pbfm.terrains.presets import TRAINING_TERRAIN_COMPONENT_NAMES, center_reset_profile
 from pbfm.robots import (
     assert_robot_configs_compatible,
     load_robot_training_spec,
@@ -443,29 +443,29 @@ def replace_hydra_override(overrides: list[str], key: str, value: Any) -> list[s
     return [item for item in overrides if not item.startswith(prefix)] + [f"{key}={value}"]
 
 
-def _is_rp1_training_family(terrain: str) -> bool:
-    return terrain in RP1_TERRAIN_COMPONENT_NAMES
+def _is_training_family(terrain: str) -> bool:
+    return terrain in TRAINING_TERRAIN_COMPONENT_NAMES
 
 
-def _assign_rp1_training_tile(core, *, family: str, difficulty_row: int) -> None:
-    """Place the inference environment on an exact RP1 training tile."""
+def _assign_training_tile(core, *, family: str, difficulty_row: int) -> None:
+    """Place the inference environment on an exact training tile."""
 
-    if tuple(core.terrain_component_names) != tuple(RP1_TERRAIN_COMPONENT_NAMES):
+    if tuple(core.terrain_component_names) != tuple(TRAINING_TERRAIN_COMPONENT_NAMES):
         raise RuntimeError(
-            f"RP1 inference expected family columns {RP1_TERRAIN_COMPONENT_NAMES}, "
+            f"Training-terrain inference expected family columns {TRAINING_TERRAIN_COMPONENT_NAMES}, "
             f"got {core.terrain_component_names}"
         )
     terrain = core.mjlab_env.scene["terrain"]
     num_rows = int(terrain.terrain_origins.shape[0])
     if not 0 <= difficulty_row < num_rows:
-        raise ValueError(f"RP1 difficulty row {difficulty_row} is outside [0, {num_rows})")
-    family_id = RP1_TERRAIN_COMPONENT_NAMES.index(family)
+        raise ValueError(f"Terrain difficulty row {difficulty_row} is outside [0, {num_rows})")
+    family_id = TRAINING_TERRAIN_COMPONENT_NAMES.index(family)
     terrain.terrain_levels.fill_(int(difficulty_row))
     terrain.terrain_types.fill_(int(family_id))
     core.env_origins.copy_(terrain.terrain_origins[difficulty_row, family_id].expand_as(core.env_origins))
-    profile, vertical_direction = rp1_center_reset_profile(family)
+    profile, vertical_direction = center_reset_profile(family)
     print(
-        f"[INFO] RP1 training terrain: asset_family={family}, profile={profile}, "
+        f"[INFO] Training terrain: asset_family={family}, profile={profile}, "
         f"direction={vertical_direction}, difficulty_row={difficulty_row}, reset=tile_center"
     )
 
@@ -480,10 +480,10 @@ def _terrain_env_cfg(
 ):
     overrides = list(base_cfg.hydra_overrides)
     overrides = replace_hydra_override(overrides, "terrain", "terrain_ufo_v0")
-    terrain_mode = "rp1_simple" if _is_rp1_training_family(terrain) else terrain
+    terrain_mode = "training_mix" if _is_training_family(terrain) else terrain
     overrides = replace_hydra_override(overrides, "terrain.terrain_type", terrain_mode)
     overrides = replace_hydra_override(overrides, "terrain.seed", seed)
-    if patch_size is not None and not _is_rp1_training_family(terrain):
+    if patch_size is not None and not _is_training_family(terrain):
         overrides = replace_hydra_override(overrides, "terrain.patch_size", [patch_size, patch_size])
     if terrain == "course":
         overrides = replace_hydra_override(overrides, "terrain.num_rows", 1)

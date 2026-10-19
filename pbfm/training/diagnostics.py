@@ -7,7 +7,7 @@ import torch
 
 from pbfm.envs.mjlab.reset import RESET_REGION_NAMES
 from pbfm.envs.mjlab.observations import _terrain_observations
-from pbfm.terrains.rp1_simple import RP1_TERRAIN_COMPONENT_NAMES, rp1_center_reset_profile
+from pbfm.terrains.presets import TRAINING_TERRAIN_COMPONENT_NAMES, center_reset_profile
 
 
 def _assert_canonical_plane_terrain_priv(observation: tp.Mapping[str, tp.Any], *, label: str) -> None:
@@ -253,8 +253,8 @@ def terrain_metrics(train_env, *, distributed_sync: bool, world_size: int) -> di
                     metrics[f"terrain/transition/{source_name}_to_{target_name}"] = count
         reset_family_total = int(reset_family_counts.sum().item())
         metrics["reset/family_total"] = reset_family_total
-        is_rp1_simple = tuple(raw_env.terrain_component_names) == tuple(
-            RP1_TERRAIN_COMPONENT_NAMES
+        is_training_mix = tuple(raw_env.terrain_component_names) == tuple(
+            TRAINING_TERRAIN_COMPONENT_NAMES
         )
         for family_id, family_name in enumerate(raw_env.terrain_component_names):
             count = int(reset_family_counts[family_id].item())
@@ -262,8 +262,8 @@ def terrain_metrics(train_env, *, distributed_sync: bool, world_size: int) -> di
             metrics[f"reset/family_fraction/{family_name}"] = (
                 float(count / reset_family_total) if reset_family_total else 0.0
             )
-            if is_rp1_simple:
-                reset_profile, _vertical_direction = rp1_center_reset_profile(family_name)
+            if is_training_mix:
+                reset_profile, _vertical_direction = center_reset_profile(family_name)
                 metrics[f"reset/profile/{reset_profile}"] = count
         if raw_env._reset_region_labels_are_semantic:
             for region_id, region_name in enumerate(RESET_REGION_NAMES):

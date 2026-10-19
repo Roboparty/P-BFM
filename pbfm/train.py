@@ -35,7 +35,7 @@ from pbfm.training.evaluation.same_z_terrain import SameZTerrainEvaluationConfig
 from pbfm.agents.presets import build_fb_depth_agent
 from pbfm.agents.presets.fb_depth import load_final_config
 from pbfm.terrains.coverage import validate_motion_terrain_coverage
-from pbfm.terrains.rp1_simple import RP1_PATCH_SIZE, RP1_TERRAIN_BORDER_WIDTH
+from pbfm.terrains.presets import TRAINING_PATCH_SIZE, TRAINING_TERRAIN_BORDER_WIDTH, normalize_terrain_mode
 from pbfm.training.config import TrainConfig
 from pbfm.motion.data import prepare_motion_manifest
 from pbfm.robots import assert_robot_configs_compatible, load_robot_training_spec, resolve_robot_config_path
@@ -212,7 +212,7 @@ def build_ufo_mjlab_config(
                 print("WARNING: Robot config is auto-generated draft; review training semantics before use.",
                       flush=True)
     if terrain_mode is not None:
-        overrides["terrain.terrain_type"] = terrain_mode
+        overrides["terrain.terrain_type"] = normalize_terrain_mode(terrain_mode)
     if cartwheel_aux_safe:
         overrides.update({
             "rewards.reward_scales.penalty_undesired_contact": "0.0",
@@ -441,13 +441,13 @@ def launch(args: argparse.Namespace) -> None:
     if args.terrain_mode != "plane":
         terrain_cfg = OmegaConf.load(CONFIG_ROOT / "simulation/terrain/terrain_ufo_v0.yaml").terrain
         patch_size = (
-            (RP1_PATCH_SIZE, RP1_PATCH_SIZE)
-            if args.terrain_mode == "rp1_simple"
+            (TRAINING_PATCH_SIZE, TRAINING_PATCH_SIZE)
+            if args.terrain_mode == "training_mix"
             else tuple(float(value) for value in terrain_cfg.patch_size)
         )
         border_width = (
-            RP1_TERRAIN_BORDER_WIDTH
-            if args.terrain_mode == "rp1_simple"
+            TRAINING_TERRAIN_BORDER_WIDTH
+            if args.terrain_mode == "training_mix"
             else float(terrain_cfg.border_width)
         )
         sensor_radius = math.hypot(
@@ -535,10 +535,11 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--terrain-mode",
-        choices=["plane", "flat", "slope", "stairs", "stairs_up", "stairs_down", "rough", "platforms", "mixed", "rp1_simple"],
+        type=normalize_terrain_mode,
+        choices=["plane", "flat", "slope", "stairs", "stairs_up", "stairs_down", "rough", "platforms", "mixed", "training_mix"],
         default=None,
         help=(
-            "Physical terrain (default: rp1_simple). "
+            "Physical terrain (default: training_mix). "
             "Use plane for an all-flat control with terrain observations preserved."
         ),
     )
@@ -764,7 +765,7 @@ def parse_args() -> argparse.Namespace:
     if not args.heading_context or args.heading_reg_coeff <= 0.0:
         raise ValueError("The final P3 velocity critic requires --heading-context and a positive --heading-reg-coeff")
     if args.terrain_mode is None:
-        args.terrain_mode = "rp1_simple"
+        args.terrain_mode = "training_mix"
     return args
 
 

@@ -132,7 +132,7 @@ class DepthCameraConventionTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             DepthCameraConfig(intrinsic_matrix=(1.0,) * 8).validate()
 
-    def test_per_episode_installation_randomization_matches_rp1_bounds(self):
+    def test_per_episode_installation_randomization_matches_training_bounds(self):
         position_error = 0.05
         angle_error = math.radians(5.0)
         sensor_cfg = make_depth_camera_sensor_cfg(

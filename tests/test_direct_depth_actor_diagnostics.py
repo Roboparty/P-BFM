@@ -51,7 +51,7 @@ def test_root_state_converts_wxyz_to_xyzw_and_rotates_angular_velocity() -> None
     assert state["dof_states"].shape == (1, 29, 2)
 
 
-def test_stairs_column_matches_frozen_rp1_layout() -> None:
+def test_stairs_column_matches_frozen_training_layout() -> None:
     y = np.asarray([-7.49, -2.51, -2.49, 2.49])
 
     assert np.array_equal(_stairs_column(y), np.asarray([2, 2, 3, 3]))

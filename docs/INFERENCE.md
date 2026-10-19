@@ -21,7 +21,7 @@ python -m pbfm.inference.tracking --model-folder /path/to/run \
 ```
 
 Terrain geometry is read from that checkpoint's configuration. The family name
-alone does not specify the direction of travel: RP1 center-outward traversal of
+alone does not specify the direction of travel: center-outward traversal of
 `low_stairs_down` goes uphill. Check reset position, heading and actual geometry
 before labelling a video.
 

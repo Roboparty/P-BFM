@@ -1,4 +1,4 @@
-"""RP1 terrain primitives that are not provided by MJLab."""
+"""Terrain primitives that are not provided by MJLab."""
 
 from __future__ import annotations
 
@@ -169,7 +169,7 @@ class TerrainInvertedPyramidStairsCfg(BoxInvertedPyramidStairsTerrainCfg):
 
 @dataclass(kw_only=True)
 class TerrainPyramidStairsCfg(BoxPyramidStairsTerrainCfg):
-    """RP1 ascending stairs marked for the dedicated terrain ray group."""
+    """Ascending stairs marked for the dedicated terrain ray group."""
 
     def function(self, difficulty: float, spec: mujoco.MjSpec, rng: np.random.Generator) -> TerrainOutput:
         return _mark_as_terrain(super().function(difficulty, spec, rng))
@@ -177,7 +177,7 @@ class TerrainPyramidStairsCfg(BoxPyramidStairsTerrainCfg):
 
 @dataclass(kw_only=True)
 class TerrainRandomGridCfg(BoxRandomGridTerrainCfg):
-    """RP1 low platforms marked for the dedicated terrain ray group."""
+    """Low platforms marked for the dedicated terrain ray group."""
 
     def function(self, difficulty: float, spec: mujoco.MjSpec, rng: np.random.Generator) -> TerrainOutput:
         return _mark_as_terrain(super().function(difficulty, spec, rng))
@@ -544,7 +544,7 @@ class NeutralHfPyramidSlopedTerrainCfg(HfPyramidSlopedTerrainCfg):
 
 @dataclass(kw_only=True)
 class NeutralHfDiscreteObstaclesTerrainCfg(HfDiscreteObstaclesTerrainCfg):
-    """RP1 discrete obstacles without height material, visible to terrain rays."""
+    """Discrete obstacles without height material, visible to terrain rays."""
 
     geom_group: int = 5
     exact_flat_border: bool = False
@@ -555,7 +555,7 @@ class NeutralHfDiscreteObstaclesTerrainCfg(HfDiscreteObstaclesTerrainCfg):
         """Return inclusive width bins without silently undershooting the configured minimum.
 
         MJLab's upstream primitive floors the minimum width and advances by four
-        height-field cells.  At RP1's 0.2 m resolution, a configured 0.3--1.0 m
+        height-field cells.  At the training preset's 0.2 m resolution, a configured 0.3--1.0 m
         interval therefore degenerates to only 0.2 and 1.0 m.  This explicit
         contract uses ceil/floor at the boundaries and a configurable stride.
         """

@@ -27,7 +27,7 @@ from pbfm.agents.load_utils import load_model_from_checkpoint_dir
 from pbfm.agents.inference_context import build_tracking_commands, tracking_context_arrays
 from pbfm.inference.runtime import (
     MujocoQposRenderer,
-    _assign_rp1_training_tile,
+    _assign_training_tile,
     _control_to_qpos_order_indices,
     _expert_qpos_from_obs,
     _export_policy_model as _export_policy_model,
@@ -46,7 +46,7 @@ from pbfm.inference.runtime import (
 )
 from pbfm.utils.helpers import get_backward_observation
 from pbfm.robots import load_robot_training_spec
-from pbfm.terrains.rp1_simple import RP1_TERRAIN_COMPONENT_NAMES
+from pbfm.terrains.presets import TRAINING_TERRAIN_COMPONENT_NAMES
 
 
 def _center_target_states_on_terrain(
@@ -95,8 +95,8 @@ def run_tracking_inference(
     reset_height_mode: str | None = None,
     disable_heading_input: bool = False,
 ) -> None:
-    if terrain_family is not None and terrain_family not in RP1_TERRAIN_COMPONENT_NAMES:
-        raise ValueError(f"Unknown RP1 terrain family: {terrain_family}")
+    if terrain_family is not None and terrain_family not in TRAINING_TERRAIN_COMPONENT_NAMES:
+        raise ValueError(f"Unknown terrain family: {terrain_family}")
     if difficulty_row < 0:
         raise ValueError("difficulty_row must be non-negative")
     if reset_height_mode is None:
@@ -145,7 +145,7 @@ def run_tracking_inference(
         resources.callback(wrapped_env.close)
         env = wrapped_env._env
         if terrain_family is not None:
-            _assign_rp1_training_tile(env, family=terrain_family, difficulty_row=difficulty_row)
+            _assign_training_tile(env, family=terrain_family, difficulty_row=difficulty_row)
 
         output_dir = model_folder / "tracking_inference"
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -314,10 +314,10 @@ def parse_args() -> argparse.Namespace:
     add_bool_arg(parser, "--disable-dr", False, "Disable domain randomization.")
     add_bool_arg(parser, "--disable-obs-noise", False, "Disable observation noise.")
     parser.add_argument("--motion-list", type=int, nargs="+", default=[20])
-    parser.add_argument("--terrain-family", choices=RP1_TERRAIN_COMPONENT_NAMES, default=None,
-                        help="Select an RP1 training tile; omit to keep the checkpoint's environment setup.")
+    parser.add_argument("--terrain-family", choices=TRAINING_TERRAIN_COMPONENT_NAMES, default=None,
+                        help="Select an training tile; omit to keep the checkpoint's environment setup.")
     parser.add_argument("--difficulty-row", type=int, default=7,
-                        help="RP1 row used with --terrain-family; step height still comes from terrain config.")
+                        help="Terrain row used with --terrain-family; step height still comes from terrain config.")
     parser.add_argument("--reset-height-mode", choices=("reference", "terrain"), default=None,
                         help="reference: keep root Z; terrain: add tile-origin Z. Default: terrain with a selected family, otherwise reference.")
     parser.add_argument("--disable-heading-input", action="store_true",

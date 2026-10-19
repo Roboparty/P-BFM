@@ -1,4 +1,4 @@
-"""Deterministic same-latent evaluation across the seven RP1 terrain families."""
+"""Deterministic same-latent evaluation across the seven training terrain families."""
 
 import collections
 import math
@@ -10,7 +10,7 @@ import pydantic
 import torch
 
 from pbfm.evaluation.diagnostics.terrain_transfer import clone_same_z_for_terrains, tensor_checksum
-from pbfm.terrains.rp1_simple import RP1_TERRAIN_COMPONENT_NAMES, rp1_center_reset_profile
+from pbfm.terrains.presets import TRAINING_TERRAIN_COMPONENT_NAMES, center_reset_profile
 
 from pbfm.envs.mjlab.config import HumanoidVerseMjlabConfig
 from pbfm.agents.nn_models import eval_mode
@@ -54,7 +54,7 @@ def make_same_z_terrain_eval_config(env_cfg: HumanoidVerseMjlabConfig, *, seed: 
     )
     if terrain_index is None:
         raise ValueError("same-z terrain evaluation requires a configured terrain.terrain_type override")
-    overrides[terrain_index] = "terrain.terrain_type=rp1_simple"
+    overrides[terrain_index] = "terrain.terrain_type=training_mix"
     seed_index = next(
         (index for index, value in enumerate(overrides) if value.startswith("terrain.seed=")),
         None,
@@ -112,7 +112,7 @@ def _rotate_reference_to_course(
 ) -> dict[str, torch.Tensor]:
     """Rotate one motion around world Z so its net travel follows the column.
 
-    RP1 families occupy columns along world X.  This keeps every compared
+    Terrain families occupy columns along world X.  This keeps every compared
     terrain on the same yaw while preventing an arbitrary LaFAN world heading
     from immediately crossing into a neighbouring terrain family.
     """
@@ -167,7 +167,7 @@ class SameZTerrainEvaluationConfig(BaseEvalConfig):
     name: Literal["SameZTerrainEvaluationConfig"] = "SameZTerrainEvaluationConfig"
     name_in_logs: str = "same_z_terrain_eval"
     affects_motion_priority: bool = False
-    terrain_families: tuple[str, ...] = RP1_TERRAIN_COMPONENT_NAMES
+    terrain_families: tuple[str, ...] = TRAINING_TERRAIN_COMPONENT_NAMES
     locomotion_motion_names: tuple[str, ...] = DEFAULT_LOCOMOTION_MOTIONS
     difficulty_rows: tuple[int, ...] = (0, 2, 4, 7, 9)
     motions_per_batch: int = 8
@@ -180,9 +180,9 @@ class SameZTerrainEvaluationConfig(BaseEvalConfig):
 
     @pydantic.model_validator(mode="after")
     def _validate_contract(self):
-        if tuple(self.terrain_families) != tuple(RP1_TERRAIN_COMPONENT_NAMES):
+        if tuple(self.terrain_families) != tuple(TRAINING_TERRAIN_COMPONENT_NAMES):
             raise ValueError(
-                "SameZTerrainEvaluation must cover the exact seven RP1 families in their canonical order"
+                "SameZTerrainEvaluation must cover the exact seven terrain families in their canonical order"
             )
         if not self.locomotion_motion_names or len(set(self.locomotion_motion_names)) != len(
             self.locomotion_motion_names
@@ -243,11 +243,11 @@ class SameZTerrainEvaluation:
         return encoded
 
     @staticmethod
-    def _assign_rp1_tiles(core, family_ids: torch.Tensor, difficulty_row: int) -> None:
+    def _assign_training_tiles(core, family_ids: torch.Tensor, difficulty_row: int) -> None:
         terrain = core.mjlab_env.scene["terrain"]
-        if tuple(core.terrain_component_names) != tuple(RP1_TERRAIN_COMPONENT_NAMES):
+        if tuple(core.terrain_component_names) != tuple(TRAINING_TERRAIN_COMPONENT_NAMES):
             raise RuntimeError(
-                f"same-z evaluator expected RP1 family columns, got {core.terrain_component_names}"
+                f"same-z evaluator expected terrain family columns, got {core.terrain_component_names}"
             )
         if not 0 <= difficulty_row < terrain.terrain_origins.shape[0]:
             raise ValueError(
@@ -292,7 +292,7 @@ class SameZTerrainEvaluation:
         padded = motion_ids + [motion_ids[-1]] * (capacity - real_motion_count)
         env_motion_ids = [motion_id for motion_id in padded for _ in families]
         family_ids = torch.arange(len(families), device=core.device).repeat(capacity)
-        self._assign_rp1_tiles(core, family_ids, difficulty_row)
+        self._assign_training_tiles(core, family_ids, difficulty_row)
 
         references = {
             motion_id: _rotate_reference_to_course(
@@ -403,7 +403,7 @@ class SameZTerrainEvaluation:
                 - _yaw_xyzw(reference["root_rot"][0])
             )
             for family_id, family in enumerate(families):
-                evaluation_family, initial_vertical_direction = rp1_center_reset_profile(family)
+                evaluation_family, initial_vertical_direction = center_reset_profile(family)
                 env_index = motion_index * len(families) + family_id
                 policy_delta = last_valid_root[env_index, :2] - initial_policy_root[env_index, :2]
                 signed_progress = torch.dot(policy_delta, direction)

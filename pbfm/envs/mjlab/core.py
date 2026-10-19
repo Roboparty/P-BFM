@@ -9,14 +9,14 @@ from omegaconf import OmegaConf
 
 from pbfm.envs.mjlab.history import HistoryHandler as HVHistoryHandler
 from pbfm.motion.library.motion_lib_robot import MotionLibRobot
-from pbfm.perception.instinct_direct_depth import RP1DirectDepthRuntime
-from pbfm.terrains import terrain_component_names
+from pbfm.perception.instinct_direct_depth import DirectDepthRuntime
+from pbfm.terrains import normalize_terrain_mode, terrain_component_names
 from pbfm.terrains.terrain_observation import RobotCentricGridPatternCfg
 from pbfm.utils.torch_utils import quat_from_angle_axis, quat_mul, quat_rotate_inverse, wxyz_to_xyzw, xyzw_to_wxyz
 
 from . import aux_rewards, observations, reset
 from .aux_rewards import fixed_sole_weights
-from .config import _action_target_scale, _default_joint_pos, _rp1_direct_depth_config
+from .config import _action_target_scale, _default_joint_pos, _direct_depth_config
 from .reset import (
     RESET_REGION_ID,
     RESET_REGION_NAMES,
@@ -92,11 +92,11 @@ class HumanoidVerseMjlabCore:
         self.dim_actions = self.num_dof
         self.env_origins = mjlab_env.scene.env_origins
         self.terrain_enabled = bool(hv_config.terrain.get("enabled", False))
-        self.terrain_mode = str(hv_config.terrain.get("terrain_type", "plane")) if self.terrain_enabled else "plane"
-        self.direct_depth_config = _rp1_direct_depth_config(hv_config)
+        self.terrain_mode = normalize_terrain_mode(str(hv_config.terrain.get("terrain_type", "plane"))) if self.terrain_enabled else "plane"
+        self.direct_depth_config = _direct_depth_config(hv_config)
         self.direct_depth_enabled = self.direct_depth_config is not None
         self._direct_depth_runtime = (
-            RP1DirectDepthRuntime(
+            DirectDepthRuntime(
                 self.num_envs,
                 self.device,
                 self.direct_depth_config,
@@ -276,7 +276,7 @@ class HumanoidVerseMjlabCore:
         self.virtual_terrain_edges = None
         if self._creation_config.virtual_edge_penalty_enabled:
             from pbfm.terrains.edge_penalty import VirtualTerrainEdges, exposed_box_edges, foot_volume_points
-            terrain_groups = (0, 5) if self.terrain_mode in {'rp1_simple', 'plane', 'flat'} else (5,)
+            terrain_groups = (0, 5) if self.terrain_mode in {'training_mix', 'plane', 'flat'} else (5,)
             edges = exposed_box_edges(self.mjlab_env.sim.mj_model, group=terrain_groups)
             self.virtual_terrain_edges = VirtualTerrainEdges(edges, device=self.device,
                 radius=self._creation_config.virtual_edge_radius)

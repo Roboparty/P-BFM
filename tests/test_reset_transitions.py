@@ -22,7 +22,7 @@ def test_real_mjlab_timeout_preserves_final_state_depth_and_history(tmp_path):
     from pbfm.train import build_ufo_mjlab_config
     cfg = build_ufo_mjlab_config(
         device="cuda:0", work_dir=str(tmp_path), num_envs=4, num_env_steps=16,
-        seed=4831, disable_obs_noise=True, terrain_mode="rp1_simple",
+        seed=4831, disable_obs_noise=True, terrain_mode="training_mix",
         data_path=os.environ["PBFM_TEST_RESET_DATA"],
     )
     env, _ = cfg.env.build(num_envs=4)

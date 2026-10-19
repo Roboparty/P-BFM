@@ -60,7 +60,7 @@ from pbfm.training.distributed import (
     reduce_metric_accumulators,
     sync_floating_buffers,
 )
-from pbfm.perception.instinct_direct_depth import RP1DirectDepthConfig
+from pbfm.perception.instinct_direct_depth import DirectDepthConfig
 from pbfm.training import checkpoint, config, diagnostics
 from pbfm.training.evaluation import tracking
 
@@ -747,7 +747,7 @@ class Workspace:
                     explicit_next=True,
                     sparse_next=True,
                     compact_depth_history=compact_depth_history,
-                    depth_history_offsets=RP1DirectDepthConfig().sampled_ages,
+                    depth_history_offsets=DirectDepthConfig().sampled_ages,
                 )
                 if compact_depth_history:
                     print(
@@ -786,7 +786,7 @@ class Workspace:
                     explicit_next=True,
                     sparse_next=True,
                     compact_depth_history=True,
-                    depth_history_offsets=RP1DirectDepthConfig().sampled_ages,
+                    depth_history_offsets=DirectDepthConfig().sampled_ages,
                 )
                 print(
                     "[INFO] Compact canonical-plane replay enabled: "

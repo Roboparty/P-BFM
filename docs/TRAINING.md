@@ -23,6 +23,11 @@
 The training template is `pbfm/configs/legacy_large.json`.
 `pbfm/configs/depth_contract.json` specifies the depth input contract.
 
+The seven-family terrain preset is named `training_mix` and is independent of
+the robot model. Archived configs using `rp1_simple` are accepted as an alias.
+Depth processing profile identifiers and source-provenance metadata are retained
+so existing checkpoints keep the same input contract.
+
 ## Train from scratch
 
 Install dependencies from the repository root with `uv sync`. Use eight available
@@ -35,7 +40,7 @@ export UFO_CACHE_DIR=/path/to/writable-disk/pbfm-cache
 
 uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=8 \
   scripts/train_legacy_scratch.py \
-  --gpu-ids single --terrain-mode rp1_simple --seed 4831 \
+  --gpu-ids single --terrain-mode training_mix --seed 4831 \
   --num-envs 1024 --num-env-steps 192020480 \
   --data-path /path/to/lafan_29dof_10s-clipped.pkl \
   --work-dir /path/to/new-run

@@ -7,8 +7,8 @@ import torch
 import torch.nn.functional as F
 
 from pbfm.perception.instinct_direct_depth import (
-    MAXCROP_PROFILE, RP1DirectDepthConfig, RP1DirectDepthRuntime,
-    depth_config_for_profile, preprocess_rp1_depth, raycast_ranges_to_image_plane,
+    MAXCROP_PROFILE, DirectDepthConfig, DirectDepthRuntime,
+    depth_config_for_profile, preprocess_depth, raycast_ranges_to_image_plane,
 )
 from pbfm.perception.depth_camera import (
     InstallationRandomizedRayCastSensor, make_depth_camera_sensor_cfg,
@@ -22,7 +22,7 @@ def test_maxcrop_white_invalid_and_far():
     cfg.validate()
     for value in (float('nan'), float('inf'), -1., 3., 10.):
         image = torch.full((2, 36, 64), value)
-        out = preprocess_rp1_depth(image, cfg, enable_noise=True)
+        out = preprocess_depth(image, cfg, enable_noise=True)
         assert out.shape == (2, 18, 32)
         assert (out == 255).all()
 
@@ -30,8 +30,8 @@ def test_maxcrop_white_invalid_and_far():
 def test_new_profile_has_no_image_randomness_and_correct_crop_sigma():
     cfg = depth_config_for_profile(MAXCROP_PROFILE)
     image = torch.linspace(0, 3, 36*64).reshape(1, 36, 64)
-    a = preprocess_rp1_depth(image, cfg, enable_noise=True)
-    b = preprocess_rp1_depth(image, cfg, enable_noise=False)
+    a = preprocess_depth(image, cfg, enable_noise=True)
+    b = preprocess_depth(image, cfg, enable_noise=False)
     torch.testing.assert_close(a, b, atol=0, rtol=0)
     g = torch.exp(-torch.arange(-1, 2).float().square()/2)
     g /= g.sum()
@@ -132,7 +132,7 @@ def test_profile_checkpoint_mismatch_fail_closed():
 
 def test_history_uses_new_shape_and_resets():
     cfg = depth_config_for_profile(MAXCROP_PROFILE)
-    rt = RP1DirectDepthRuntime(2, 'cpu', cfg, enable_noise=True)
+    rt = DirectDepthRuntime(2, 'cpu', cfg, enable_noise=True)
     sensor = SimpleNamespace(data=SimpleNamespace(distances=torch.ones(2,36*64)))
     rt.reset_from_sensor(sensor, torch.arange(2))
     rt.append_from_sensor(sensor)

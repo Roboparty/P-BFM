@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import sys
+from dataclasses import asdict
 
 import mujoco
 import numpy as np
+import pytest
 from mjlab.terrains import (
     BoxFlatTerrainCfg,
     BoxInvertedPyramidStairsTerrainCfg,
@@ -13,52 +15,74 @@ from mjlab.terrains import (
 )
 
 from pbfm.agents.utils import AnchoredEveryNStepsChecker
-from pbfm.terrains import make_terrain_entity_cfg, terrain_component_names
-from pbfm.terrains.rp1_primitives import (
+from pbfm.terrains import make_terrain_entity_cfg, normalize_terrain_mode, terrain_component_names
+from pbfm.terrains.primitives import (
     NeutralHfDiscreteObstaclesTerrainCfg,
     NeutralHfPerlinNoiseTerrainCfg,
     NeutralHfPyramidSlopedTerrainCfg,
 )
-from pbfm.terrains.rp1_simple import (
-    RP1_FLAT_SAFETY_WIDTH,
-    RP1_GUARD_TILE_RINGS,
-    RP1_NONFLAT_GUARD_WIDTH,
-    RP1_PATCH_SIZE,
-    RP1_BOX_HEIGHT_RANGE,
-    RP1_BOX_WIDTH_RANGE,
-    RP1_BOX_WIDTH_SAMPLING_STRIDE_CELLS,
-    RP1_ROUGH_HEIGHT_RANGE,
-    RP1_STAIR_STEP_HEIGHT_RANGE,
-    RP1_TERRAIN_BORDER_WIDTH,
-    RP1_TERRAIN_COMPONENT_NAMES,
-    RP1_TERRAIN_PROPORTIONS,
-    RP1_TERRAIN_REFERENCE_COMMIT,
-    RP1_TERRAIN_REFERENCE_PROJECT,
-    add_rp1_nonflat_guard_ring,
-    add_rp1_outer_walls,
-    make_rp1_simple_generator_cfg,
+from pbfm.terrains.presets import (
+    TRAINING_FLAT_SAFETY_WIDTH,
+    TRAINING_GUARD_TILE_RINGS,
+    TRAINING_NONFLAT_GUARD_WIDTH,
+    TRAINING_PATCH_SIZE,
+    TRAINING_BOX_HEIGHT_RANGE,
+    TRAINING_BOX_WIDTH_RANGE,
+    TRAINING_BOX_WIDTH_SAMPLING_STRIDE_CELLS,
+    TRAINING_ROUGH_HEIGHT_RANGE,
+    TRAINING_STAIR_STEP_HEIGHT_RANGE,
+    TRAINING_TERRAIN_BORDER_WIDTH,
+    TRAINING_TERRAIN_COMPONENT_NAMES,
+    TRAINING_TERRAIN_PROPORTIONS,
+    TRAINING_TERRAIN_REFERENCE_COMMIT,
+    TRAINING_TERRAIN_REFERENCE_PROJECT,
+    add_training_nonflat_guard_ring,
+    add_training_outer_walls,
+    make_training_mix_generator_cfg,
 )
 from pbfm.train import build_ufo_mjlab_config, parse_args
 
 
-def test_rp1_generator_matches_pinned_source_core_with_g1_perimeter() -> None:
-    cfg = make_rp1_simple_generator_cfg()
-    assert RP1_TERRAIN_REFERENCE_PROJECT == "UFO-rp1"
-    assert RP1_TERRAIN_REFERENCE_COMMIT == "8c364e1001734097aac58e5033a1b5076925d3c5"
+@pytest.mark.parametrize("mode", ["training_mix", "rp1_simple"])
+def test_training_mix_name_and_archived_alias_match(mode, monkeypatch) -> None:
+    assert normalize_terrain_mode(mode) == "training_mix"
+    assert terrain_component_names(mode) == TRAINING_TERRAIN_COMPONENT_NAMES
+    actual = make_terrain_entity_cfg(mode, env_spacing=2.0)
+    expected = make_terrain_entity_cfg("training_mix", env_spacing=2.0)
+    actual_fields, expected_fields = asdict(actual), asdict(expected)
+    # EntityCfg creates a fresh default spec callback for each instance.
+    actual_fields.pop("spec_fn")
+    expected_fields.pop("spec_fn")
+    assert actual_fields == expected_fields
+    monkeypatch.setattr(sys, "argv", ["train", "--terrain-mode", mode])
+    assert parse_args().terrain_mode == "training_mix"
+
+
+def test_archived_terrain_override_builds_canonical_config(tmp_path) -> None:
+    common = dict(device="cpu", work_dir=str(tmp_path), num_envs=2, num_env_steps=2048, smoke=True)
+    old = build_ufo_mjlab_config(terrain_mode="rp1_simple", **common)
+    new = build_ufo_mjlab_config(terrain_mode="training_mix", **common)
+    assert old.model_dump() == new.model_dump()
+
+
+def test_training_generator_matches_pinned_source_core_with_g1_perimeter() -> None:
+    cfg = make_training_mix_generator_cfg()
+    assert TRAINING_TERRAIN_REFERENCE_PROJECT == "UFO-rp1"
+    assert TRAINING_TERRAIN_REFERENCE_COMMIT == "8c364e1001734097aac58e5033a1b5076925d3c5"
     assert cfg.seed == 0
     assert cfg.size == (5.0, 5.0)
     assert cfg.border_width == 12.0
-    assert cfg.border_width == RP1_NONFLAT_GUARD_WIDTH + RP1_FLAT_SAFETY_WIDTH
-    assert RP1_PATCH_SIZE / 2.0 + cfg.border_width == 14.5
-    assert RP1_GUARD_TILE_RINGS == 2
+    assert cfg.border_width == TRAINING_NONFLAT_GUARD_WIDTH + TRAINING_FLAT_SAFETY_WIDTH
+    assert TRAINING_PATCH_SIZE / 2.0 + cfg.border_width == 14.5
+    assert TRAINING_GUARD_TILE_RINGS == 2
     assert cfg.num_rows == 10
     assert cfg.num_cols == 7
     assert cfg.curriculum
     assert cfg.difficulty_range == (0.0, 1.0)
-    assert tuple(cfg.sub_terrains) == RP1_TERRAIN_COMPONENT_NAMES
-    assert terrain_component_names("rp1_simple") == RP1_TERRAIN_COMPONENT_NAMES
-    assert {name: sub.proportion for name, sub in cfg.sub_terrains.items()} == RP1_TERRAIN_PROPORTIONS
-    assert RP1_TERRAIN_PROPORTIONS == {
+    assert tuple(cfg.sub_terrains) == TRAINING_TERRAIN_COMPONENT_NAMES
+    assert terrain_component_names("training_mix") == TRAINING_TERRAIN_COMPONENT_NAMES
+    assert {name: sub.proportion for name, sub in cfg.sub_terrains.items()} == TRAINING_TERRAIN_PROPORTIONS
+    assert TRAINING_TERRAIN_PROPORTIONS == {
         "flat": 0.20,
         "perlin_rough": 0.10,
         # Asset-profile names: center-reset traversal is descent then ascent.
@@ -68,7 +92,7 @@ def test_rp1_generator_matches_pinned_source_core_with_g1_perimeter() -> None:
         "hf_pyramid_slope_inv": 0.10,
         "boxes": 0.10,
     }
-    assert np.isclose(sum(RP1_TERRAIN_PROPORTIONS.values()), 1.0)
+    assert np.isclose(sum(TRAINING_TERRAIN_PROPORTIONS.values()), 1.0)
 
     expected_types = {
         "flat": BoxFlatTerrainCfg,
@@ -80,15 +104,15 @@ def test_rp1_generator_matches_pinned_source_core_with_g1_perimeter() -> None:
         "boxes": NeutralHfDiscreteObstaclesTerrainCfg,
     }
     assert {name: type(sub) for name, sub in cfg.sub_terrains.items()} == expected_types
-    assert cfg.sub_terrains["perlin_rough"].height_range == RP1_ROUGH_HEIGHT_RANGE == (0.02, 0.06)
-    assert cfg.sub_terrains["low_stairs_up"].step_height_range == RP1_STAIR_STEP_HEIGHT_RANGE == (0.10, 0.20)
-    assert cfg.sub_terrains["low_stairs_down"].step_height_range == RP1_STAIR_STEP_HEIGHT_RANGE
+    assert cfg.sub_terrains["perlin_rough"].height_range == TRAINING_ROUGH_HEIGHT_RANGE == (0.02, 0.06)
+    assert cfg.sub_terrains["low_stairs_up"].step_height_range == TRAINING_STAIR_STEP_HEIGHT_RANGE == (0.10, 0.20)
+    assert cfg.sub_terrains["low_stairs_down"].step_height_range == TRAINING_STAIR_STEP_HEIGHT_RANGE
     assert cfg.sub_terrains["low_platforms"].grid_height_range == (0.03, 0.10)
     assert cfg.sub_terrains["hf_pyramid_slope_inv"].slope_range == (0.0, 0.2)
     assert cfg.sub_terrains["boxes"].num_obstacles == 50
-    assert cfg.sub_terrains["boxes"].obstacle_height_range == RP1_BOX_HEIGHT_RANGE == (0.05, 0.15)
-    assert cfg.sub_terrains["boxes"].obstacle_width_range == RP1_BOX_WIDTH_RANGE == (0.3, 1.0)
-    assert cfg.sub_terrains["boxes"].obstacle_width_sampling_stride_cells == RP1_BOX_WIDTH_SAMPLING_STRIDE_CELLS == 1
+    assert cfg.sub_terrains["boxes"].obstacle_height_range == TRAINING_BOX_HEIGHT_RANGE == (0.05, 0.15)
+    assert cfg.sub_terrains["boxes"].obstacle_width_range == TRAINING_BOX_WIDTH_RANGE == (0.3, 1.0)
+    assert cfg.sub_terrains["boxes"].obstacle_width_sampling_stride_cells == TRAINING_BOX_WIDTH_SAMPLING_STRIDE_CELLS == 1
     np.testing.assert_allclose(
         cfg.sub_terrains["boxes"].obstacle_width_candidates_cells()
         * cfg.sub_terrains["boxes"].horizontal_scale,
@@ -108,28 +132,28 @@ def test_rp1_generator_matches_pinned_source_core_with_g1_perimeter() -> None:
         assert cfg.sub_terrains[name].border_width == 0.5
 
 
-def test_rp1_entity_and_outer_walls_match_grid_extent() -> None:
-    entity = make_terrain_entity_cfg("rp1_simple", env_spacing=2.0)
+def test_training_entity_and_outer_walls_match_grid_extent() -> None:
+    entity = make_terrain_entity_cfg("training_mix", env_spacing=2.0)
     generator = entity.terrain_generator
     assert generator is not None
-    assert generator.size == (RP1_PATCH_SIZE, RP1_PATCH_SIZE)
-    assert generator.border_width == RP1_TERRAIN_BORDER_WIDTH
+    assert generator.size == (TRAINING_PATCH_SIZE, TRAINING_PATCH_SIZE)
+    assert generator.border_width == TRAINING_TERRAIN_BORDER_WIDTH
     assert entity.max_init_terrain_level == generator.num_rows - 1
 
     spec = mujoco.MjSpec()
     spec.worldbody.add_body(name="terrain")
-    add_rp1_outer_walls(spec, generator)
+    add_training_outer_walls(spec, generator)
     walls = [geom for geom in spec.geoms if str(geom.name).startswith("rp1_outer_wall_")]
     assert len(walls) == 4
     assert all(geom.group == 0 and geom.contype == 1 and geom.conaffinity == 1 for geom in walls)
 
 
-def test_rp1_nonflat_guard_has_two_tile_rings_and_is_not_spawnable() -> None:
-    generator = make_rp1_simple_generator_cfg()
+def test_training_nonflat_guard_has_two_tile_rings_and_is_not_spawnable() -> None:
+    generator = make_training_mix_generator_cfg()
     spec = mujoco.MjSpec()
     TerrainGenerator(generator).compile(spec)
-    tile_count, geom_count = add_rp1_nonflat_guard_ring(spec, generator)
-    assert tile_count == (10 + 2 * RP1_GUARD_TILE_RINGS) * (7 + 2 * RP1_GUARD_TILE_RINGS) - 10 * 7
+    tile_count, geom_count = add_training_nonflat_guard_ring(spec, generator)
+    assert tile_count == (10 + 2 * TRAINING_GUARD_TILE_RINGS) * (7 + 2 * TRAINING_GUARD_TILE_RINGS) - 10 * 7
     assert tile_count == 84
     assert geom_count == tile_count
     guard_geoms = [geom for geom in spec.geoms if str(geom.name).startswith("g1depth_guard_tile_")]
@@ -158,8 +182,8 @@ def test_rp1_nonflat_guard_has_two_tile_rings_and_is_not_spawnable() -> None:
     assert len(generator.sub_terrains) == 7
 
 
-def test_every_rp1_terrain_family_uses_the_source_geom_group() -> None:
-    generator = make_rp1_simple_generator_cfg()
+def test_every_training_terrain_family_uses_the_source_geom_group() -> None:
+    generator = make_training_mix_generator_cfg()
     for name, sub_terrain in generator.sub_terrains.items():
         sub_terrain.size = generator.size
         spec = mujoco.MjSpec()
@@ -180,10 +204,10 @@ def test_fb_depth_cli_accepts_plane_and_keeps_existing_defaults(monkeypatch) -> 
     entity = make_terrain_entity_cfg(args.terrain_mode, env_spacing=2.0)
     assert entity.terrain_type == "plane" and entity.terrain_generator is None
     monkeypatch.setattr(sys, "argv", ["train", "--agent", "fb_depth"])
-    assert parse_args().terrain_mode == "rp1_simple"
+    assert parse_args().terrain_mode == "training_mix"
 
 
-def test_fb_depth_defaults_to_rp1_simple() -> None:
+def test_fb_depth_defaults_to_training_mix() -> None:
     common = dict(
         device="cpu",
         work_dir="/tmp/ufo-rp1-terrain-config-test",
@@ -196,7 +220,7 @@ def test_fb_depth_defaults_to_rp1_simple() -> None:
         smoke=True,
     )
     depth = build_ufo_mjlab_config(agent="fb_depth", terrain_mode=None, **common)
-    assert "terrain.terrain_type=rp1_simple" in depth.env.hydra_overrides
+    assert "terrain.terrain_type=training_mix" in depth.env.hydra_overrides
 
 
 def test_fb_depth_uses_explicit_separate_evaluation_cadences() -> None:
@@ -214,7 +238,7 @@ def test_fb_depth_uses_explicit_separate_evaluation_cadences() -> None:
         disable_eval_prioritization=False,
         smoke=False,
         agent="fb_depth",
-        terrain_mode="rp1_simple",
+        terrain_mode="training_mix",
     )
     evaluations = {evaluation.name_in_logs: evaluation for evaluation in cfg.evaluations}
     assert cfg.agent.train.reg_coeff == 0.01

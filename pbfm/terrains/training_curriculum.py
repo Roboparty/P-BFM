@@ -22,7 +22,7 @@ def apply_reset_curriculum(core, env_ids, target_states=None):
     cfg = core._creation_config
     step = getattr(core, '_training_terrain_global_step', None)
     if (not cfg.terrain_training_curriculum or step is None or target_states is not None
-            or not core.terrain_enabled or core.terrain_mode != 'rp1_simple'):
+            or not core.terrain_enabled or core.terrain_mode != 'training_mix'):
         return
     terrain = core.mjlab_env.scene['terrain']
     elapsed = max(0, step - cfg.terrain_curriculum_start_global_step)

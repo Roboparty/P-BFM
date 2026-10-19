@@ -702,7 +702,7 @@
       "env.config.lie_down_init=True",
       "env.config.lie_down_init_prob=0.3",
       "terrain=terrain_ufo_v0",
-      "terrain.terrain_type=rp1_simple",
+      "terrain.terrain_type=training_mix",
       "terrain.seed=4831",
       "rewards.terrain_aware_auxiliary=true",
       "rewards.reward_scales.penalty_undesired_contact=0.0",

@@ -23,9 +23,9 @@ from pbfm.agents.fb_cpr_aux.agent import (
 )
 from pbfm.agents.nn_models import eval_mode
 from pbfm.agents.normalizers import BatchNormNormalizerConfig, ObsNormalizerConfig
-from pbfm.perception.instinct_direct_depth import RP1DirectDepthConfig, RP1DirectDepthRuntime
+from pbfm.perception.instinct_direct_depth import DirectDepthConfig, DirectDepthRuntime
 from pbfm.evaluation.diagnostics.terrain_transfer import tensor_checksum
-from pbfm.terrains.rp1_simple import RP1_TERRAIN_COMPONENT_NAMES, rp1_center_reset_profile
+from pbfm.terrains.presets import TRAINING_TERRAIN_COMPONENT_NAMES, center_reset_profile
 from pbfm.training.workspace import Workspace, clone_motion_lib_for_collector
 from pbfm.training.diagnostics import _assert_canonical_plane_terrain_priv
 from pbfm.training.config import make_canonical_plane_training_config
@@ -139,7 +139,7 @@ def _terrain_env_cfg() -> HumanoidVerseMjlabConfig:
         hydra_overrides=[
             "robot=g1/g1_29dof",
             "terrain=terrain_ufo_v0",
-            "terrain.terrain_type=rp1_simple",
+            "terrain.terrain_type=training_mix",
             "terrain.seed=4728",
             "terrain.direct_depth.enabled=true",
         ],
@@ -149,7 +149,7 @@ def _terrain_env_cfg() -> HumanoidVerseMjlabConfig:
 def test_canonical_plane_config_changes_geometry_only() -> None:
     main = _terrain_env_cfg()
     plane = make_canonical_plane_training_config(main)
-    assert "terrain.terrain_type=rp1_simple" in main.hydra_overrides
+    assert "terrain.terrain_type=training_mix" in main.hydra_overrides
     assert "terrain.terrain_type=plane" in plane.hydra_overrides
     assert "terrain.terrain_priv.mode=flat_zero" in plane.hydra_overrides
     assert "terrain.direct_depth.enabled=true" in plane.hydra_overrides
@@ -302,7 +302,7 @@ def test_prior_transition_outcomes_align_with_action_and_never_bootstrap_done() 
 
 
 def test_prior_compact_replay_preserves_current_outcomes_and_depth_contract() -> None:
-    cfg = RP1DirectDepthConfig()
+    cfg = DirectDepthConfig()
     buffer = TrajectoryDictBufferMultiDim(
         capacity=8,
         device="cpu",
@@ -369,9 +369,9 @@ def test_prior_reset_marks_an_administrative_episode_boundary() -> None:
 
 
 def test_fixed_depth_delay_zero_is_deterministic_without_changing_training_contract() -> None:
-    cfg = RP1DirectDepthConfig()
-    training = RP1DirectDepthRuntime(8, "cpu", cfg, enable_noise=False)
-    deterministic = RP1DirectDepthRuntime(
+    cfg = DirectDepthConfig()
+    training = DirectDepthRuntime(8, "cpu", cfg, enable_noise=False)
+    deterministic = DirectDepthRuntime(
         8,
         "cpu",
         cfg,
@@ -397,7 +397,7 @@ def test_same_z_evaluator_uses_exact_seven_hashes_and_fixed_zero_depth_delay() -
     assert eval_env.max_episode_length_s == 30.0
     config = SameZTerrainEvaluationConfig()
     assert config.affects_motion_priority is False
-    assert config.terrain_families == RP1_TERRAIN_COMPONENT_NAMES
+    assert config.terrain_families == TRAINING_TERRAIN_COMPONENT_NAMES
     evaluator = config.build()
     context = torch.arange(4 * 3, dtype=torch.float32).reshape(4, 3)
     expert = SimpleNamespace()
@@ -414,21 +414,21 @@ def test_same_z_evaluator_uses_exact_seven_hashes_and_fixed_zero_depth_delay() -
         encoded = evaluator._encode_once(SimpleNamespace(), expert, [17], device="cpu")[17]
     assert encoded["dtype"] == "torch.float32"
     assert encoded["shape"] == (4, 3)
-    assert set(encoded["clones"]) == set(RP1_TERRAIN_COMPONENT_NAMES)
+    assert set(encoded["clones"]) == set(TRAINING_TERRAIN_COMPONENT_NAMES)
     assert {tensor_checksum(value) for value in encoded["clones"].values()} == {encoded["hash"]}
 
 
 def test_same_z_stair_labels_describe_center_outward_motion() -> None:
-    assert rp1_center_reset_profile("low_stairs_up") == (
+    assert center_reset_profile("low_stairs_up") == (
         "low_stairs_descent_from_center",
         "descent",
     )
-    assert rp1_center_reset_profile("low_stairs_down") == (
+    assert center_reset_profile("low_stairs_down") == (
         "low_stairs_ascent_from_center",
         "ascent",
     )
-    with pytest.raises(ValueError, match="unknown RP1 terrain"):
-        rp1_center_reset_profile("stairs_unknown")
+    with pytest.raises(ValueError, match="unknown terrain"):
+        center_reset_profile("stairs_unknown")
 
 
 def test_same_z_reference_heading_is_shared_and_aligned_with_terrain_column() -> None:

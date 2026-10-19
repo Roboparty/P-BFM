@@ -14,8 +14,8 @@ import numpy as np
 import torch
 
 from pbfm.perception.instinct_direct_depth import (
-    RP1DirectDepthConfig,
-    preprocess_rp1_depth,
+    DirectDepthConfig,
+    preprocess_depth,
     raycast_ranges_to_image_plane,
 )
 from pbfm.perception.depth_camera import rotate_xyzw
@@ -172,7 +172,7 @@ def run(args):
     cfg.env.hydra_overrides.append("terrain.direct_depth.debug_terrain_reference=true")
     env, _ = cfg.env.build(num_envs=len(POSE_LABELS))
     core = env._env
-    direct_cfg = RP1DirectDepthConfig()
+    direct_cfg = DirectDepthConfig()
     try:
         candidates = _select_candidates(core)
         env.reset(to_numpy=False, target_states=_target_states(core, candidates))
@@ -189,7 +189,7 @@ def run(args):
         )
         self_mask = scene + 1.0e-3 < terrain
         crop = scene[:, :, 16:48]
-        final = preprocess_rp1_depth(scene, direct_cfg, enable_noise=False)
+        final = preprocess_depth(scene, direct_cfg, enable_noise=False)
         if not torch.isfinite(scene).all() or not torch.isfinite(final).all():
             raise RuntimeError("direct-depth fixture contains non-finite pixels")
         if not torch.any(self_mask):
