@@ -7,6 +7,7 @@ from types import SimpleNamespace
 
 import torch
 
+from pbfm.envs.mjlab.observations import _extend_body_state
 from pbfm.training.evaluation.tracking import get_backward_observation as get_mjlab_eval_backward_observation
 from pbfm.motion.reference_observations import reference_base_ang_vel
 from pbfm.utils.torch_utils import quat_rotate_inverse
@@ -16,6 +17,69 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 class ReferenceObservationsTest(unittest.TestCase):
+    def test_virtual_head_velocity_uses_world_frame_offset(self) -> None:
+        s = 2.0**-0.5
+        env = SimpleNamespace(
+            num_envs=5, num_extend_bodies=1, extend_body_parent_ids=[0],
+            body_pos=torch.zeros(5, 1, 3),
+            body_rot=torch.tensor([
+                [0., 0., 0., 1.], [0., s, 0., s], [s, 0., 0., s],
+                [0., 0., s, s], [0., s, 0., s],
+            ]).unsqueeze(1),
+            body_vel=torch.tensor([[0., 0., 0.]] * 4 + [[1., 2., 3.]]).unsqueeze(1),
+            body_ang_vel=torch.tensor([[0., 1., 0.]] * 4 + [[0., 0., 0.]]).unsqueeze(1),
+            extend_body_pos_in_parent=torch.tensor([0., 0., .35]).repeat(5, 1, 1),
+            extend_body_rot_in_parent_xyzw=torch.tensor([0., 0., 0., 1.]).repeat(5, 1, 1),
+        )
+        _, _, vel, _ = _extend_body_state(env)
+        expected = torch.tensor([
+            [.35, 0., 0.], [0., 0., -.35], [0., 0., 0.],
+            [.35, 0., 0.], [1., 2., 3.],
+        ])
+        torch.testing.assert_close(vel[:, -1], expected, atol=1e-6, rtol=0)
+
+    def test_batched_extension_velocities_match_position_finite_difference(self) -> None:
+        generator = torch.Generator().manual_seed(4831)
+        def random(*shape):
+            return torch.randn(*shape, generator=generator, dtype=torch.float64)
+
+        rotation = torch.nn.functional.normalize(random(3, 2, 4), dim=-1)
+        env = SimpleNamespace(
+            num_envs=3, num_extend_bodies=3, extend_body_parent_ids=[1, 0, 1],
+            body_pos=random(3, 2, 3), body_rot=rotation,
+            body_vel=random(3, 2, 3), body_ang_vel=random(3, 2, 3),
+            extend_body_pos_in_parent=random(3, 3, 3),
+            extend_body_rot_in_parent_xyzw=torch.nn.functional.normalize(random(3, 3, 4), dim=-1),
+        )
+        env.extend_body_pos_in_parent[:, 2] = 0
+        inputs = (env.body_pos, env.body_rot, env.body_vel, env.body_ang_vel)
+        originals = tuple(value.clone() for value in inputs)
+        pos, rot, vel, ang = _extend_body_state(env)
+        parents = env.extend_body_parent_ids
+        omega = env.body_ang_vel[:, parents]
+        x, y, z = omega.unbind(-1)
+        zero = torch.zeros_like(x)
+        skew = torch.stack((zero, -z, y, z, zero, -x, -y, x, zero), dim=-1).reshape(3, 3, 3, 3)
+        dt = 1e-5
+        offset = (pos[:, 2:] - env.body_pos[:, parents]).unsqueeze(-1)
+        forward = torch.matrix_exp(dt * skew) @ offset
+        backward = torch.matrix_exp(-dt * skew) @ offset
+        expected = env.body_vel[:, parents] + ((forward - backward) / (2 * dt)).squeeze(-1)
+        torch.testing.assert_close(vel[:, 2:], expected, atol=1e-8, rtol=1e-8)
+        torch.testing.assert_close(ang[:, 2:], omega)
+        torch.testing.assert_close(vel[:, -1], env.body_vel[:, 1])
+        for value, original, extended in zip(inputs, originals, (pos, rot, vel, ang)):
+            torch.testing.assert_close(value, original)
+            torch.testing.assert_close(extended[:, :2], original)
+
+    def test_no_virtual_bodies_keeps_state_unchanged(self) -> None:
+        env = SimpleNamespace(num_extend_bodies=0,
+            body_pos=torch.zeros(2, 3, 3), body_rot=torch.zeros(2, 3, 4),
+            body_vel=torch.zeros(2, 3, 3), body_ang_vel=torch.zeros(2, 3, 3))
+        for actual, expected in zip(_extend_body_state(env),
+                                   (env.body_pos, env.body_rot, env.body_vel, env.body_ang_vel)):
+            self.assertIs(actual, expected)
+
     def test_reference_base_ang_vel_matches_simulator_contract(self) -> None:
         env = SimpleNamespace(config=SimpleNamespace(obs=SimpleNamespace(obs_scales={"base_ang_vel": 0.25})))
         sqrt_half = 2.0**-0.5
