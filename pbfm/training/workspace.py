@@ -745,13 +745,14 @@ class Workspace:
                     output_key_t=config._trajectory_output_keys(self.cfg.agent),
                     output_key_tp1=["observation", "terminated", "truncated"],
                     explicit_next=True,
+                    sparse_next=True,
                     compact_depth_history=compact_depth_history,
                     depth_history_offsets=RP1DirectDepthConfig().sampled_ages,
                 )
                 if compact_depth_history:
                     print(
-                        "[INFO] Compact RP1 depth replay enabled: storing current and successor uint8 frames "
-                        "and reconstructing the 8-frame history when sampling",
+                        "[INFO] Sparse-successor depth replay enabled: storing one uint8 frame per row, "
+                        "retaining pre-reset/newest successors and reconstructing 8-frame history when sampling",
                         flush=True,
                     )
             else:
@@ -783,6 +784,7 @@ class Workspace:
                     output_key_t=config._prior_trajectory_output_keys(self.cfg.agent),
                     output_key_tp1=["observation"],
                     explicit_next=True,
+                    sparse_next=True,
                     compact_depth_history=True,
                     depth_history_offsets=RP1DirectDepthConfig().sampled_ages,
                 )

@@ -8,7 +8,7 @@ from typing import Dict, List, Tuple, Union
 import numpy as np
 import torch
 from tensordict import TensorDict
-from torch.utils._pytree import tree_map
+from torch.utils._pytree import tree_map, tree_leaves
 
 from pbfm.agents.buffers.transition import DictBuffer, _to_torch
 
@@ -205,6 +205,7 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
     end_key: Tuple[str] | str = "done"
     compact_depth_history: bool = False
     explicit_next: bool = False
+    sparse_next: bool = False
     depth_history_offsets: Tuple[int, ...] = (35, 30, 25, 20, 15, 10, 5, 0)
 
     def __post_init__(self) -> None:
@@ -212,8 +213,13 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
         self._idx = 0
         self._is_full = False
         self._recompute_start_stop = True
+        self._terminal_observations = {}
+        self._pending_observation = None
+        self._successor_keys = ()
         self._get_idxs = torch.compile(get_idxs, mode="reduce-overhead", fullgraph=True)
         assert self.n_dim == 1 or self.n_dim == 2, "n_dim must be either 1 or 2 for TrajectoryDictBufferMultiDim"
+        if self.sparse_next and (not self.explicit_next or self.n_dim != 2):
+            raise ValueError("Sparse successors require explicit_next=True and n_dim=2")
         if self.compact_depth_history:
             if self.n_dim != 2:
                 raise ValueError("Compact depth replay requires n_dim=2 trajectory storage")
@@ -239,8 +245,120 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
         if self.explicit_next and "next" not in data:
             raise ValueError("Explicit-successor replay requires next observations and outcome flags")
         data = self._compact_depth_for_storage(data)
-        super().extend(data)
+        if self.sparse_next:
+            self._extend_sparse(data)
+        else:
+            super().extend(data)
         self._recompute_start_stop = True
+
+    def _extend_sparse(self, data):
+        """Nonterminal body observations must be reused by the following collector step."""
+        observation = data["next"]["observation"]
+        if not isinstance(observation, Mapping) or not isinstance(data["observation"], Mapping):
+            raise ValueError("Sparse successors require observation mappings")
+        steps = get_key(data, self.end_key).shape[0]
+        lanes = get_key(data, self.end_key).shape[1]
+        if any(value.ndim <= self.n_dim or value.shape[:2] != (steps, lanes) for value in tree_leaves(data)):
+            raise ValueError("Sparse replay fields must share [time, env] batch dimensions")
+        # Commands are attached again before acting and can change between rows.
+        keys = tuple(key for key in observation if key not in ("heading", "velocity_command"))
+        if not keys or any(key not in data["observation"] for key in keys):
+            raise ValueError("Sparse successors require matching current/next observation fields")
+        if self._successor_keys and set(keys) != set(self._successor_keys):
+            raise ValueError("Successor observation schema changed during collection")
+        self._successor_keys = keys
+        sparse_data = dict(data)
+        sparse_data["next"] = dict(data["next"])
+        sparse_data["next"]["observation"] = {key: value for key, value in observation.items() if key not in keys}
+        for step in range(steps):
+            row = self._idx
+            pending = {key: _to_torch(observation[key][step], device=self.device) for key in keys}
+            super().extend(tree_map(lambda value: value[step:step + 1], sparse_data))
+            ended = get_key(self.storage, self.end_key)[row].reshape(pending[keys[0]].shape[0], -1).any(-1)
+            env_ids = ended.nonzero().flatten()
+            self._terminal_observations.pop(row, None)
+            if env_ids.numel():
+                self._terminal_observations[row] = (env_ids, {key: value[env_ids] for key, value in pending.items()})
+            # Keep the newest transition sampleable, even before the next row arrives.
+            self._pending_observation = pending
+
+    def _sparse_observation(self, idxs):
+        time_idx, env_idx = idxs
+        following = ((time_idx + 1) % self.capacity, env_idx)
+        observation = {key: self.storage["observation"][key][following] for key in self._successor_keys}
+        last = (self._idx - 1) % self.capacity
+        boundary = get_key(self.storage, self.end_key)[idxs].reshape(len(time_idx), -1).any(-1)
+        patched = boundary | (time_idx == last)
+        for row in time_idx[patched].unique().tolist():
+            selected = ((time_idx == row) & patched).nonzero().flatten()
+            envs = env_idx[selected]
+            if row == last:
+                source, positions = self._pending_observation, envs
+            else:
+                if row not in self._terminal_observations:
+                    raise RuntimeError("Missing pre-reset successor in sparse replay")
+                ids, source = self._terminal_observations[row]
+                positions = torch.searchsorted(ids, envs)
+                if (positions >= len(ids)).any() or not torch.equal(ids[positions], envs):
+                    raise RuntimeError("Missing environment in sparse replay boundary")
+            for key in observation:
+                observation[key][selected] = source[key][positions]
+        observation.update({key: value[idxs] for key, value in self.storage["next"]["observation"].items()})
+        return observation
+
+    def _save_extra(self, group):
+        if not self.sparse_next:
+            return
+        group.attrs["successor_keys"] = json.dumps(self._successor_keys)
+        pending = group.create_group("pending")
+        for key, value in self._pending_observation.items():
+            pending.create_dataset(key, data=value.cpu().numpy())
+        terminal = group.create_group("terminal")
+        for row, (ids, observation) in self._terminal_observations.items():
+            entry = terminal.create_group(str(row))
+            entry.create_dataset("env_ids", data=ids.cpu().numpy())
+            values = entry.create_group("observation")
+            for key, value in observation.items():
+                values.create_dataset(key, data=value.cpu().numpy())
+
+    def _load_extra(self, group):
+        if not self.sparse_next:
+            return super()._load_extra(group)
+        if group is None or "pending" not in group or "terminal" not in group:
+            raise ValueError("Sparse replay is missing its successor storage")
+        self.storage.setdefault("next", {}).setdefault("observation", {})
+        self._successor_keys = tuple(json.loads(group.attrs["successor_keys"]))
+        self._pending_observation = {key: _to_torch(value[:], device=self.device) for key, value in group["pending"].items()}
+        self._terminal_observations = {}
+        for row, entry in group["terminal"].items():
+            self._terminal_observations[int(row)] = (
+                _to_torch(entry["env_ids"][:], device=self.device),
+                {key: _to_torch(value[:], device=self.device) for key, value in entry["observation"].items()},
+            )
+        self._validate_sparse_storage()
+
+    def _validate_sparse_storage(self):
+        lanes = get_key(self.storage, self.end_key).shape[1]
+        if not self._successor_keys or not set(self._successor_keys) <= self.storage["observation"].keys():
+            raise ValueError("Sparse replay successor schema is invalid")
+
+        def check(observation, count):
+            if set(observation) != set(self._successor_keys):
+                raise ValueError("Sparse replay successor fields do not match")
+            for key, value in observation.items():
+                current = self.storage["observation"][key]
+                if value.shape != (count, *current.shape[2:]) or value.dtype != current.dtype:
+                    raise ValueError(f"Sparse replay successor shape/dtype mismatch: {key}")
+
+        check(self._pending_observation, lanes)
+        boundary = get_key(self.storage, self.end_key)[:len(self)].reshape(len(self), lanes, -1).any(-1)
+        expected_rows = set(boundary.any(-1).nonzero().flatten().tolist())
+        if set(self._terminal_observations) != expected_rows:
+            raise ValueError("Sparse replay boundary rows do not match outcome flags")
+        for row, (ids, observation) in self._terminal_observations.items():
+            if not torch.equal(ids, boundary[row].nonzero().flatten()):
+                raise ValueError("Sparse replay boundary environments do not match outcome flags")
+            check(observation, len(ids))
 
     def _compact_depth_for_storage(self, data: Dict) -> Dict:
         if not self.compact_depth_history:
@@ -285,6 +403,9 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
             return
         last = (self._idx - 1) % self.capacity
         get_key(self.storage, self.end_key)[last] = True
+        if self.sparse_next:
+            ids = torch.arange(get_key(self.storage, self.end_key).shape[1], device=self.device)
+            self._terminal_observations[last] = (ids, self._pending_observation)
         if self.explicit_next:
             self.storage["next"]["truncated"][last] = True
             if "truncated" in self.storage:
@@ -352,6 +473,8 @@ class TrajectoryDictBufferMultiDim(DictBuffer):
                 idxs = ((idxs[0] + 1) % self.capacity, *idxs[1:])
             output["next"] = {key: tree_map(lambda value: value[idxs], source[key]) for key in self.output_key_tp1}
             if "observation" in output["next"]:
+                if self.sparse_next:
+                    output["next"]["observation"] = self._sparse_observation(idxs)
                 output["next"]["observation"] = self._restore_depth_history(
                     output["next"]["observation"], idxs, successor=self.explicit_next,
                 )

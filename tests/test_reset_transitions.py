@@ -142,11 +142,12 @@ def test_partial_reset_keeps_final_state_and_other_lane_history(numpy, true_term
 
 
 @pytest.mark.parametrize("true_termination", [False, True])
-def test_real_vector_output_to_replay_keeps_final_and_first_reset_actions(true_termination):
+@pytest.mark.parametrize("sparse", [False, True])
+def test_real_vector_output_to_replay_keeps_final_and_first_reset_actions(true_termination, sparse):
     env = make_env(true_termination)
     obs = env.base_env.get_observation(to_numpy=False)
     replay = TrajectoryDictBufferMultiDim(
-        capacity=5, n_dim=2, explicit_next=True, output_key_t=["observation", "action"],
+        capacity=5, n_dim=2, explicit_next=True, sparse_next=sparse, output_key_t=["observation", "action"],
         output_key_tp1=["observation", "terminated", "truncated"],
     )
     replay._get_idxs = get_idxs
@@ -332,7 +333,8 @@ def test_workspace_training_loop_collects_explicit_successors(tmp_path):
     replay = captured["replay_buffer"]["train"]
     replay._get_idxs = get_idxs
     assert replay.explicit_next and replay.end_key == "done"
-    assert replay.storage["next"]["observation"]["depth_image"].shape == (8, 2, 2, 2)
+    assert replay.sparse_next
+    assert "depth_image" not in replay.storage["next"]["observation"]
     batch = replay.sample(4096)
     assert set(zip(batch["observation"]["state"][:, 0].tolist(),
                    batch["next"]["observation"]["state"][:, 0].tolist())) == {
@@ -371,7 +373,8 @@ def test_heading_metadata_uses_final_yaw_without_changing_hv_masks():
     assert metadata["velocity_reward"].eq(0).all()
 
 
-def test_prior_collector_preserves_same_step_successor():
+@pytest.mark.parametrize("sparse", [False, True])
+def test_prior_collector_preserves_same_step_successor(sparse):
     from pbfm.training.workspace import Workspace, _PriorCollectorState
     from pbfm.agents.fb_cpr_aux.agent import RolloutContextState
     env = make_env()
@@ -391,7 +394,7 @@ def test_prior_collector_preserves_same_step_successor():
     workspace._advance_rollout_state = lambda *args, **kwargs: RolloutContextState(z=torch.ones(2, 4))
     state = _PriorCollectorState(td=plane_observation(), info={}, terminated=np.zeros(2, dtype=bool),
                                  truncated=np.zeros(2, dtype=bool), rollout=RolloutContextState())
-    replay = TrajectoryDictBufferMultiDim(capacity=4, n_dim=2, end_key="episode_boundary", explicit_next=True,
+    replay = TrajectoryDictBufferMultiDim(capacity=4, n_dim=2, end_key="episode_boundary", explicit_next=True, sparse_next=sparse,
                                           compact_depth_history=True, output_key_t=["observation", "transition_truncated"])
     for step in range(2):
         state, _ = workspace._step_prior_collector(state, replay_buffer={"prior": replay},

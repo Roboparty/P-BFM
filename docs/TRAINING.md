@@ -65,11 +65,21 @@ field, keep it separate and load only the model into a new training directory,
 rebuilding replay with a collection warmup before updates. Do not change the
 metadata to force an incompatible buffer to load.
 
-Replay stores current and successor body observations plus one uint8 depth frame
-for each; temporal depth stacks are reconstructed when sampling. Allow GPU memory
-for replay, model/optimizer state and training batches, and disk space for each
-rank's replay checkpoint. A small-replay smoke test is not a full-capacity memory
-check.
+New replay uses `sparse_next=true`: ordinary successors reuse the following
+collector row, while reset boundaries store their real pre-reset observations
+separately. The newest successor is retained until another row arrives. Heading
+and velocity command fields remain explicit because collection may replace them
+before the next action. Each stored depth observation keeps one uint8 frame;
+temporal stacks are reconstructed when sampling. Successor flags, qpos and qvel
+remain explicit, including for reward inference. Sparse data is saved inside the
+same `buffer.hdf5` as the replay; do not copy only selected datasets.
+
+Existing `explicit_next=true` replay remains loadable in its original storage
+format; it is not silently converted or deleted. Model checkpoints and ONNX
+interfaces are unchanged. Savings depend on episode lengths and reset frequency.
+Allow GPU memory for replay, model/optimizer state and training batches, and disk
+space for each rank's replay checkpoint. A small-replay smoke test is not a
+full-capacity memory check.
 
 ## Tests
 

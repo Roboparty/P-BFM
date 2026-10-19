@@ -144,6 +144,7 @@ class DictBuffer:
                         hf.create_dataset(f"{prefix}{k}", data=v[: len(self)].cpu().detach().numpy())
 
             save_field(self.storage, nested_key=nested_key_separator)
+            self._save_extra(hf.create_group("__extras__"))
             hf.close()
             os.replace(h5_tmp_path, h5_path)
             # save config file
@@ -163,6 +164,8 @@ class DictBuffer:
         storage = {}
         storage_size_in_h5 = None
         for k, v in hf.items():
+            if k == "__extras__":
+                continue
             splits = k.split(nested_key_separator)
             current_dict = storage
             for i in range(len(splits) - 1):
@@ -198,8 +201,6 @@ class DictBuffer:
                 assert storage_size_in_h5 == v.shape[0], (
                     f"Batch dimension 0 is {v.shape[0]} for hdf5 entry {k} and it is different from the first shape {storage_size_in_h5}. Seems like the saved buffer is corrupted"
                 )
-        hf.close()
-
         self.storage = storage
         self._non_nested_key = [k for k, v in self.storage.items() if not isinstance(v, Mapping)][0]
 
@@ -208,6 +209,17 @@ class DictBuffer:
             # so we do our best to recover it here
             self._idx = storage_size_in_h5 % self.capacity
             self._is_full = storage_size_in_h5 == self.capacity
+        try:
+            self._load_extra(hf.get("__extras__"))
+        finally:
+            hf.close()
+
+    def _save_extra(self, group) -> None:
+        pass
+
+    def _load_extra(self, group) -> None:
+        if group is not None and len(group):
+            raise ValueError("Unexpected replay auxiliary storage")
 
     @classmethod
     def load(cls, path: str, device: str | None = None) -> DictBuffer:
@@ -226,6 +238,8 @@ class DictBuffer:
             warnings.warn(
                 "Loading a buffer without _idx and _is_full. Instead we assume _idx is current length of the buffer. Newly saved buffers have this fixed"
             )
+        if device is not None:
+            loaded_config["device"] = device
         buffer = cls(**loaded_config)
         buffer._idx = _idx
         buffer._is_full = _is_full
