@@ -1,6 +1,6 @@
-"""Direct-depth preprocessing and temporal stacking for the G1 policy.
+"""Shared direct-depth preprocessing and temporal stacking.
 
-The camera mount remains the G1 mount used by this repository. Image
+The default mount is G1; RobotTrainingSpec can supply the RP1 mount. Image
 processing uses conventional optical image order (row zero is the top of the
 image). Invalid-pixel semantics, quantization, delay, and history layout retain
 the pinned RP1 contract below.
@@ -9,6 +9,7 @@ the pinned RP1 contract below.
 from __future__ import annotations
 
 import math
+import random
 from dataclasses import dataclass, replace
 
 import torch
@@ -21,6 +22,7 @@ REFERENCE_COMMIT = "8c364e1001734097aac58e5033a1b5076925d3c5"
 BASELINE_TYPE = "rp1_direct_depth"
 DEPTH_CONVENTION = "optical_top_down_v1"
 MAXCROP_PROFILE = "optical_z_maxcrop18_reset_v2"
+RP1_PUFO_PROFILE = "rp1_pufo"
 
 
 @dataclass(frozen=True)
@@ -42,6 +44,7 @@ class DirectDepthConfig:
     angle_error_rad: float = math.radians(5.0)
     angle_error_rpy_rad: tuple[float, float, float] | None = None
     installation_frame: str = "optical"
+    installation_position_parent_frame: bool = False
     include_geom_groups: tuple[int, ...] = (0, 2, 5)
     exclude_parent_body: bool = False
     mount_body: str = "torso_link"
@@ -78,9 +81,9 @@ class DirectDepthConfig:
             )
         if (self.width, self.height) != (64, 36):
             raise ValueError("Direct depth requires a 64x36 source image")
-        if self.processing_profile not in {"legacy_rp1", MAXCROP_PROFILE}:
+        if self.processing_profile not in {"legacy_rp1", MAXCROP_PROFILE, RP1_PUFO_PROFILE}:
             raise ValueError(f"Unknown depth processing profile: {self.processing_profile}")
-        expected = (18, 32) if self.processing_profile == MAXCROP_PROFILE else (36, 32)
+        expected = {MAXCROP_PROFILE: (18, 32), RP1_PUFO_PROFILE: (18, 36), "legacy_rp1": (36, 32)}[self.processing_profile]
         if (self.output_height, self.output_width) != expected:
             raise ValueError(f"Depth profile requires output shape {expected}")
         if self.history_length != 37 or self.sampled_ages != (35, 30, 25, 20, 15, 10, 5, 0):
@@ -123,6 +126,11 @@ def depth_config_for_profile(profile: str, base: DirectDepthConfig | None = None
     cfg = base or DirectDepthConfig()
     if profile == "legacy_rp1":
         return cfg
+    if profile == RP1_PUFO_PROFILE:
+        return replace(cfg, processing_profile=profile, crop=(18, 0, 14, 14),
+                       position_error=.02, angle_error_rad=0.,
+                       angle_error_rpy_rad=tuple(math.radians(x) for x in (3., 10., 3.)),
+                       installation_frame="camera_link", installation_position_parent_frame=True)
     if profile != MAXCROP_PROFILE:
         raise ValueError(f"Unknown depth profile: {profile}")
     return replace(cfg, processing_profile=profile, crop=(18, 0, 16, 16),
@@ -205,6 +213,23 @@ def _gaussian_blur(depth: torch.Tensor, *, sigma_one: bool = False) -> torch.Ten
     return F.conv2d(F.pad(depth[:, None], (1, 1, 1, 1), mode="reflect"), kernel)[:, 0]
 
 
+def _rp1_pufo_noise(depth: torch.Tensor) -> torch.Tensor:
+    """Pinned PUFO pipeline: Gaussian, scale, random convolution, dead/saturated pixels."""
+    depth = depth + torch.randn_like(depth) * .01 * ((depth >= .1) & (depth <= 2.5))
+    # Source operations use one Bernoulli gate per batch, with per-image scales.
+    if random.random() <= .5:
+        depth = depth * torch.empty((depth.shape[0], 1, 1), device=depth.device).uniform_(.95, 1.05)
+    if random.random() <= .5:
+        kernel = torch.randn((1, 1, 3, 3), device=depth.device) * .01
+        kernel[:, :, 1, 1] += 1
+        kernel = kernel / kernel.abs().sum().clamp_min(1e-6)
+        depth = F.conv2d(depth[:, None], kernel, padding=1)[:, 0]
+    if random.random() <= .5:
+        draw = torch.rand_like(depth)
+        depth = depth.masked_fill(draw < .002, 0.).masked_fill((draw >= .002) & (draw < .004), 2.5)
+    return depth
+
+
 def _sanitize_depth(depth: torch.Tensor, max_depth: float) -> torch.Tensor:
     """Replace non-finite values before crop and augmentations, as in UFO-rp1."""
     invalid_depth = 0.0
@@ -226,7 +251,8 @@ def preprocess_depth(
     cfg.validate()
     if raw_depth.ndim != 3 or raw_depth.shape[-2:] != (cfg.height, cfg.width):
         raise ValueError(f"raw_depth must have shape [B, {cfg.height}, {cfg.width}], got {tuple(raw_depth.shape)}")
-    maxcrop = cfg.processing_profile == MAXCROP_PROFILE
+    rp1_pufo = cfg.processing_profile == RP1_PUFO_PROFILE
+    maxcrop = cfg.processing_profile in {MAXCROP_PROFILE, RP1_PUFO_PROFILE}
     if maxcrop:
         depth = torch.where(torch.isfinite(raw_depth) & (raw_depth >= 0), raw_depth,
                             torch.full_like(raw_depth, cfg.max_distance)).clamp(0, cfg.max_distance)
@@ -234,10 +260,13 @@ def preprocess_depth(
         depth = _sanitize_depth(raw_depth, cfg.max_distance)
     up, down, left, right = cfg.crop
     depth = depth[:, up : cfg.height - down, left : cfg.width - right]
-    if enable_noise and not maxcrop:
+    if enable_noise and rp1_pufo:
+        depth = _rp1_pufo_noise(depth)
+    elif enable_noise and not maxcrop:
         depth = _apply_domain_randomization(depth)
-    depth = _gaussian_blur(depth, sigma_one=maxcrop).clamp(cfg.min_distance, cfg.max_distance)
-    normalized = (depth - cfg.min_distance) / (cfg.max_distance - cfg.min_distance)
+    min_depth = .1 if rp1_pufo else cfg.min_distance
+    depth = _gaussian_blur(depth, sigma_one=maxcrop).clamp(min_depth, cfg.max_distance)
+    normalized = (depth - min_depth) / (cfg.max_distance - min_depth)
     return normalized.mul(255.0).round().to(torch.uint8)
 
 
@@ -291,7 +320,7 @@ class DirectDepthRuntime:
 
     def current_frame(self, sensor) -> torch.Tensor:
         metric_depth = raycast_ranges_to_image_plane(
-            sensor.data.distances, self.camera, invalid_to_max=self.cfg.processing_profile == MAXCROP_PROFILE)
+            sensor.data.distances, self.camera, invalid_to_max=self.cfg.processing_profile != "legacy_rp1")
         return preprocess_depth(metric_depth, self.cfg, enable_noise=self.enable_noise)
 
     def _sample_history(self, current_index: int) -> torch.Tensor:

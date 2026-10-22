@@ -34,7 +34,7 @@ from pbfm.robots import (
     assert_robot_configs_compatible,
     load_robot_training_spec,
     resolve_robot_config_path,
-    validate_g1_robot,
+    validate_robot,
 )
 
 
@@ -102,7 +102,7 @@ def add_bool_arg(parser: argparse.ArgumentParser, name: str, default: bool, help
 
 
 def add_robot_config_manifest_args(parser: argparse.ArgumentParser, *, purpose: str) -> None:
-    parser.add_argument("--robot-config", type=Path, default=None, help="G1 robot YAML for rollout and rendering.")
+    parser.add_argument("--robot-config", type=Path, default=None, help="G1 or RP1 YAML; must match the checkpoint robot.")
     parser.add_argument("--data-manifest", type=Path, default=None, help=f"Motion data manifest. Use with --dataset for {purpose}.")
     parser.add_argument("--dataset", default=None, help="Dataset name inside --data-manifest.")
     parser.add_argument("--rebuild-motion-cache", action="store_true", help="Rebuild manifest-generated motion pkl cache.")
@@ -111,14 +111,34 @@ def add_robot_config_manifest_args(parser: argparse.ArgumentParser, *, purpose: 
 def resolve_inference_robot_config(
     cli_robot_config: str | Path | None,
     manifest_robot_config: str | Path | None,
+    model_folder: Path | None = None,
 ) -> Path:
+    saved = None
+    if model_folder is not None and (Path(model_folder) / "config.json").exists():
+        saved = (json.loads((Path(model_folder) / "config.json").read_text())["env"].get("robot_training") or {}).get("robot")
+        if saved:
+            validate_robot(saved["name"], saved["control_joint_names"])
+            chosen = cli_robot_config or manifest_robot_config
+            if chosen is not None:
+                candidate = load_robot_training_spec(chosen).robot
+                if candidate.name != saved["name"] or list(candidate.control_joint_names) != saved["control_joint_names"]:
+                    raise ValueError("Robot config does not match checkpoint robot/joint order")
     if cli_robot_config is not None and manifest_robot_config is not None:
         return assert_robot_configs_compatible(cli_robot_config, manifest_robot_config)
     if cli_robot_config is not None:
         return resolve_robot_config_path(cli_robot_config)
     if manifest_robot_config is not None:
         return resolve_robot_config_path(manifest_robot_config)
+    if saved:
+        return resolve_robot_config_path(f"configs/robots/{saved['name']}.yaml")
     return resolve_robot_config_path(DEFAULT_ROBOT_CONFIG)
+
+
+def load_inference_robot_training(model_folder: Path, robot_config: str | Path | None = None):
+    path = resolve_inference_robot_config(robot_config, None, model_folder)
+    config_path = Path(model_folder) / "config.json"
+    saved = json.loads(config_path.read_text())["env"].get("robot_training") if config_path.exists() else None
+    return load_robot_training_spec(path, saved=saved)
 
 
 def resolve_inference_data_and_robot_args(args: argparse.Namespace, parser: argparse.ArgumentParser) -> argparse.Namespace:
@@ -137,7 +157,7 @@ def resolve_inference_data_and_robot_args(args: argparse.Namespace, parser: argp
                 rebuild_cache=bool(args.rebuild_motion_cache),
             )
         )
-    args.robot_config = resolve_inference_robot_config(args.robot_config, manifest_robot_config)
+    args.robot_config = resolve_inference_robot_config(args.robot_config, manifest_robot_config, getattr(args, "model_folder", None))
     return args
 
 
@@ -206,10 +226,12 @@ def _tracking_z(model: torch.nn.Module, obs: Any) -> torch.Tensor:
     return model.project_z(z)
 
 
-def _export_policy_model(model: torch.nn.Module, output_dir: Path, robot_training: Any) -> dict[str, Any]:
+def _export_policy_model(model: torch.nn.Module, output_dir: Path, robot_training: Any,
+                         *, output_name: str | None = None) -> dict[str, Any]:
+    if hasattr(model, "action_dim") and int(model.action_dim) != len(robot_training.robot.control_joint_names):
+        raise ValueError("Policy action dim does not match robot control joint count")
     output_dir.mkdir(parents=True, exist_ok=True)
-    model_name = model.__class__.__name__
-    output_name = f"{model_name}.onnx"
+    output_name = output_name or f"{model.__class__.__name__}.onnx"
     control_joint_names = list(robot_training.robot.control_joint_names)
     num_dof = len(control_joint_names)
     export_metadata = export_meta_policy_as_onnx(
@@ -232,7 +254,9 @@ def _export_policy_model(model: torch.nn.Module, output_dir: Path, robot_trainin
             "control_joint_names": control_joint_names,
         }
     )
-    metadata_path = output_dir / f"{model_name}.meta.json"
+    if hasattr(robot_training, "to_env_dict"):
+        export_metadata["robot_calibration"] = robot_training.to_env_dict()
+    metadata_path = (output_dir / output_name).with_suffix(".meta.json")
     metadata_path.write_text(json.dumps(export_metadata, indent=2, sort_keys=True) + "\n")
     print(f"[INFO] Exported model to {output_dir / output_name}")
     print(f"[INFO] Wrote policy ONNX metadata to {metadata_path}")
@@ -245,18 +269,6 @@ def _export_tracking_onnx(model: torch.nn.Module, output_dir: Path, robot_traini
         export_backward_encoder_from_model(model, output_dir / "backward_encoder.onnx")
     except UnsupportedBackwardEncoderExport as exc:
         print(f"[INFO] Skip backward encoder ONNX export: {exc}")
-
-
-def _export_model(model: torch.nn.Module, output_dir: Path) -> None:
-    output_dir.mkdir(parents=True, exist_ok=True)
-    model_name = model.__class__.__name__
-    export_meta_policy_as_onnx(
-        model,
-        output_dir,
-        f"{model_name}.onnx",
-        z_dim=model.cfg.archi.z_dim,
-    )
-    print(f"[INFO] Exported model to {output_dir / f'{model_name}.onnx'}")
 
 
 def _find_body(root: ET.Element, name: str) -> ET.Element | None:
@@ -428,6 +440,15 @@ def write_g1_mjlab_relabel_xml(source_xml: Path, output_dir: Path) -> Path:
     return output_path
 
 
+def write_robot_relabel_xml(robot_training, output_dir: Path) -> Path:
+    robot = robot_training.robot
+    source = Path(robot.xml_path)
+    if robot.name == "g1_29dof":
+        return write_g1_mjlab_relabel_xml(source, output_dir)
+    return write_mjlab_relabel_xml(source, output_dir, robot.control_joint_names,
+                                   robot.name, root_body_name=robot.base_body)
+
+
 def checkpoint_load_device(device: str) -> str:
     torch_device = torch.device(device)
     if torch_device.type == "cuda":
@@ -514,15 +535,11 @@ def load_mjlab_env_cfg(
     env_config = dict(config["env"])
     use_root_height_obs = bool(env_config.get("root_height_obs", False))
     env_config["device"] = device
-    if robot_config is not None:
-        training_spec = load_robot_training_spec(robot_config)
+    if robot_config is not None or env_config.get("robot_training"):
+        training_spec = load_inference_robot_training(model_folder, robot_config)
         env_config["mjcf_path"] = training_spec.robot.xml_path
         env_config["robot_config_path"] = str(training_spec.config_path)
         env_config["robot_training"] = training_spec.to_env_dict()
-    elif env_config.get("robot_training"):
-        robot = env_config["robot_training"]["robot"]
-        validate_g1_robot(robot["name"], robot["control_joint_names"])
-        env_config["mjcf_path"] = robot["xml_path"]
     else:
         env_config["mjcf_path"] = G1_MJLAB_MJCF_PATH
     env_config["disable_domain_randomization"] = disable_dr
@@ -532,7 +549,7 @@ def load_mjlab_env_cfg(
 
     if data_path is not None:
         env_config["lafan_tail_path"] = str(resolve_resource_path(data_path))
-    elif DEFAULT_INFERENCE_DATA_PATH.exists():
+    elif (env_config.get("robot_training") or {}).get("robot", {}).get("name", "g1_29dof") == "g1_29dof" and DEFAULT_INFERENCE_DATA_PATH.exists():
         env_config["lafan_tail_path"] = str(DEFAULT_INFERENCE_DATA_PATH)
     else:
         motion_path = Path(env_config.get("lafan_tail_path", ""))

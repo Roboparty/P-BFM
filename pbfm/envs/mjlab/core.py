@@ -280,7 +280,8 @@ class HumanoidVerseMjlabCore:
             edges = exposed_box_edges(self.mjlab_env.sim.mj_model, group=terrain_groups)
             self.virtual_terrain_edges = VirtualTerrainEdges(edges, device=self.device,
                 radius=self._creation_config.virtual_edge_radius)
-            self._edge_foot_points = foot_volume_points(self.device)
+            bounds = hv_config.robot.get("foot_geometry", {}).get("volume_bounds")
+            self._edge_foot_points = foot_volume_points(self.device, bounds) if bounds is not None else foot_volume_points(self.device)
             print(f'[virtual edges] {len(edges)} exposed box-top segments, radius={self._creation_config.virtual_edge_radius}; no physical colliders', flush=True)
         self.torso_index = self.body_names.index(hv_config.robot.torso_name)
         penalized = []
@@ -820,7 +821,7 @@ class HumanoidVerseMjlabCore:
         if self._direct_depth_runtime is not None:
             depth_sensor = self.mjlab_env.scene.sensors["g1_direct_depth"]
             randomize_installation = getattr(depth_sensor, "randomize_installation", None)
-            if randomize_installation is not None:
+            if randomize_installation is not None and self._direct_depth_runtime.cfg.processing_profile != "rp1_pufo":
                 randomize_installation(env_ids)
             depth_sensor.update(0.0)
             sensors_invalidated = True

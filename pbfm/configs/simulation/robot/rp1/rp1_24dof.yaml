@@ -1,0 +1,42 @@
+# @package _global_
+defaults:
+  - robot_base
+
+# Names, joint order, gains and limits are populated from configs/robots/rp1_24dof.yaml.
+robot:
+  number_of_actions: 24
+  actions_dim: 24
+  dof_obs_size: 24
+  num_bodies: 25
+  self_obs_max_coords: 373
+  body_names: []
+  dof_names: []
+  contact_bodies: []
+  key_bodies: []
+  foot_name: ankle_roll_link
+  torso_name: waist_yaw_link
+  randomize_link_body_names: [".*"]
+  init_state: {}
+  asset:
+    robot_type: rp1_24dof
+  motion:
+    humanoid_type: rp1_24dof
+    robot_name: rp1_24dof
+    motion_file: null
+    asset: {}
+    body_names: ${robot.body_names}
+    dof_names: ${robot.dof_names}
+    control_joint_names: ${robot.dof_names}
+    extend_config: []
+    nums_extend_bodies: 0
+    has_mesh: false
+    has_dof_subset: true
+    motion_sym_loss: false
+    uniform_sample: false
+    motion_fps_scale: 1.0
+    standardize_motion_length: true
+    standardize_motion_length_value: 10
+    reverse_motion: false
+    pelvis_link: base_link
+    base_link: waist_yaw_link
+    motion_tracking_link: [waist_yaw_link]

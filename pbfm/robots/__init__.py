@@ -7,7 +7,7 @@ from pbfm.robots.training_spec import (
     assert_robot_configs_compatible,
     load_robot_training_spec,
     resolve_robot_config_path,
-    validate_g1_robot,
+    validate_robot,
 )
 
 __all__ = [
@@ -17,5 +17,5 @@ __all__ = [
     "load_robot_spec",
     "load_robot_training_spec",
     "resolve_robot_config_path",
-    "validate_g1_robot",
+    "validate_robot",
 ]

@@ -650,6 +650,7 @@ class MotionLibBase():
             if not isinstance(curr_file, dict) and osp.isfile(curr_file):
                 key = motion_data_list[f].split("/")[-1].split(".")[0]
                 curr_file = joblib.load(curr_file)[key]
+            self.mesh_parsers.validate_reference(curr_file)
             
             seq_len = curr_file['root_trans_offset'].shape[0]
             if max_len == -1 or seq_len < max_len:

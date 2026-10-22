@@ -46,11 +46,55 @@ def test_tracking_preserves_both_reset_height_modes_and_source_reset():
 def test_saved_non_g1_config_cannot_bypass_inference_validation(tmp_path):
     config = {"env": {"robot_training": {"robot": {"name": "other_robot", "control_joint_names": []}}}}
     (tmp_path / "config.json").write_text(json.dumps(config))
-    with pytest.raises(ValueError, match="Only G1"):
+    with pytest.raises(ValueError, match="Supported robots"):
         runtime.load_mjlab_env_cfg(
             tmp_path, data_path=None, device="cpu", headless=True,
             disable_dr=True, disable_obs_noise=True, max_episode_length_s=10.0,
         )
+
+
+@pytest.mark.parametrize("robot_config", [None, "configs/robots/g1_29dof.yaml"])
+def test_legacy_null_robot_training_uses_g1(tmp_path, robot_config):
+    (tmp_path / "config.json").write_text(json.dumps({"env": {"robot_training": None, "lafan_tail_path": "motion.pkl"}}))
+    assert runtime.resolve_inference_robot_config(None, None, tmp_path).name == "g1_29dof.yaml"
+    env, _ = runtime.load_mjlab_env_cfg(tmp_path, robot_config=robot_config, data_path=None,
+        device="cpu", headless=True, disable_dr=True, disable_obs_noise=True, max_episode_length_s=10.)
+    assert runtime.load_inference_robot_training(tmp_path).robot.name == "g1_29dof"
+    assert env.robot_training is None or env.robot_training["robot"]["name"] == "g1_29dof"
+
+
+@pytest.mark.parametrize("explicit_folder", [False, True])
+def test_standalone_export_uses_run_calibration(tmp_path, monkeypatch, explicit_folder):
+    from scripts import export_depth_policy_onnx as exporter
+    from pbfm.robots import load_robot_training_spec
+    saved = load_robot_training_spec("configs/robots/rp1_24dof.yaml").to_env_dict()
+    saved["action_scale"] = .31
+    (tmp_path / "config.json").write_text(json.dumps({"env": {"robot_training": saved}}))
+    checkpoint = tmp_path / ("archive/checkpoint" if explicit_folder else "checkpoint")
+    args = ["export", "--checkpoint", str(checkpoint), "--output", str(tmp_path / "deploy/policy.onnx")]
+    if explicit_folder:
+        args += ["--model-folder", str(tmp_path)]
+    monkeypatch.setattr(sys, "argv", args)
+    model = Mock()
+    model.eval.return_value = model
+    monkeypatch.setattr(exporter, "load_model_from_checkpoint_dir", Mock(return_value=model))
+    export = Mock(return_value={"verification": {"passed": True}})
+    monkeypatch.setattr(exporter, "_export_policy_model", export)
+    exporter.main()
+    calibration = export.call_args.args[2]
+    assert calibration.robot.name == "rp1_24dof" and calibration.action_scale == .31
+    assert export.call_args.kwargs["output_name"] == "policy.onnx"
+
+
+def test_standalone_export_requires_run_config(tmp_path, monkeypatch):
+    from scripts import export_depth_policy_onnx as exporter
+    monkeypatch.setattr(sys, "argv", ["export", "--checkpoint", str(tmp_path / "checkpoint"),
+        "--output", str(tmp_path / "policy.onnx")])
+    load = Mock()
+    monkeypatch.setattr(exporter, "load_model_from_checkpoint_dir", load)
+    with pytest.raises(SystemExit):
+        exporter.main()
+    load.assert_not_called()
 
 
 @pytest.mark.parametrize("family", [None, *TRAINING_TERRAIN_COMPONENT_NAMES])
@@ -131,7 +175,7 @@ def test_tracking_generic_and_training_rollouts_keep_context_export_and_renderin
     terrain_cfg, video = Mock(return_value=cfg), Mock()
     patches = {
         "_resolve_tracking_robot_config": Mock(return_value=tmp_path / "g1.yaml"),
-        "load_robot_training_spec": Mock(return_value=robot),
+        "load_inference_robot_training": Mock(return_value=robot),
         "load_model_from_checkpoint_dir": Mock(return_value=model),
         "load_mjlab_env_cfg": Mock(return_value=(cfg, False)),
         "get_backward_observation": Mock(return_value=({"state": torch.zeros(3, 1)}, expert)),

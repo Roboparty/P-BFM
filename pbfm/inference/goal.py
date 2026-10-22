@@ -29,7 +29,7 @@ from pbfm.utils.helpers import get_backward_observation
 from pbfm.inference.runtime import (
     HUMANOIDVERSE_DIR,
     MujocoQposRenderer,
-    _export_model,
+    _export_tracking_onnx,
     _target_states_from_obs,
     add_robot_config_manifest_args,
     add_bool_arg,
@@ -39,17 +39,22 @@ from pbfm.inference.runtime import (
     resolve_inference_data_and_robot_args,
     resolve_inference_robot_config,
 )
-from pbfm.robots import load_robot_training_spec
+from pbfm.robots import validate_robot
+from pbfm.inference.runtime import load_inference_robot_training
 
 
 def _find_goal_json(goal_json: Path | None, *, num_dof: int, robot_name: str) -> Path:
-    if robot_name != "g1_29dof" or int(num_dof) != 29:
-        raise ValueError("Only G1 (g1_29dof, 29 DOF) goal inference is supported.")
+    validate_robot(robot_name)
+    expected = {"g1_29dof": 29, "rp1_24dof": 24}[robot_name]
+    if int(num_dof) != expected:
+        raise ValueError(f"{robot_name} requires {expected} DOF")
     if goal_json is not None:
         goal_json = goal_json.expanduser().resolve()
         if not goal_json.exists():
             raise FileNotFoundError(f"Missing goal JSON: {goal_json}")
         return goal_json
+    if robot_name == "rp1_24dof":
+        raise ValueError("RP1 requires an explicit --goal-json referring to the RP1 motion dataset")
 
     candidates = [
         HUMANOIDVERSE_DIR / "data" / "robots" / "g1" / "goal_frames_lafan29dof.json",
@@ -144,8 +149,8 @@ def run_goal_inference(
     if not checkpoint_dir.exists():
         raise FileNotFoundError(f"Missing checkpoint directory: {checkpoint_dir}")
 
-    robot_config = resolve_inference_robot_config(robot_config, None)
-    robot_training = load_robot_training_spec(robot_config)
+    robot_config = resolve_inference_robot_config(robot_config, None, model_folder)
+    robot_training = load_inference_robot_training(model_folder, robot_config)
     robot_xml = Path(robot_training.robot.xml_path).expanduser().resolve()
     if not robot_xml.exists():
         raise FileNotFoundError(f"Missing robot XML: {robot_xml}")
@@ -188,7 +193,7 @@ def run_goal_inference(
 
     try:
         if export_onnx:
-            _export_model(model, model_folder / "exported")
+            _export_tracking_onnx(model, model_folder / "exported", robot_training)
 
         goals_to_evaluate = load_and_validate_goal_json(goal_json_path, num_dof=num_dof)
         first_goal = goals_to_evaluate[0]

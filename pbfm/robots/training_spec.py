@@ -1,8 +1,9 @@
-"""Validated G1 training metadata loaded from the curated robot YAML."""
+"""Validated training metadata for the two supported robots."""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+import math
 from pathlib import Path
 from typing import Any
 
@@ -69,6 +70,7 @@ class RobotTrainingSpec:
     torso_name: str
     left_ankle_dof_names: list[str]
     right_ankle_dof_names: list[str]
+    robot_options: dict[str, Any] = field(default_factory=dict)
 
     def to_env_dict(self) -> dict[str, Any]:
         robot = self.robot
@@ -101,17 +103,18 @@ class RobotTrainingSpec:
             "torso_name": self.torso_name,
             "left_ankle_dof_names": list(self.left_ankle_dof_names),
             "right_ankle_dof_names": list(self.right_ankle_dof_names),
+            **self.robot_options,
         }
 
 
-def validate_g1_robot(name: str, control_joint_names: list[str] | None = None) -> None:
-    if name != "g1_29dof":
-        raise ValueError(f"Only G1 (g1_29dof) is supported for training and inference; got {name!r}")
+def validate_robot(name: str, control_joint_names: list[str] | None = None) -> None:
+    if name not in {"g1_29dof", "rp1_24dof"}:
+        raise ValueError(f"Supported robots are G1 (g1_29dof) and RP1 (rp1_24dof); got {name!r}")
     if control_joint_names is not None:
-        curated = OmegaConf.load(CONFIG_ROOT / "robots/g1_29dof.yaml")
+        curated = OmegaConf.load(CONFIG_ROOT / f"robots/{name}.yaml")
         expected = list(curated.training.init_state.default_joint_angles)
         if list(control_joint_names) != expected:
-            raise ValueError("G1 control joint order must match configs/robots/g1_29dof.yaml")
+            raise ValueError(f"{name} control joint order must match configs/robots/{name}.yaml")
 
 
 def resolve_robot_config_path(raw_path: str | Path, *, base_dir: str | Path | None = None) -> Path:
@@ -122,18 +125,52 @@ def resolve_robot_config_path(raw_path: str | Path, *, base_dir: str | Path | No
     config = OmegaConf.to_container(OmegaConf.load(path), resolve=True)
     if not isinstance(config, dict):
         raise ValueError(f"Robot config must be a mapping: {path}")
-    validate_g1_robot(config.get("name"))
+    validate_robot(config.get("name"))
     return path
 
 
-def load_robot_training_spec(config_path: str | Path) -> RobotTrainingSpec:
+def load_robot_training_spec(config_path: str | Path, *, saved: dict[str, Any] | None = None) -> RobotTrainingSpec:
     path = resolve_robot_config_path(config_path)
     config = OmegaConf.to_container(OmegaConf.load(path), resolve=True)
     if not isinstance(config, dict):
         raise ValueError(f"Robot config must be a mapping: {path}")
 
-    robot = load_robot_spec(path)
-    validate_g1_robot(robot.name, robot.control_joint_names)
+    if saved:
+        stored_robot = _required_mapping(saved, "robot", context="checkpoint.robot_training")
+        validate_robot(stored_robot["name"], stored_robot["control_joint_names"])
+        if config["name"] != stored_robot["name"]:
+            raise ValueError("Robot config does not match checkpoint robot")
+        xml_path = _resolve_path(stored_robot["xml_path"], base_dir=path.parent)
+        # YAML can relocate assets, but must not replace checkpoint calibration.
+        config = {**config, **stored_robot,
+                  "xml_path": str(xml_path) if xml_path.exists() else config["xml_path"],
+                  "control_joints": list(stored_robot["control_joint_names"]),
+                  "default_dof_pos": saved.get("default_joint_angles", {})}
+        try:
+            config["training"] = {
+                "hydra_robot": config["training"]["hydra_robot"],
+                "control": {key: saved[key] for key in (
+                    "action_scale", "action_clip_value", "normalize_action_to", "stiffness", "damping",
+                    "effort_limit_scale")},
+                "init_state": {**saved["init_state"], "default_joint_angles": saved["default_joint_angles"]},
+                "actuator": saved["actuator"],
+                "semantics": {key: saved[key] for key in (
+                    "contact_bodies", "undesired_contact_bodies", "torso_name",
+                    "left_ankle_dof_names", "right_ankle_dof_names")},
+                **{key: saved[key] for key in ("camera", "foot_geometry", "aux_rewards_scaling", "depth_profile") if key in saved},
+            }
+            config["training"]["control"].update(
+                effort_limit=saved["effort_limits"], velocity_limit=saved["velocity_limits"])
+            if "action_rescale" in saved:
+                config["training"]["control"]["action_rescale"] = saved["action_rescale"]
+        except KeyError as exc:
+            raise ValueError(f"Incomplete checkpoint robot calibration: missing {exc.args[0]}") from exc
+
+    robot = load_robot_spec(path, config=config)
+    validate_robot(robot.name, robot.control_joint_names)
+    if saved:
+        if robot.body_names != stored_robot["body_names"] or robot.joint_ranges != stored_robot["joint_ranges"]:
+            raise ValueError("Robot XML body layout/joint limits do not match checkpoint calibration")
     training = config.get("training")
     if not isinstance(training, dict):
         raise ValueError(
@@ -161,6 +198,11 @@ def load_robot_training_spec(config_path: str | Path) -> RobotTrainingSpec:
     velocity_limits = _required_float_list(control, "velocity_limit", length=joint_count, context="training.control")
 
     actuator_source = str(actuator.get("source", ""))
+    motor_model = str(actuator.get("model", "dc"))
+    if motor_model not in {"dc", "rp1_torque_speed"}:
+        raise ValueError(f"Unsupported actuator model: {motor_model}")
+    if robot.name == "rp1_24dof" and (actuator_source != "yaml" or motor_model != "rp1_torque_speed"):
+        raise ValueError("RP1 requires its YAML torque-speed motor calibration")
     if actuator_source not in {"g1_mode15", "g1-mode_15", "yaml"}:
         raise ValueError("training.actuator.source must be one of: g1_mode15, g1-mode_15, yaml")
     if actuator_source == "yaml":
@@ -175,6 +217,15 @@ def load_robot_training_spec(config_path: str | Path) -> RobotTrainingSpec:
                 if key not in params:
                     raise ValueError(f"training.actuator.joints.{joint} is missing '{key}'")
                 float(params[key])
+            if motor_model == "rp1_torque_speed":
+                speed = _required_float(params, "velocity_limit", context=joint)
+                keep = _required_float(params, "keep_velocity", context=joint)
+                if not (math.isfinite(speed) and 0 <= keep < speed):
+                    raise ValueError(f"{joint}: require 0 <= keep_velocity < velocity_limit")
+                for key in ("effort_limit", "armature", "friction", "viscous_friction"):
+                    value = _required_float(params, key, context=joint)
+                    if not math.isfinite(value) or value < 0 or (key == "effort_limit" and value == 0):
+                        raise ValueError(f"Invalid {joint}.{key}: {value}")
 
     semantic = dict(training.get("semantics") or {})
     contact_bodies = _required_name_list(semantic, "contact_bodies", context="training.semantics")
@@ -182,6 +233,10 @@ def load_robot_training_spec(config_path: str | Path) -> RobotTrainingSpec:
     torso_name = str(semantic.get("torso_name") or robot.base_body)
     left_ankle_dof_names = [str(item) for item in semantic.get("left_ankle_dof_names", [])]
     right_ankle_dof_names = [str(item) for item in semantic.get("right_ankle_dof_names", [])]
+    if "aux_rewards_scaling" in training:
+        weights = _required_mapping(training, "aux_rewards_scaling", context="training")
+        if not weights or any(not math.isfinite(float(w)) or float(w) > 0 for w in weights.values()):
+            raise ValueError("training.aux_rewards_scaling requires finite nonpositive penalty weights")
 
     return RobotTrainingSpec(
         config_path=path,
@@ -209,6 +264,10 @@ def load_robot_training_spec(config_path: str | Path) -> RobotTrainingSpec:
         torso_name=torso_name,
         left_ankle_dof_names=left_ankle_dof_names,
         right_ankle_dof_names=right_ankle_dof_names,
+        robot_options={
+            **({"action_rescale": bool(control["action_rescale"])} if "action_rescale" in control else {}),
+            **{key: training[key] for key in ("camera", "foot_geometry", "aux_rewards_scaling", "depth_profile") if key in training},
+        },
     )
 
 

@@ -491,7 +491,7 @@ class DirectDepthActorArchiConfig(ActorArchiConfig):
     # Keep legacy defaults so old checkpoint configs reconstruct unchanged.
     depth_first_conv_stride: tp.Literal[1, 2] = 2
     depth_frame_feature_dim: tp.Literal[128, 256] = 128
-    depth_processing_profile: tp.Literal["legacy_rp1", "optical_z_maxcrop18_reset_v2"] = "legacy_rp1"
+    depth_processing_profile: tp.Literal["legacy_rp1", "optical_z_maxcrop18_reset_v2", "rp1_pufo"] = "legacy_rp1"
     estimated_velocity_enabled: bool = False
     velocity_supervision_updates_depth: bool = False
 

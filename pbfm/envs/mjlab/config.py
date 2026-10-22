@@ -201,6 +201,8 @@ def _actuator_params_from_training(dof_names: tp.Sequence[str], robot_training: 
     if not isinstance(joints, dict):
         raise ValueError("training.actuator.source=yaml requires training.actuator.joints")
     params = {"effort_limit": [], "velocity_limit": [], "armature": [], "friction": []}
+    if actuator.get("model") == "rp1_torque_speed":
+        params.update(keep_velocity=[], viscous_friction=[])
     for joint_name in dof_names:
         joint_params = joints.get(joint_name)
         if not isinstance(joint_params, dict):
@@ -288,6 +290,8 @@ def make_mjlab_ufo_env_cfg(
     effort_scale = float(getattr(config.robot, "dof_effort_limit_scale", 1.0))
     bfm_effort_limits = [float(x) for x in _to_list(config.robot.dof_effort_limit_list)]
     actuator_source, actuator_params = _actuator_params_from_training(dof_names, robot_training)
+    rp1_motors = "keep_velocity" in actuator_params
+    domain_rand = config.domain_rand
     effort_limits = actuator_params["effort_limit"]
     velocity_limits = actuator_params["velocity_limit"]
     armature = actuator_params["armature"]
@@ -299,13 +303,24 @@ def make_mjlab_ufo_env_cfg(
         kp = _match_joint_value(joint_name, stiffness)
         kd = _match_joint_value(joint_name, damping)
         effort_limit = effort_limits[i]
+        motor_cfg = DcMotorActuatorCfg
+        motor_kwargs = {"saturation_effort": effort_limit}
+        if "keep_velocity" in actuator_params:
+            from .actuators import RP1ActuatorCfg
+            motor_cfg = RP1ActuatorCfg
+            motor_kwargs = {"keep_velocity": actuator_params["keep_velocity"][i],
+                            "viscous_damping": actuator_params["viscous_friction"][i],
+                            "rfi_lim": float(domain_rand.rfi_lim) if domain_rand.randomize_torque_rfi else 0.,
+                            "delay_min_lag": int(domain_rand.get("motor_delay_steps", [0, 0])[0]),
+                            "delay_max_lag": int(domain_rand.get("motor_delay_steps", [0, 0])[1]),
+                            "delay_hold_prob": 1.0}
         actuators.append(
-            DcMotorActuatorCfg(
+            motor_cfg(
                 target_names_expr=(joint_name,),
                 stiffness=kp,
                 damping=kd,
                 effort_limit=effort_limit,
-                saturation_effort=effort_limit,
+                **motor_kwargs,
                 velocity_limit=velocity_limits[i],
                 armature=armature[i] if i < len(armature) else None,
                 frictionloss=friction[i] if i < len(friction) else None,
@@ -363,6 +378,11 @@ def make_mjlab_ufo_env_cfg(
             history_length=int(config.simulator.config.sim.control_decimation),
         )
     ]
+    if "sound_suppression_acc_per_foot" in config.rewards.reward_scales:
+        from mjlab.sensor import BuiltinSensorCfg
+        sensors.extend(BuiltinSensorCfg(name=f"foot_com_acc_{i}", sensor_type="framelinacc",
+            obj=ObjRef(type="body", name=body, entity="robot"))
+            for i, body in enumerate(config.robot.contact_bodies))
     terrain_enabled = bool(config.terrain.get("enabled", False))
     terrain_mode = normalize_terrain_mode(str(config.terrain.get("terrain_type", "plane"))) if terrain_enabled else "plane"
     direct_depth_cfg = _direct_depth_config(config)
@@ -396,31 +416,30 @@ def make_mjlab_ufo_env_cfg(
             )
         if bool(config.rewards.get("terrain_aware_auxiliary", False)) and not evaluation_fast_path:
             terrain_ray_groups = (0,) if terrain_mode in {"training_mix", "plane", "flat"} else (5,)
+            if rp1_motors:
+                from .foot_contacts import FootStumbleSensorCfg
+                foot_contacts = FootStumbleSensorCfg(
+                    name="foot_stumble", body_names=tuple(f"robot/{name}" for name in config.robot.contact_bodies),
+                    history_length=int(config.simulator.config.sim.control_decimation))
+            else:
+                foot_contacts = ContactSensorCfg(
+                    name="foot_collision_contacts",
+                    primary=ContactMatch(mode="geom", pattern="(left|right)_foot.*_collision", entity="robot"),
+                    fields=("force", "normal", "tangent"), reduce="maxforce", num_slots=2,
+                    global_frame=True, history_length=int(config.simulator.config.sim.control_decimation))
             sensors.extend(
                 (
-                    ContactSensorCfg(
-                        name="foot_collision_contacts",
-                        primary=ContactMatch(
-                            mode="geom",
-                            pattern="(left|right)_foot.*_collision",
-                            entity="robot",
-                        ),
-                        fields=("force", "normal", "tangent"),
-                        reduce="maxforce",
-                        num_slots=2,
-                        global_frame=True,
-                        history_length=int(config.simulator.config.sim.control_decimation),
-                    ),
+                    foot_contacts,
                     WorldUpTerrainHeightSensorCfg(
                         name="foot_height_scanners",
                         frame=(
                             ObjRef(type="body", name="left_ankle_roll_link", entity="robot"),
                             ObjRef(type="body", name="right_ankle_roll_link", entity="robot"),
                         ),
-                        pattern=GridPatternCfg(size=(0.23, 0.04), resolution=0.01),
+                        pattern=GridPatternCfg(size=tuple(config.robot.get("foot_geometry", {}).get("scanner_size", (0.23, 0.04))), resolution=0.01),
                         ray_alignment="base",
                         ray_start_height=20.0,
-                        local_center=(0.025, 0.0, -0.045),
+                        local_center=tuple(config.robot.get("foot_geometry", {}).get("scanner_center", (0.025, 0.0, -0.045))),
                         max_distance=25.0,
                         include_geom_groups=terrain_ray_groups,
                         debug_vis=False,
@@ -439,6 +458,7 @@ def make_mjlab_ufo_env_cfg(
                     angle_error_rad=direct_depth_cfg.angle_error_rad,
                     angle_error_rpy_rad=direct_depth_cfg.angle_error_rpy_rad,
                     installation_frame=direct_depth_cfg.installation_frame,
+                    installation_position_parent_frame=direct_depth_cfg.installation_position_parent_frame,
                     raycast_max_distance=direct_depth_cfg.raycast_max_distance,
                 )
             )
@@ -481,7 +501,13 @@ def make_mjlab_ufo_env_cfg(
     }
     domain_rand = config.domain_rand
     action_class, extra_action = JointPositionActionCfg, {}
-    if bool(domain_rand.get("randomize_torque_rfi", False)):
+    if rp1_motors:
+        extra_action["clip"] = {
+            name: (float(lower), float(upper))
+            for name, lower, upper in zip(dof_names, config.robot.dof_pos_lower_limit_list,
+                                           config.robot.dof_pos_upper_limit_list, strict=True)
+        }
+    if bool(domain_rand.get("randomize_torque_rfi", False)) and not rp1_motors:
         from pbfm.envs.mjlab.torque_rfi import RfiJointPositionActionCfg
         action_class = RfiJointPositionActionCfg
         extra_action = dict(torque_limits=tuple(float(x) for x in config.robot.dof_effort_limit_list),
@@ -503,6 +529,10 @@ def make_mjlab_ufo_env_cfg(
     }
     domain_rand = config.domain_rand
     events = {}
+    if rp1_motors and max(domain_rand.get("motor_delay_steps", [0, 0])) > 0:
+        from .actuators import reset_motor_delay
+        events["motor_delay"] = EventTermCfg(mode="reset", func=reset_motor_delay,
+            params={"delay_range": tuple(domain_rand.motor_delay_steps)})
     if bool(domain_rand.get("randomize_pd_gain", False)):
         events["random_pd_gains"] = EventTermCfg(
             mode="reset", func=mjlab_dr.pd_gains,
@@ -532,6 +562,9 @@ def make_mjlab_ufo_env_cfg(
             interval_range_s=tuple(float(x) for x in _to_list(domain_rand.push_interval_s)),
             params={"velocity_range": velocity_range},
         )
+        if rp1_motors:
+            from .randomization import set_push_velocity
+            events["push_robots"].func = set_push_velocity
     # pseudo_inertia reconstructs body_ipos from the model defaults, so it
     # must run before the independent torso COM-offset event below.
     if bool(domain_rand.get("randomize_link_mass", False)):
@@ -545,6 +578,10 @@ def make_mjlab_ufo_env_cfg(
                 ),
             },
         )
+        if rp1_motors:
+            from .randomization import scale_link_density
+            events["random_link_pseudo_inertia"] = EventTermCfg(mode="startup",
+                func=scale_link_density, params={"scale_range": tuple(domain_rand.link_mass_range)})
     if bool(domain_rand.get("randomize_base_com", False)):
         base_com_range = domain_rand.base_com_range
         events["random_base_com"] = EventTermCfg(
@@ -633,7 +670,7 @@ class HumanoidVerseMjlabConfig(BaseConfig):
     # Evaluation-only override. None preserves the frozen per-episode {0, 1}
     # training contract; deterministic same-z evaluation explicitly uses 0.
     fixed_direct_depth_delay_frames: int | None = None
-    direct_depth_profile: tp.Literal["legacy_rp1", "optical_z_maxcrop18_reset_v2"] = "legacy_rp1"
+    direct_depth_profile: tp.Literal["legacy_rp1", "optical_z_maxcrop18_reset_v2", "rp1_pufo"] = "legacy_rp1"
 
     def model_post_init(self, context) -> None:
         if self.fixed_direct_depth_delay_frames is not None and int(self.fixed_direct_depth_delay_frames) not in {0, 1}:

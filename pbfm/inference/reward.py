@@ -28,7 +28,7 @@ from pbfm.agents.load_utils import load_model_from_checkpoint_dir
 from pbfm.agents.inference_context import reward_velocity_command
 from pbfm.inference.runtime import (
     MujocoQposRenderer,
-    _export_model,
+    _export_tracking_onnx,
     add_bool_arg,
     add_robot_config_manifest_args,
     checkpoint_load_device,
@@ -36,10 +36,11 @@ from pbfm.inference.runtime import (
     render_policy_frame,
     resolve_inference_data_and_robot_args,
     resolve_inference_robot_config,
-    write_g1_mjlab_relabel_xml,
+    write_robot_relabel_xml,
 )
 from pbfm.inference.relabel import RewardWrapperHV
-from pbfm.robots import load_robot_training_spec, validate_g1_robot
+from pbfm.robots import validate_robot
+from pbfm.inference.runtime import load_inference_robot_training
 
 DEFAULT_TASKS = [
     "move-ego-0-0",
@@ -83,7 +84,14 @@ DEFAULT_TASKS = [
 ]
 
 def _resolve_reward_tasks(tasks: list[str] | None, robot_training) -> tuple[list[str], str]:
-    validate_g1_robot(robot_training.robot.name, robot_training.robot.control_joint_names)
+    validate_robot(robot_training.robot.name, robot_training.robot.control_joint_names)
+    if robot_training.robot.name == "rp1_24dof":
+        from pbfm.envs.mjlab.rewards import LocomotionReward
+        selected = list(tasks or ["move-ego-0-0.8"])
+        for task in selected:
+            if LocomotionReward.reward_from_name(task) is None:
+                raise ValueError(f"RP1 reward inference currently supports locomotion tasks only; unsupported: {task}")
+        return selected, "RP1 locomotion tasks"
     return list(tasks or DEFAULT_TASKS), "G1 full tasks"
 
 
@@ -174,8 +182,8 @@ def run_reward_inference(
     if not checkpoint_dir.exists():
         raise FileNotFoundError(f"Missing checkpoint directory: {checkpoint_dir}")
 
-    robot_config = resolve_inference_robot_config(robot_config, None)
-    robot_training = load_robot_training_spec(robot_config)
+    robot_config = resolve_inference_robot_config(robot_config, None, model_folder)
+    robot_training = load_inference_robot_training(model_folder, robot_config)
     robot_xml = Path(robot_training.robot.xml_path).expanduser().resolve()
     if not robot_xml.exists():
         raise FileNotFoundError(f"Missing robot XML: {robot_xml}")
@@ -192,7 +200,7 @@ def run_reward_inference(
         print(f"[INFO] Loaded read-only Actor override: {actor_override_info}")
 
     if export_onnx:
-        _export_model(model, model_folder / "exported")
+        _export_tracking_onnx(model, model_folder / "exported", robot_training)
 
     print("[INFO] Loading replay buffer...", end=" ", flush=True)
     start_t = time.time()
@@ -206,7 +214,7 @@ def run_reward_inference(
     output_dir.mkdir(parents=True, exist_ok=True)
     video_dir = output_dir / "videos"
     video_dir.mkdir(parents=True, exist_ok=True)
-    relabel_xml = write_g1_mjlab_relabel_xml(robot_xml, output_dir)
+    relabel_xml = write_robot_relabel_xml(robot_training, output_dir)
 
     reward_eval_agent = RewardWrapperHV(
         model=model,

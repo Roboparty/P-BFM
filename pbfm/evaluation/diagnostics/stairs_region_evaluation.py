@@ -24,7 +24,7 @@ from pbfm.evaluation.terrain import (
     _run_rollout,
     _save_prompt_latent,
 )
-from pbfm.robots import load_robot_training_spec
+from pbfm.inference.runtime import load_inference_robot_training
 
 
 TERRAINS = ("stairs_up", "stairs_down")
@@ -90,8 +90,8 @@ def main() -> None:
     args.buffer_path = args.buffer_path.expanduser().resolve()
     args.output_dir = args.output_dir.expanduser().resolve()
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    args.robot_config = resolve_inference_robot_config(args.robot_config, None)
-    args.robot_training = load_robot_training_spec(args.robot_config)
+    args.robot_config = resolve_inference_robot_config(args.robot_config, None, args.model_folder)
+    args.robot_training = load_inference_robot_training(args.model_folder, args.robot_config)
     args.data_path = args.data_path.expanduser().resolve()
     seeds = tuple(int(value) for value in args.seeds.split(",") if value.strip())
     if not seeds:

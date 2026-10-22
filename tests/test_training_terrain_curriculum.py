@@ -1,7 +1,7 @@
 import unittest
 from types import SimpleNamespace as NS
 import torch
-from pbfm.terrains.training_curriculum import maximum_level, sample_levels, apply_reset_curriculum
+from pbfm.terrains.training_curriculum import maximum_level, sample_levels, apply_reset_curriculum, curriculum_metrics
 
 
 class CurriculumTests(unittest.TestCase):
@@ -22,6 +22,22 @@ class CurriculumTests(unittest.TestCase):
     def test_invalid_inputs(self):
         for args in [(-1,10,1),(0,0,1),(0,10,0)]:
             with self.assertRaises(ValueError): maximum_level(*args)
+
+    def test_plane_has_no_curriculum_metrics(self):
+        self.assertEqual(curriculum_metrics(NS(terrain_origins=None), self.core()._creation_config, 64), {})
+
+    def test_grid_curriculum_metrics_unchanged(self):
+        c = self.core()
+        terrain = c.mjlab_env.scene['terrain']
+        metrics = curriculum_metrics(terrain, c._creation_config, 192020480 + 19200000)
+        self.assertEqual(metrics, {
+            'terrain_curriculum/elapsed_global_steps': 19200000,
+            'terrain_curriculum/max_allowed_level': 4,
+            'terrain_curriculum/actual_level_mean': 9.,
+            'terrain_curriculum/actual_easy_fraction': 0.,
+        })
+        c._creation_config.terrain_training_curriculum = False
+        self.assertEqual(curriculum_metrics(terrain, c._creation_config, 0), {})
 
     def test_resume_relative_clock_and_only_requested_envs(self):
         c=self.core();ids=torch.tensor([0,3,9]);t=c.mjlab_env.scene['terrain'];types=t.terrain_types.clone()

@@ -184,12 +184,8 @@ class RobotConfigOnnxExportTest(unittest.TestCase):
         backward_export.assert_called_once_with(model, output_dir / "backward_encoder.onnx")
 
     def test_goal_and_reward_export_calls_use_current_signature(self) -> None:
-        self.assertIs(goal._export_model, runtime._export_model)
-        self.assertIs(reward._export_model, runtime._export_model)
-        model = SimpleNamespace(cfg=SimpleNamespace(archi=SimpleNamespace(z_dim=256)))
-        with tempfile.TemporaryDirectory() as tmpdir, patch.object(runtime, "export_meta_policy_as_onnx") as export:
-            goal._export_model(model, Path(tmpdir))
-        export.assert_called_once_with(model, Path(tmpdir), "SimpleNamespace.onnx", z_dim=256)
+        self.assertIs(goal._export_tracking_onnx, runtime._export_tracking_onnx)
+        self.assertIs(reward._export_tracking_onnx, runtime._export_tracking_onnx)
 
     def test_tracking_policy_export_writes_robot_metadata_json(self) -> None:
         model = _FakePolicyModel(

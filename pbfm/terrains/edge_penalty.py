@@ -147,11 +147,10 @@ class VirtualTerrainEdges:
         return result.reshape(points.shape[:-1])
 
 
-def foot_volume_points(device):
+def foot_volume_points(device, bounds=((-0.025, 0.12), (-0.03, 0.03), (-0.04, 0.0))):
     """100 points/foot, ankle-roll local frame; G1 bare-foot bounds."""
-    return torch.cartesian_prod(torch.linspace(-.025,.12,10,device=device),
-                                torch.linspace(-.03,.03,5,device=device),
-                                torch.linspace(-.04,0,2,device=device))
+    return torch.cartesian_prod(*(torch.linspace(*bound, count, device=device)
+                                 for bound, count in zip(bounds, (10, 5, 2))))
 
 
 def foot_points_world(position, quaternion_xyzw, linear_velocity, angular_velocity, points):

@@ -59,13 +59,14 @@ def _control_joint_names(config: dict[str, Any], joint_names: list[str], actuato
     raise ValueError(f"Unsupported control_joints.mode={mode!r}. Supported modes: all_actuated, explicit")
 
 
-def load_robot_spec(config_path: str | Path) -> RobotSpec:
+def load_robot_spec(config_path: str | Path, *, config: dict[str, Any] | None = None) -> RobotSpec:
     """Load and validate a robot YAML backed by a MuJoCo XML file."""
 
     path = resolve_resource_path(config_path)
     if not path.exists():
         raise FileNotFoundError(f"Robot config does not exist: {path}")
-    config = OmegaConf.to_container(OmegaConf.load(path), resolve=True)
+    if config is None:
+        config = OmegaConf.to_container(OmegaConf.load(path), resolve=True)
     if not isinstance(config, dict):
         raise ValueError(f"Robot config must be a mapping: {path}")
     for field in ("name", "xml_path", "base_body"):

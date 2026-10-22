@@ -59,7 +59,7 @@ from pbfm.evaluation.terrain import (
     _stairs_step_height,
     _summarize_stair_mechanics,
 )
-from pbfm.robots import load_robot_training_spec
+from pbfm.inference.runtime import load_inference_robot_training
 from pbfm.utils.torch_utils import quat_rotate
 
 
@@ -821,8 +821,8 @@ def main() -> None:
     buffer_dir = args.buffer_dir.expanduser().resolve() if args.buffer_dir is not None else checkpoint_dir / "buffers"
     output_dir = args.output_dir.expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    robot_config = resolve_inference_robot_config(args.robot_config, None)
-    robot_training = load_robot_training_spec(robot_config)
+    robot_config = resolve_inference_robot_config(args.robot_config, None, run_dir)
+    robot_training = load_inference_robot_training(run_dir, robot_config)
 
     model = load_model_from_checkpoint_dir(checkpoint_dir, device=checkpoint_load_device(args.device))
     model.to(args.device).eval()

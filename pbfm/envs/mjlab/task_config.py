@@ -91,6 +91,15 @@ def _patch_humanoidverse_robot_config(config, robot_training: dict[str, Any] | N
     config.robot.control.action_scale = float(robot_training["action_scale"])
     config.robot.control.action_clip_value = float(robot_training["action_clip_value"])
     config.robot.control.normalize_action_to = float(robot_training["normalize_action_to"])
+    if "action_rescale" in robot_training:
+        config.robot.control.action_rescale = bool(robot_training["action_rescale"])
+    if "camera" in robot_training:
+        for key, value in robot_training["camera"].items():
+            config.terrain.direct_depth[key] = value
+    if "foot_geometry" in robot_training:
+        config.robot.foot_geometry = robot_training["foot_geometry"]
+    if "aux_rewards_scaling" in robot_training:
+        config.rewards.reward_scales = dict(robot_training["aux_rewards_scaling"])
 
     xml_path = resolve_resource_path(robot_info["xml_path"])
     if config.robot.get("asset") is None:
@@ -172,6 +181,8 @@ def _compose_humanoidverse_config(
         cfg.domain_rand.randomize_push_robots = False
         cfg.domain_rand.push_robots = False
         cfg.domain_rand.randomize_default_dof_pos = False
+        if "motor_delay_steps" in cfg.domain_rand:
+            cfg.domain_rand.motor_delay_steps = [0, 0]
         direct_depth = cfg.terrain.get("direct_depth", None)
         if direct_depth is not None:
             direct_depth.position_error = 0.0

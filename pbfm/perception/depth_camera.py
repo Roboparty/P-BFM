@@ -316,7 +316,8 @@ class InstallationRandomizedRayCastSensor(RayCastSensor):
             # RPY means forward/left/up axes, not optical right/down/forward.
             camera_mat = camera_mat @ source_from_optical_rotation("camera_link").to(camera_mat).T
         delta_world = camera_mat @ self._rotation_delta[:, None] @ camera_mat.transpose(-1, -2)
-        translated = torch.einsum("bfij,bj->bfi", camera_mat, self._position_delta)
+        position_frame = aligned_parent if self.cfg.installation_position_parent_frame else camera_mat
+        translated = torch.einsum("bfij,bj->bfi", position_frame, self._position_delta)
 
         batch, frames = frame_mat.shape[:2]
         rays_per_frame = self.num_rays_per_frame
@@ -334,6 +335,7 @@ class InstallationRandomizedRayCastSensorCfg(RayCastSensorCfg):
     """Configuration for per-episode depth-camera extrinsic randomization."""
 
     position_error: float = 0.0
+    installation_position_parent_frame: bool = False
     angle_error_rad: float = 0.0
     angle_error_rpy_rad: tuple[float, float, float] | None = None
     installation_frame: str = "optical"
@@ -403,6 +405,7 @@ def make_depth_camera_sensor_cfg(
     ray_alignment: Literal["base", "yaw", "world"] = "base",
     ray_origin_shift: float = 0.0,
     position_error: float = 0.0,
+    installation_position_parent_frame: bool = False,
     angle_error_rad: float = 0.0,
     angle_error_rpy_rad: tuple[float, float, float] | None = None,
     installation_frame: str = "optical",
@@ -435,6 +438,7 @@ def make_depth_camera_sensor_cfg(
         mount_rotation = camera.torso_from_optical().reshape(-1)
         extra = {
             "position_error": float(position_error),
+            "installation_position_parent_frame": installation_position_parent_frame,
             "angle_error_rad": float(angle_error_rad),
             "angle_error_rpy_rad": angle_error_rpy_rad,
             "installation_frame": installation_frame,

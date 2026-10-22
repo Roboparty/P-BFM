@@ -8,6 +8,20 @@ def maximum_level(global_step: int, num_rows: int, interval: int) -> int:
     return min(num_rows - 1, 2 + 2 * (global_step // interval))
 
 
+def curriculum_metrics(terrain, cfg, global_step):
+    # Analytic planes have no terrain-origin grid or difficulty levels.
+    if not cfg.terrain_training_curriculum or terrain.terrain_origins is None:
+        return {}
+    elapsed = max(0, global_step - cfg.terrain_curriculum_start_global_step)
+    return {
+        'terrain_curriculum/elapsed_global_steps': elapsed,
+        'terrain_curriculum/max_allowed_level': maximum_level(
+            elapsed, terrain.terrain_origins.shape[0], cfg.terrain_curriculum_interval),
+        'terrain_curriculum/actual_level_mean': terrain.terrain_levels.float().mean().item(),
+        'terrain_curriculum/actual_easy_fraction': (terrain.terrain_levels <= 2).float().mean().item(),
+    }
+
+
 def sample_levels(count, *, device, maximum, easy_fraction):
     if not 0 <= easy_fraction <= 1 or maximum < 0:
         raise ValueError('Invalid curriculum sampling settings')

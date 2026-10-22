@@ -197,9 +197,27 @@ def build_ufo_mjlab_config(
         resolved_robot = resolve_robot_config_path(robot_config)
         if resolved_robot != resolve_robot_config_path(DEFAULT_ROBOT_CONFIG):
             spec = load_robot_training_spec(resolved_robot)
+            if spec.robot.name != "g1_29dof" and data_path is None:
+                raise ValueError("RP1 requires explicit RP1-retargeted --data-path or --data-manifest; G1 motions cannot be reused")
             env.update(mjcf_path=spec.robot.xml_path,
                        robot_config_path=str(spec.config_path),
                        robot_training=spec.to_env_dict())
+            weights = spec.robot_options.get("aux_rewards_scaling")
+            robot_agent = agent_cfg.model_dump()
+            if weights is not None:
+                if cartwheel_aux_safe:
+                    raise ValueError("cartwheel_aux_safe cannot replace robot-specific auxiliary rewards")
+                robot_agent["aux_rewards"] = list(weights)
+                robot_agent["aux_rewards_scaling"] = dict(weights)
+            profile = spec.robot_options.get("depth_profile")
+            if profile is not None:
+                from pbfm.perception.instinct_direct_depth import depth_config_for_profile
+                depth = depth_config_for_profile(profile)
+                env["direct_depth_profile"] = profile
+                actor = robot_agent["model"]["archi"]["actor"]
+                actor.update(depth_processing_profile=profile, depth_height=depth.output_height,
+                             depth_width=depth.output_width)
+            agent_cfg = type(agent_cfg).model_validate(robot_agent)
             overrides.update({
                 "robot": spec.hydra_robot,
                 "robot.control.action_scale": str(spec.action_scale),
@@ -550,7 +568,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=None,
         help=(
-            "G1 robot YAML used for training metadata. Defaults to configs/robots/g1_29dof.yaml. "
+            "G1 or RP1 robot YAML. Defaults to configs/robots/g1_29dof.yaml. "
             "If omitted and --data-manifest declares robot_config, the manifest robot config is used."
         ),
     )

@@ -73,7 +73,7 @@ class Humanoid_Batch:
             for j in tree.getroot().find("worldbody").findall('.//joint')[1:]:
                 self.dof_axis.append([float(i) for i in j.attrib['axis'].split(" ")])
             self.has_freejoint = True
-        elif not "type" in tree.getroot().find("worldbody").findall('.//joint')[0].attrib:
+        elif tree.getroot().find("worldbody").find('.//freejoint') is not None or not "type" in tree.getroot().find("worldbody").findall('.//joint')[0].attrib:
             for j in tree.getroot().find("worldbody").findall('.//joint'):
                 self.dof_axis.append([float(i) for i in j.attrib['axis'].split(" ")])
             self.has_freejoint = True
@@ -106,6 +106,22 @@ class Humanoid_Batch:
             self.body_to_mesh = defaultdict(set)
             self.mesh_to_body = {}
         
+    def validate_reference(self, motion):
+        robot_name = self.cfg.get("robot_name", "g1_29dof")
+        if "robot_name" in motion and motion["robot_name"] != robot_name:
+            raise ValueError(f"Motion robot {motion['robot_name']!r} does not match {robot_name}")
+        if robot_name == "rp1_24dof":
+            # Do not guess the ordering of externally retargeted RP1 trajectories.
+            if motion.get("robot_name") != robot_name:
+                raise ValueError("RP1 motion requires robot_name=rp1_24dof")
+            expected_joints = list(self.cfg.control_joint_names)
+            if list(motion.get("joint_names", [])) != expected_joints:
+                raise ValueError("RP1 motion joint_names must match the configured control joint order")
+            if list(motion.get("body_names", [])) != self.body_names:
+                raise ValueError("RP1 motion body_names must match the MJCF body order")
+            if motion["pose_aa"].shape[1:] != (self.num_bodies, 3):
+                raise ValueError("RP1 pose_aa shape does not match the robot skeleton")
+
     def from_mjcf(self, path):
         # function from Poselib: 
         tree = ETree.parse(path)

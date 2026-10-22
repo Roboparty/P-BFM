@@ -146,6 +146,7 @@ def export_direct_depth_policy(model, output_path, *, batch_size=1, opset_versio
             "crop_top_bottom_left_right": list(direct.crop),
             "source_shape": [direct.height, direct.width],
             "max_distance_m": direct.max_distance,
+            "normalization_range_m": [.1 if direct.processing_profile == "rp1_pufo" else direct.min_distance, direct.max_distance],
             "invalid_fill_m": 0.0 if direct.processing_profile == "legacy_rp1" else direct.max_distance,
             "gaussian": "binomial_3x3" if direct.processing_profile == "legacy_rp1" else "3x3_sigma1",
             "sampled_ages": list(direct.sampled_ages),

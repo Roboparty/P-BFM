@@ -10,7 +10,7 @@ import torch
 from pbfm.agents.fb_cpr_aux.config import FBcprAuxAgentConfig
 
 
-def make_agent():
+def make_agent(num_dof=29, robot_train=None):
     torch.set_num_threads(2)
     repo = Path(__file__).resolve().parents[1]
     cfg = json.loads((repo / 'tests/fixtures/qv_estvel.json').read_text())['agent']
@@ -25,11 +25,22 @@ def make_agent():
         key: {'name': 'IdentityNormalizerConfig'} for key in cfg['model']['obs_normalizer']['normalizers']}
     dims = dict(state=(64,), privileged_state=(463,), last_action=(29,), history_actor=(372,),
                 terrain_priv=(93,), heading=(2,), velocity_command=(3,), depth_image=(8,36,32))
+    if num_dof == 24:
+        dims.update(state=(54,), privileged_state=(373,), last_action=(24,), history_actor=(312,))
+    if robot_train is not None:
+        cfg['aux_rewards'] = list(robot_train.agent.aux_rewards)
+        cfg['aux_rewards_scaling'] = dict(robot_train.agent.aux_rewards_scaling)
+        actor = robot_train.agent.model.archi.actor
+        cfg['model']['archi']['actor'].update(depth_height=actor.depth_height,
+            depth_width=actor.depth_width, depth_processing_profile=actor.depth_processing_profile,
+            depth_first_conv_stride=actor.depth_first_conv_stride,
+            depth_frame_feature_dim=actor.depth_frame_feature_dim)
+        dims['depth_image'] = (8,actor.depth_height,actor.depth_width)
     if cfg['model']['archi']['actor'].get('estimated_velocity_enabled'):
         dims['velocity_target_yaw'] = (3,)
     space = gym.spaces.Dict({key: gym.spaces.Box(-np.inf, np.inf, shape=shape, dtype=np.float32)
                              for key, shape in dims.items()})
-    return FBcprAuxAgentConfig.model_validate(cfg).build(space, 29), dims
+    return FBcprAuxAgentConfig.model_validate(cfg).build(space, num_dof), dims
 
 
 def make_batch(agent, dims):
@@ -38,7 +49,7 @@ def make_batch(agent, dims):
     obs['velocity_command'][:] = torch.tensor([.8, 0., 1.])
     heading = torch.tensor([[1., 0.]]).repeat(8, 1)
     valid = torch.ones(8, 1, dtype=torch.bool)
-    batch = dict(observation=obs, action=torch.randn(8,29), z=agent._model.sample_z(8),
+    batch = dict(observation=obs, action=torch.randn(8,dims['last_action'][0]), z=agent._model.sample_z(8),
         next={'observation': copy.deepcopy(obs), 'terminated': ~valid,
               'heading_forward_xy': heading, 'reference_velocity_world_xy': torch.ones(8,2)*.4,
               'reference_velocity_valid': valid},

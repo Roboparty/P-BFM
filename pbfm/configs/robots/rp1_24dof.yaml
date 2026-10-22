@@ -1,0 +1,312 @@
+name: rp1_24dof
+xml_path: pbfm/data/robots/rp1/rp1_24dof.xml
+base_body: base_link
+root_quat_order: xyzw
+coordinate_system: z_up
+dof_unit: rad
+control_joints:
+- left_hip_pitch_joint
+- left_hip_roll_joint
+- left_hip_yaw_joint
+- left_knee_joint
+- left_ankle_pitch_joint
+- left_ankle_roll_joint
+- right_hip_pitch_joint
+- right_hip_roll_joint
+- right_hip_yaw_joint
+- right_knee_joint
+- right_ankle_pitch_joint
+- right_ankle_roll_joint
+- waist_roll_joint
+- waist_yaw_joint
+- left_shoulder_pitch_joint
+- left_shoulder_roll_joint
+- left_shoulder_yaw_joint
+- left_elbow_joint
+- left_wrist_joint
+- right_shoulder_pitch_joint
+- right_shoulder_roll_joint
+- right_shoulder_yaw_joint
+- right_elbow_joint
+- right_wrist_joint
+feet:
+- left_ankle_roll_link
+- right_ankle_roll_link
+hands:
+- left_wrist_link
+- right_wrist_link
+key_bodies:
+- base_link
+- waist_yaw_link
+- left_ankle_roll_link
+- right_ankle_roll_link
+- left_wrist_link
+- right_wrist_link
+default_dof_pos: {}
+training:
+  semantics:
+    contact_bodies:
+    - left_ankle_roll_link
+    - right_ankle_roll_link
+    undesired_contact_bodies:
+    - waist_yaw_link
+    - hip
+    - shoulder
+    torso_name: waist_yaw_link
+    left_ankle_dof_names:
+    - left_ankle_pitch_joint
+    - left_ankle_roll_joint
+    right_ankle_dof_names:
+    - right_ankle_pitch_joint
+    - right_ankle_roll_joint
+  init_state:
+    pos:
+    - 0.0
+    - 0.0
+    - 0.85
+    rot:
+    - 0.0
+    - 0.0
+    - 0.0
+    - 1.0
+    lin_vel:
+    - 0.0
+    - 0.0
+    - 0.0
+    ang_vel:
+    - 0.0
+    - 0.0
+    - 0.0
+    default_joint_angles:
+      left_hip_pitch_joint: -0.1
+      left_hip_roll_joint: 0.0
+      left_hip_yaw_joint: 0.0
+      left_knee_joint: -0.3
+      left_ankle_pitch_joint: -0.2
+      left_ankle_roll_joint: 0.0
+      right_hip_pitch_joint: 0.1
+      right_hip_roll_joint: 0.0
+      right_hip_yaw_joint: 0.0
+      right_knee_joint: 0.3
+      right_ankle_pitch_joint: -0.2
+      right_ankle_roll_joint: 0.0
+      waist_roll_joint: 0.0
+      waist_yaw_joint: 0.0
+      left_shoulder_pitch_joint: 0.2
+      left_shoulder_roll_joint: 0.2
+      left_shoulder_yaw_joint: 0.0
+      left_elbow_joint: -1.2
+      left_wrist_joint: 0.0
+      right_shoulder_pitch_joint: -0.2
+      right_shoulder_roll_joint: -0.2
+      right_shoulder_yaw_joint: 0.0
+      right_elbow_joint: 1.2
+      right_wrist_joint: 0.0
+  control:
+    action_scale: 0.4
+    action_rescale: false
+    action_clip_value: 8.0
+    normalize_action_to: 8.0
+    effort_limit_scale: 1.0
+    effort_limit:
+    - 145.53
+    - 145.53
+    - 145.53
+    - 145.53
+    - 56.0
+    - 56.0
+    - 145.53
+    - 145.53
+    - 145.53
+    - 145.53
+    - 56.0
+    - 56.0
+    - 145.53
+    - 145.53
+    - 28.0
+    - 28.0
+    - 28.0
+    - 28.0
+    - 28.0
+    - 28.0
+    - 28.0
+    - 28.0
+    - 28.0
+    - 28.0
+    velocity_limit:
+    - 13.61357
+    - 13.61357
+    - 13.61357
+    - 13.61357
+    - 20.94395
+    - 20.94395
+    - 13.61357
+    - 13.61357
+    - 13.61357
+    - 13.61357
+    - 20.94395
+    - 20.94395
+    - 13.61357
+    - 13.61357
+    - 20.94395
+    - 20.94395
+    - 20.94395
+    - 20.94395
+    - 20.94395
+    - 20.94395
+    - 20.94395
+    - 20.94395
+    - 20.94395
+    - 20.94395
+    stiffness:
+      left_hip_pitch_joint: 120.0
+      left_hip_roll_joint: 120.0
+      left_hip_yaw_joint: 90.0
+      left_knee_joint: 120.0
+      left_ankle_pitch_joint: 40.0
+      left_ankle_roll_joint: 40.0
+      right_hip_pitch_joint: 120.0
+      right_hip_roll_joint: 120.0
+      right_hip_yaw_joint: 90.0
+      right_knee_joint: 120.0
+      right_ankle_pitch_joint: 40.0
+      right_ankle_roll_joint: 40.0
+      waist_roll_joint: 150.0
+      waist_yaw_joint: 150.0
+      left_shoulder_pitch_joint: 30.0
+      left_shoulder_roll_joint: 30.0
+      left_shoulder_yaw_joint: 20.0
+      left_elbow_joint: 30.0
+      left_wrist_joint: 20.0
+      right_shoulder_pitch_joint: 30.0
+      right_shoulder_roll_joint: 30.0
+      right_shoulder_yaw_joint: 20.0
+      right_elbow_joint: 30.0
+      right_wrist_joint: 20.0
+    damping:
+      left_hip_pitch_joint: 9.0
+      left_hip_roll_joint: 9.0
+      left_hip_yaw_joint: 6.0
+      left_knee_joint: 9.0
+      left_ankle_pitch_joint: 2.0
+      left_ankle_roll_joint: 2.0
+      right_hip_pitch_joint: 9.0
+      right_hip_roll_joint: 9.0
+      right_hip_yaw_joint: 6.0
+      right_knee_joint: 9.0
+      right_ankle_pitch_joint: 2.0
+      right_ankle_roll_joint: 2.0
+      waist_roll_joint: 12.5
+      waist_yaw_joint: 12.5
+      left_shoulder_pitch_joint: 2.5
+      left_shoulder_roll_joint: 2.5
+      left_shoulder_yaw_joint: 1.5
+      left_elbow_joint: 2.5
+      left_wrist_joint: 1.5
+      right_shoulder_pitch_joint: 2.5
+      right_shoulder_roll_joint: 2.5
+      right_shoulder_yaw_joint: 1.5
+      right_elbow_joint: 2.5
+      right_wrist_joint: 1.5
+  actuator:
+    source: yaml
+    model: rp1_torque_speed
+    joints:
+      left_hip_pitch_joint: &id001
+        effort_limit: 145.53
+        velocity_limit: 13.61357
+        armature: 0.02
+        friction: 0.1
+        keep_velocity: 8.37758
+        rated_effort: 44.0
+        rated_velocity: 8.37758
+        viscous_friction: 0.02
+      left_hip_roll_joint: *id001
+      left_hip_yaw_joint: *id001
+      left_knee_joint: *id001
+      left_ankle_pitch_joint: &id002
+        effort_limit: 56.0
+        velocity_limit: 20.94395
+        armature: 0.01
+        friction: 0.1
+        keep_velocity: 15.70796
+        rated_effort: 19.0
+        rated_velocity: 6.28319
+        viscous_friction: 0.01
+      left_ankle_roll_joint: *id002
+      right_hip_pitch_joint: *id001
+      right_hip_roll_joint: *id001
+      right_hip_yaw_joint: *id001
+      right_knee_joint: *id001
+      right_ankle_pitch_joint: *id002
+      right_ankle_roll_joint: *id002
+      waist_roll_joint: *id001
+      waist_yaw_joint: *id001
+      left_shoulder_pitch_joint: &id003
+        effort_limit: 28.0
+        velocity_limit: 20.94395
+        armature: 0.01
+        friction: 0.1
+        keep_velocity: 15.70796
+        rated_effort: 9.5
+        rated_velocity: 6.28319
+        viscous_friction: 0.01
+      left_shoulder_roll_joint: *id003
+      left_shoulder_yaw_joint: *id003
+      left_elbow_joint: *id003
+      left_wrist_joint: *id003
+      right_shoulder_pitch_joint: *id003
+      right_shoulder_roll_joint: *id003
+      right_shoulder_yaw_joint: *id003
+      right_elbow_joint: *id003
+      right_wrist_joint: *id003
+  # PUFORewardsCfg / PUFOEventCfg, roboparty_train ed0b933 (see SOURCE.txt).
+  aux_rewards_scaling:
+    penalty_action_rate: -0.2
+    sound_suppression_acc_per_foot: -0.005
+    joint_acc_l2: -0.000001
+    joint_vel_l2: -0.001
+    limits_dof_pos: -10.0
+    penalty_body_impact: -1.0
+    penalty_slippage: -4.0
+    penalty_ankle_roll: -1.0
+    feet_stumble: -2.0
+  depth_profile: rp1_pufo
+  hydra_overrides:
+  - +rewards.body_impact_static_gain=0.0
+  - rewards.reward_limit.soft_dof_pos_limit=0.9
+  - domain_rand.kp_range=[0.7,1.3]
+  - domain_rand.kd_range=[0.7,1.3]
+  - domain_rand.link_mass_range=[0.8,1.2]
+  - domain_rand.friction_range=[0.3,1.7]
+  - domain_rand.base_com_range.x=[-0.03,0.03]
+  - domain_rand.base_com_range.y=[-0.03,0.03]
+  - domain_rand.base_com_range.z=[-0.03,0.03]
+  - domain_rand.max_push_vel_xy=1.0
+  - domain_rand.max_push_ang_vel=1.0
+  - domain_rand.randomize_default_dof_pos=false
+  # RP1 delay is in 5 ms actuator ticks, not 20 ms policy steps.
+  - domain_rand.randomize_ctrl_delay=false
+  - +domain_rand.motor_delay_steps=[0,2]
+  - env.config.lie_down_init=false
+  hydra_robot: rp1/rp1_24dof
+  camera:
+    mount_body: waist_yaw_link
+    mount_pos:
+    - 0.09175
+    - 0.011
+    - 0.3982
+    camera_frame_quat_wxyz:
+    - 0.0
+    - 0.5
+    - 0.0
+    - 0.866
+  foot_geometry:
+    volume_bounds: [[-0.0925, 0.1375], [-0.04, 0.04], [-0.045, -0.025]]
+    scanner_size:
+    - 0.21
+    - 0.06
+    scanner_center:
+    - 0.0225
+    - 0.0
+    - -0.045

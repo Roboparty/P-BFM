@@ -45,7 +45,7 @@ from pbfm.inference.runtime import (
     resolve_inference_robot_config as _resolve_tracking_robot_config,
 )
 from pbfm.utils.helpers import get_backward_observation
-from pbfm.robots import load_robot_training_spec
+from pbfm.inference.runtime import load_inference_robot_training
 from pbfm.terrains.presets import TRAINING_TERRAIN_COMPONENT_NAMES
 
 
@@ -108,8 +108,8 @@ def run_tracking_inference(
     if not checkpoint_dir.exists():
         raise FileNotFoundError(f"Missing checkpoint directory: {checkpoint_dir}")
 
-    robot_config = _resolve_tracking_robot_config(robot_config, None)
-    robot_training = load_robot_training_spec(robot_config)
+    robot_config = _resolve_tracking_robot_config(robot_config, None, model_folder)
+    robot_training = load_inference_robot_training(model_folder, robot_config)
     robot_xml = Path(robot_training.robot.xml_path).expanduser().resolve()
     if not robot_xml.exists():
         raise FileNotFoundError(f"Missing robot XML: {robot_xml}")

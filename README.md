@@ -19,113 +19,119 @@
   <a href="https://lab.roboparty.com/"><img src="docs/assets/robopartylab.png" alt="RoboPartyLab" height="64" /></a>
 </p>
 
-P-BFM is a perceptive behavioral foundation model for terrain-adaptive humanoid control. It maps **motion references, target body states, and reward functions** into a shared intent space. A single frozen policy combines these intents with depth perception and explicit heading and velocity instructions to execute whole-body behaviors across terrains.
+P-BFM maps **motion references, target body states, and reward functions** into a shared behavioral intent space. A policy combines that intent with depth perception and explicit heading and velocity instructions to adapt whole-body behavior to terrain.
 
-Training uses **40 flat-ground LaFAN motion sequences and online interaction with simulated terrains**, without terrain-specific motion demonstrations. The policy transfers zero-shot to a **Unitree G1 with onboard depth sensing**, supporting motion tracking, goal reaching, reward inference, teleoperation, and terrain-aware recovery.
+The paper's G1 experiments use **40 flat-ground LaFAN motion sequences and online terrain interaction**, without terrain-specific motion demonstrations. This repository also integrates RP1 into the same PBFM algorithm and MJLab backend, with robot-specific assets, control, rewards and domain randomization (DR).
 
-[Architecture](docs/ARCHITECTURE.md) · [Training](docs/TRAINING.md) · [Inference / export](docs/INFERENCE.md)
+[Training and configuration](docs/TRAINING.md) · [Inference and deployment](docs/INFERENCE.md) · [Code structure](docs/ARCHITECTURE.md)
 
-## Layout
+## Supported robots
 
-```text
-P-BFM/
-├── pbfm/                  Runtime package
-│   ├── train.py           Training CLI
-│   ├── configs/           One home for model, simulator, robot and depth settings
-│   ├── agents/            Actor, FB, discriminator, Q critics and replay
-│   ├── training/          Collection, updates, checkpointing and training evaluation
-│   ├── envs/              MJLab bridge, observations, resets and physical rewards
-│   ├── perception/        Depth processing and camera utilities
-│   ├── terrains/          Terrain generation and curriculum
-│   ├── motion/            Motion loading, conversion and reference observations
-│   ├── robots/            G1 asset parsing and validation
-│   ├── inference/         Tracking / goal / reward; shared runtime and ONNX export
-│   ├── evaluation/        Offline metrics, terrain comparisons and diagnostics
-│   ├── data/              Bundled G1 assets and a small CSV example
-│   └── utils/             Shared numerical and resource helpers
-├── scripts/               Launch, download, export and verification commands
-├── tests/                 Regression tests and their small fixtures
-└── docs/                  Usage and architecture
-```
+**One algorithm, separate robot configurations, datasets and policies.** G1 remains the default; selecting RP1 does not change G1 settings.
 
-Configuration files are bundled under `pbfm/configs/`, including in
-the installed package; downloaded motions, weights, replay and videos stay external.
+| | Unitree G1 | RoboParty RP1 |
+| --- | --- | --- |
+| Controlled joints | 29 | 24 |
+| Robot configuration | [g1_29dof.yaml](pbfm/configs/robots/g1_29dof.yaml) | [rp1_24dof.yaml](pbfm/configs/robots/rp1_24dof.yaml) |
+| Depth stack, K × H × W | 8 × 18 × 32 | 8 × 18 × 36 |
+| Reference motions | G1-retargeted LaFAN | RP1-retargeted motions, supplied separately |
+| Validation scope | Platform used in the paper; current integration also smoke-tested | GPU rollout/reset, eight-rank training, three inference entry points and ONNX parity; long-run training and hardware validation pending |
 
-## Model and settings
+G1 and RP1 weights and joint trajectories are **not interchangeable**. The RP1 integration uses assets and calibration from `zerojuhao/roboparty_train`; it does not reproduce the Newton backend or directly load that repository's trained policies. See [RP1 provenance and backend differences](pbfm/data/robots/rp1/SOURCE.txt).
 
-| Component | Hidden width × layers |
-| --- | --- |
-| Actor / Forward F | 2048 × 6 |
-| QD | 1024 × 4 |
-| QAux | 2048 × 4 |
-| QH / QV | 1024 × 3 |
+## Installation
 
-The four critics are independent; each uses two Q estimates. The training preset
-is `fb_depth`: BCE/log-odds, D=.01, Aux=.02, QH=QV=.002, dynamic Aux normalization,
-LaFAN-only, slippage=-4, stumble=-2. Depth is Crop18 (`8×18×32`), CNN stride 1,
-frame feature 256 and GRU feature 256. The velocity estimator is depth-supervised.
-
-## Install and train
-
-Python 3.10, MJLab 1.4, MuJoCo 3.8, PyTorch 2.7. Install from the repository root:
+Requirements: Python 3.10, MJLab 1.4, MuJoCo 3.8 and PyTorch 2.7. Run commands from the repository root:
 
 ```bash
 uv sync --extra test
-# Optional: download the separately hosted LaFAN files.
+```
+
+Video export also requires `ffmpeg` on `PATH`; check with `ffmpeg -version`.
+
+For G1, the optional downloader supplies the two LaFAN PKLs under `pbfm/data/`:
+
+```bash
 bash scripts/download_data.sh
 ```
 
-Fresh 192M training (eight free GPUs, GPU replay; edit the data/output paths):
+It does **not** supply RP1 data. RP1 training requires a retargeted motion PKL with robot and joint/body ordering metadata; see [motion data requirements](docs/TRAINING.md#motion-data).
+
+## Train
+
+Use eight available GPUs and replace the cache/data/output paths for your machine:
 
 ```bash
 export PYTHONPATH="$PWD${PYTHONPATH:+:$PYTHONPATH}"
 export OMP_NUM_THREADS=1 MUJOCO_GL=egl NCCL_NVLS_ENABLE=0
 export UFO_CACHE_DIR=/path/to/writable-disk/pbfm-cache
-
-uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=8 \
-  scripts/train_legacy_scratch.py --gpu-ids single --terrain-mode training_mix \
-  --num-envs 1024 --num-env-steps 192020480 --seed 4831 \
-  --data-path /path/to/lafan_29dof_10s-clipped.pkl \
-  --work-dir /path/to/new-run
 ```
 
-Add `--use-wandb` after authenticating separately. Add `--smoke` with a different
-new work directory for a 32768-step short test. These commands do not stop other
-users' jobs or wait for free GPUs.
+### G1
 
-Use the scratch entry point above for training from step 0: it sets 192020480
-total global steps and starts the terrain curriculum at step 0.
-See [Training](docs/TRAINING.md) for schedule and checkpoint requirements.
+```bash
+uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=8 \
+  scripts/train_legacy_scratch.py --gpu-ids single --terrain-mode training_mix \
+  --robot-config pbfm/configs/robots/g1_29dof.yaml \
+  --num-envs 1024 --num-env-steps 192020480 --seed 4831 \
+  --data-path pbfm/data/lafan_29dof_10s-clipped.pkl \
+  --work-dir /path/to/new-g1-run
+```
 
-## Inference and export
+### RP1
+
+```bash
+uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=8 \
+  scripts/train_legacy_scratch.py --gpu-ids single --terrain-mode training_mix \
+  --robot-config pbfm/configs/robots/rp1_24dof.yaml \
+  --num-envs 1024 --num-env-steps 192020480 --seed 4831 \
+  --data-path /path/to/rp1_motions.pkl \
+  --work-dir /path/to/new-rp1-run
+```
+
+Both commands start from scratch with 192,020,480 total global steps and the terrain curriculum starting at step 0. They use GPU replay; check memory and disk capacity before launching. For a short test, append `--smoke` and use a separate new output directory (32,768 global steps, reduced environments and replay). These commands do not wait for idle GPUs or stop existing jobs.
+
+For W&B, authenticate separately and append `--use-wandb`. Network sizes, robot-specific rewards/DR, schedules and checkpoint requirements are in the [training guide](docs/TRAINING.md).
+
+## Inference and deployment
+
+The same three entry points select the robot from the saved run configuration:
 
 ```bash
 uv run python -m pbfm.inference.tracking --help
 uv run python -m pbfm.inference.goal --help
 uv run python -m pbfm.inference.reward --help
-uv run python -m pbfm.evaluation.terrain --help
-uv run python -m scripts.export_depth_policy_onnx --help
-uv run python -m scripts.export_backward_encoder_onnx --help
 ```
 
-Tracking selects terrain and camera settings in the same entry point. The policy ONNX includes depth
-encoding and velocity estimation; the backward encoder is exported separately.
-Input normalization, context and hardware control requirements are described in
-[the inference guide](docs/INFERENCE.md).
+Tracking accepts reference motions, terrain and camera settings. RP1 goal inference requires its own `--goal-json`; RP1 reward inference currently supports locomotion rewards. Computing a new reward latent requires replay samples, unlike tracking, goal inference and model export.
 
-## Tests
+```bash
+uv run python -m scripts.export_depth_policy_onnx \
+  --checkpoint /path/to/run/checkpoint --output /path/to/export/policy.onnx
+uv run python -m scripts.export_backward_encoder_onnx \
+  --model-folder /path/to/run --output /path/to/export/backward_encoder.onnx --device cpu
+```
+
+Here, `policy.onnx` includes the **depth encoder, velocity estimator, observation normalization and Actor**; it is not an actor-only split graph. Deploy with the matching robot calibration and complete context, including heading/velocity commands and their validity flags. See the [inference guide](docs/INFERENCE.md) for examples, depth preprocessing and verification.
+
+## Development and validation
+
+```text
+pbfm/    Shared algorithm, training, simulation, robot configs/assets and inference
+scripts/ Training and export commands
+tests/   Regression tests and small fixtures
+docs/    Configuration, architecture and deployment guides
+```
 
 ```bash
 PYTHONPATH=. uv run python -m pytest tests
 ```
 
-External-data/hardware checks are explicitly skipped when their inputs are
-unavailable. CPU and small-model ONNX tests are not full training or real-robot
-validation.
+Tests needing external data or GPUs skip when those inputs are unavailable. Both robots have passed full-network eight-rank short training, followed by tracking/goal/reward rollouts from the saved checkpoints, video decoding and policy/backward ONNX parity checks. RP1 also has CPU interface/reward/DR and real GPU reset tests. These checks do not establish convergence, production-scale memory capacity or hardware safety. Test sizes and validation scope are in [Training](docs/TRAINING.md#tests-and-validation).
 
-PBFM builds on [UFO](https://github.com/Roboparty/UFO). Original notices and the
-upstream CC BY-NC 4.0 [license](LICENSE) are retained.
+## Acknowledgments
 
+PBFM builds on [UFO](https://github.com/Roboparty/UFO), retaining its notices and CC BY-NC 4.0 [license](LICENSE). RP1 assets retain their [source license](pbfm/data/robots/rp1/SOURCE_LICENSE); see the provenance file for asset redistribution considerations.
 
 ## Project and community
 
@@ -137,7 +143,7 @@ upstream CC BY-NC 4.0 [license](LICENSE) are retained.
 
 ## Repository branches
 
-- `main`: PBFM training, evaluation and inference for Unitree G1.
+- `main`: PBFM runtime and robot configurations.
 - `pages`: project website, paper, figures, and demonstration videos. GitHub Pages publishes from the root of this branch.
 
 Website updates should be committed to `pages`, independently of code changes on `main`.

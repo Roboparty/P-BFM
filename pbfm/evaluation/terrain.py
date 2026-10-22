@@ -47,7 +47,7 @@ from pbfm.terrains.presets import (
 )
 from pbfm.agents.inference_context import build_tracking_commands, reward_velocity_command, tracking_context_arrays
 from pbfm.utils.helpers import get_backward_observation
-from pbfm.robots import load_robot_training_spec
+from pbfm.inference.runtime import load_inference_robot_training
 from pbfm.utils.torch_utils import my_quat_rotate
 
 SUPPORTED_TERRAINS = (
@@ -641,13 +641,14 @@ def _compute_goal_or_tracking_z(args, model, base_cfg):
 
 
 def _compute_reward_z(args, model):
-    from pbfm.inference.runtime import write_g1_mjlab_relabel_xml
+    from pbfm.inference.runtime import write_robot_relabel_xml
     from pbfm.inference.relabel import RewardWrapperHV
-    from pbfm.inference.reward import _load_replay_buffer
+    from pbfm.inference.reward import _load_replay_buffer, _resolve_reward_tasks
 
     dataset, _ = _load_replay_buffer(args.model_folder, buffer_rank=args.buffer_rank, buffer_path=args.buffer_path)
     output_dir = args.output.parent / "terrain_transfer_relabel"
-    relabel_xml = write_g1_mjlab_relabel_xml(Path(args.robot_training.robot.xml_path), output_dir)
+    _resolve_reward_tasks([args.reward_task], args.robot_training)
+    relabel_xml = write_robot_relabel_xml(args.robot_training, output_dir)
     wrapper = RewardWrapperHV(
         model=model,
         inference_dataset=dataset,
@@ -1303,7 +1304,7 @@ def parse_args() -> argparse.Namespace:
                         help="auto: walk/run tracking or explicit move-ego reward; valid: custom locomotion; invalid: no QV task.")
     parser.add_argument("--save-policy-inputs", action="store_true",
                         help="Save pre-action deployable inputs and aligned velocity predictions/truth for offline audits.")
-    parser.add_argument("--depth-profile", choices=("legacy_rp1", "optical_z_maxcrop18_reset_v2"), default=None)
+    parser.add_argument("--depth-profile", choices=("legacy_rp1", "optical_z_maxcrop18_reset_v2", "rp1_pufo"), default=None)
     parser.add_argument("--allow-depth-contract-shift", action="store_true",
                         help="DIAGNOSTIC ONLY: run old weights with different depth semantics; not deployment validation.")
     parser.add_argument(
@@ -1409,8 +1410,8 @@ def main() -> None:
     args.model_folder = args.model_folder.expanduser().resolve()
     args.output = args.output.expanduser().resolve()
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.robot_config = resolve_inference_robot_config(args.robot_config, None)
-    args.robot_training = load_robot_training_spec(args.robot_config)
+    args.robot_config = resolve_inference_robot_config(args.robot_config, None, args.model_folder)
+    args.robot_training = load_inference_robot_training(args.model_folder, args.robot_config)
     checkpoint_dir = args.model_folder / "checkpoint"
     model = load_model_from_checkpoint_dir(checkpoint_dir, device=checkpoint_load_device(args.device))
     model.to(args.device).eval()

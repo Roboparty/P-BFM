@@ -100,7 +100,7 @@ class RobotConfigGoalRewardInferenceTest(unittest.TestCase):
         self.assertTrue(torch.equal(target["dof_states"][0, :, 0], torch.arange(27, dtype=torch.float32)))
 
     def test_non_g1_goal_inference_is_rejected(self) -> None:
-        with self.assertRaisesRegex(ValueError, "Only G1"):
+        with self.assertRaisesRegex(ValueError, "Supported robots"):
             _find_goal_json(None, num_dof=27, robot_name="tiny_robot")
 
     def test_goal_json_dimension_mismatch_errors(self) -> None:
@@ -132,7 +132,7 @@ class RobotConfigGoalRewardInferenceTest(unittest.TestCase):
                 str(tiny_robot),
             ]
             with patch.object(sys, "argv", argv):
-                with self.assertRaisesRegex(ValueError, "Only G1"):
+                with self.assertRaisesRegex(ValueError, "Supported robots"):
                     parse_goal_args()
 
     def test_g1_default_goal_json_fallback_is_preserved(self) -> None:
@@ -164,7 +164,7 @@ class RobotConfigGoalRewardInferenceTest(unittest.TestCase):
 
     def test_non_g1_reward_inference_is_rejected(self) -> None:
         for tasks in (None, ["move-ego-0-0.3"], ["raisearms-l-l"]):
-            with self.subTest(tasks=tasks), self.assertRaisesRegex(ValueError, "Only G1"):
+            with self.subTest(tasks=tasks), self.assertRaisesRegex(ValueError, "Supported robots"):
                 _resolve_reward_tasks(tasks, _fake_robot_training("tiny_robot", 27))
 
     def test_g1_default_tasks_are_preserved(self) -> None:

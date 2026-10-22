@@ -1398,13 +1398,9 @@ class Workspace:
                     world_size=self.distributed_world_size,
                 ))
                 if isinstance(self.cfg.env, HumanoidVerseMjlabConfig) and self.cfg.env.terrain_training_curriculum:
-                    from pbfm.terrains.training_curriculum import maximum_level
+                    from pbfm.terrains.training_curriculum import curriculum_metrics
                     terrain = train_env._env.mjlab_env.scene['terrain']
-                    elapsed = max(0, global_time - self.cfg.env.terrain_curriculum_start_global_step)
-                    m_dict['terrain_curriculum/elapsed_global_steps'] = elapsed
-                    m_dict['terrain_curriculum/max_allowed_level'] = maximum_level(elapsed, terrain.terrain_origins.shape[0], self.cfg.env.terrain_curriculum_interval)
-                    m_dict['terrain_curriculum/actual_level_mean'] = terrain.terrain_levels.float().mean().item()
-                    m_dict['terrain_curriculum/actual_easy_fraction'] = (terrain.terrain_levels <= 2).float().mean().item()
+                    m_dict.update(curriculum_metrics(terrain, self.cfg.env, global_time))
                 m_dict["duration [minutes]"] = (time.time() - start_time) / 60
                 m_dict["FPS"] = (1 if global_time == 0 else self.cfg.log_every_updates) / (time.time() - fps_start_time)
                 if self.cfg.distributed_sync and self.distributed_world_size > 1:

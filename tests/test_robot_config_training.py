@@ -108,7 +108,7 @@ class RobotConfigTrainingTest(unittest.TestCase):
     def test_cli_rejects_non_g1_robot_config(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tiny_robot = _write_non_g1_config(Path(tmpdir))
-            with self.assertRaisesRegex(ValueError, "Only G1"):
+            with self.assertRaisesRegex(ValueError, "Supported robots"):
                 _resolve_training_robot_config(tiny_robot, "configs/robots/g1_29dof.yaml")
 
     def test_tracking_manifest_robot_config_is_used_when_cli_missing(self) -> None:
@@ -130,7 +130,7 @@ class RobotConfigTrainingTest(unittest.TestCase):
     def test_tracking_cli_rejects_non_g1_robot_config(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             tiny_robot = _write_non_g1_config(Path(tmpdir))
-            with self.assertRaisesRegex(ValueError, "Only G1"):
+            with self.assertRaisesRegex(ValueError, "Supported robots"):
                 _resolve_tracking_robot_config(tiny_robot, "configs/robots/g1_29dof.yaml")
 
     def test_aux_rewards_require_two_contact_bodies_unconditionally(self) -> None:
@@ -181,9 +181,9 @@ class RobotConfigTrainingTest(unittest.TestCase):
     def test_public_training_loader_rejects_non_g1(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             robot_config = _write_non_g1_config(Path(tmpdir))
-            with self.assertRaisesRegex(ValueError, "Only G1"):
+            with self.assertRaisesRegex(ValueError, "Supported robots"):
                 load_robot_training_spec(robot_config)
-            with self.assertRaisesRegex(ValueError, "Only G1"):
+            with self.assertRaisesRegex(ValueError, "Supported robots"):
                 build_ufo_mjlab_config(device="cpu", robot_config=robot_config)
 
     def test_g1_yaml_actuator_missing_joint_errors(self) -> None:
@@ -206,7 +206,7 @@ class RobotConfigTrainingTest(unittest.TestCase):
             config.control_joints = list(reversed(list(config.training.init_state.default_joint_angles)))
             path = Path(tmpdir) / "g1.yaml"
             OmegaConf.save(config, path)
-            with self.assertRaisesRegex(ValueError, "G1 control joint order must match"):
+            with self.assertRaisesRegex(ValueError, "g1_29dof control joint order must match"):
                 load_robot_training_spec(path)
 
     def test_tracking_shapes_follow_num_dof(self) -> None:
