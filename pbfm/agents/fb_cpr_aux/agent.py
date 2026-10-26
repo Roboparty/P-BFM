@@ -662,7 +662,11 @@ class FBcprAuxAgent(AgentExecutionMixin):
             main_batch["action"].to(self.device),
             tree_map(lambda x: x.to(self.device), main_batch["next"]["observation"]),
         )
-        main_discount = self.cfg.train.discount * ~main_batch["next"]["terminated"].to(self.device)
+        main_discount = prior_transition_discount(
+            main_batch,
+            gamma=self.cfg.train.discount,
+            device=self.device,
+        )
         prior_obs = prior_action = prior_next_obs = prior_discount = None
         if behavior_prior_enabled:
             if prior_batch is None:
