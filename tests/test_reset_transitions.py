@@ -292,7 +292,7 @@ def test_core_does_not_reset_before_vector_captures_successor(terrain_boundary):
     assert reward.tolist() == [-1, -2]
 
 
-def test_workspace_training_loop_collects_explicit_successors(tmp_path):
+def test_workspace_training_loop_uses_row_successors(tmp_path):
     import json
     from pathlib import Path
     from pbfm.training.config import TrainConfig
@@ -332,13 +332,13 @@ def test_workspace_training_loop_collects_explicit_successors(tmp_path):
     workspace.train_online()
     replay = captured["replay_buffer"]["train"]
     replay._get_idxs = get_idxs
-    assert replay.explicit_next and replay.end_key == "done"
-    assert replay.sparse_next
-    assert "depth_image" not in replay.storage["next"]["observation"]
+    assert not replay.explicit_next and replay.end_key == "truncated"
+    assert not replay.sparse_next
+    assert "next" not in replay.storage
     batch = replay.sample(4096)
     assert set(zip(batch["observation"]["state"][:, 0].tolist(),
                    batch["next"]["observation"]["state"][:, 0].tolist())) == {
-        (10, 11), (100, 101), (20, 21), (21, 22),
+        (10, 100), (20, 21),
     }
 
 

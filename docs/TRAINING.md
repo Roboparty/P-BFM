@@ -137,26 +137,16 @@ executing an already-exported context does not. Training continuation depends on
 replay, optimizer state and the depth observation contract. Keep the run's
 `config.json` alongside the selected model checkpoint for robot calibration.
 
-Training replay must record `explicit_next=true`. If a buffer does not have this
-field, keep it separate and load only the model into a new training directory,
-rebuilding replay with a collection warmup before updates. Do not change the
-metadata to force an incompatible buffer to load.
+The default main replay stores the current collector row and obtains the
+successor from the following row; `truncated` marks trajectory boundaries. Each
+stored depth observation keeps one uint8 frame, and temporal stacks are
+reconstructed when sampling. Use a new work directory when changing replay
+formats or collection semantics.
 
-New replay uses `sparse_next=true`: ordinary successors reuse the following
-collector row, while reset boundaries store their real pre-reset observations
-separately. The newest successor is retained until another row arrives. Heading
-and velocity command fields remain explicit because collection may replace them
-before the next action. Each stored depth observation keeps one uint8 frame;
-temporal stacks are reconstructed when sampling. Successor flags, qpos and qvel
-remain explicit, including for reward inference. Sparse data is saved inside the
-same `buffer.hdf5` as the replay; do not copy only selected datasets.
-
-Existing `explicit_next=true` replay remains loadable in its original storage
-format; it is not silently converted or deleted. Model checkpoints and ONNX
-interfaces are unchanged. Savings depend on episode lengths and reset frequency.
-Allow host memory for replay, GPU memory for model/optimizer state and training
-batches, and disk space for each rank's replay checkpoint. A small-replay smoke
-test is not a full-capacity memory check.
+Replay is placed on CPU by default. Model checkpoints and ONNX interfaces are
+unchanged. Allow host memory for replay, GPU memory for model/optimizer state and
+training batches, and disk space for each rank's replay checkpoint. A small-replay
+smoke test is not a full-capacity memory check.
 
 ## Tests and validation
 

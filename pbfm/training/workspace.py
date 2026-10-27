@@ -727,7 +727,7 @@ class Workspace:
         if checkpoint_buffer_dir.exists():
             print("Loading checkpointed buffer")
             if self.cfg.use_trajectory_buffer:
-                replay_buffer["train"] = TrajectoryDictBufferMultiDim.load_for_training(checkpoint_buffer_dir, device=self.cfg.buffer_device)
+                replay_buffer["train"] = TrajectoryDictBufferMultiDim.load(checkpoint_buffer_dir, device=self.cfg.buffer_device)
             else:
                 raise ValueError(
                     "Unversioned transition replay cannot prove pre-reset successors. "
@@ -741,18 +741,16 @@ class Workspace:
                     capacity=self.cfg.buffer_size // self.cfg.online_parallel_envs,  # make sure to divide by num_envs
                     device=self.cfg.buffer_device,
                     n_dim=2,
-                    end_key="done",
+                    end_key="truncated",
                     output_key_t=config._trajectory_output_keys(self.cfg.agent),
-                    output_key_tp1=["observation", "terminated", "truncated"],
-                    explicit_next=True,
-                    sparse_next=True,
+                    output_key_tp1=["observation", "terminated"],
                     compact_depth_history=compact_depth_history,
                     depth_history_offsets=DirectDepthConfig().sampled_ages,
                 )
                 if compact_depth_history:
                     print(
-                        "[INFO] Sparse-successor depth replay enabled: storing one uint8 frame per row, "
-                        "retaining pre-reset/newest successors and reconstructing 8-frame history when sampling",
+                        "[INFO] Compact depth replay enabled: storing one uint8 frame per transition "
+                        "and reconstructing the 8-frame history when sampling",
                         flush=True,
                     )
             else:
@@ -848,7 +846,8 @@ class Workspace:
         if isinstance(self.cfg.env, HumanoidVerseMjlabConfig):
             train_env._env._training_terrain_global_step = self._checkpoint_global_time
         for name in ("train", "prior"):
-            if name in replay_buffer and isinstance(replay_buffer[name], TrajectoryDictBufferMultiDim):
+            if (name in replay_buffer and isinstance(replay_buffer[name], TrajectoryDictBufferMultiDim)
+                    and replay_buffer[name].explicit_next):
                 replay_buffer[name].end_episodes()
         td, info = train_env.reset()
         if self.cfg.fail_on_nonfinite:
@@ -964,7 +963,8 @@ class Workspace:
                 if uses_humanoidverse_eval:
                     # reset if there is a pbfm evaluation
                     for name in ("train", "prior"):
-                        if name in replay_buffer and isinstance(replay_buffer[name], TrajectoryDictBufferMultiDim):
+                        if (name in replay_buffer and isinstance(replay_buffer[name], TrajectoryDictBufferMultiDim)
+                                and replay_buffer[name].explicit_next):
                             replay_buffer[name].end_episodes()
                     td, info = train_env.reset()
                     if self.cfg.fail_on_nonfinite:
@@ -1168,6 +1168,10 @@ class Workspace:
                         optimizer_steps=self._optimizer_steps,
                     )
             new_td, new_reward, new_terminated, new_truncated, new_info = train_env.step(action)
+            explicit_main_successor = (
+                isinstance(replay_buffer["train"], TrajectoryDictBufferMultiDim)
+                and replay_buffer["train"].explicit_next
+            )
             heading_metadata = self._heading_transition_metadata(
                 vector_env=train_env,
                 state=main_rollout_state,
@@ -1176,7 +1180,7 @@ class Workspace:
                 new_td=new_td,
                 new_terminated=new_terminated,
                 new_truncated=new_truncated,
-                new_info=new_info,
+                new_info=new_info if explicit_main_successor else None,
             )
             # Q_D needs outcome flags even when BehaviorContext heading is
             # disabled. Heading-enabled collection already produced the same
@@ -1229,11 +1233,14 @@ class Workspace:
                 # Make sure we set truncated since at the next iteration we are
                 # forced to reset the shared training environment after eval.
                 new_truncated = np.ones_like(new_truncated, dtype=bool)
-                heading_metadata["transition_truncated"] = torch.ones(
-                    (self.cfg.online_parallel_envs, 1), device=self.agent.device, dtype=torch.bool,
-                )
-                if "heading_context_continues" in heading_metadata:
-                    heading_metadata["heading_context_continues"].zero_()
+                if explicit_main_successor:
+                    heading_metadata["transition_truncated"] = torch.ones(
+                        (self.cfg.online_parallel_envs, 1), device=self.agent.device, dtype=torch.bool,
+                    )
+                    if "heading_context_continues" in heading_metadata:
+                        heading_metadata["heading_context_continues"].zero_()
+                else:
+                    truncated = np.ones_like(new_truncated, dtype=bool)
 
             successor = transition_successor(new_td, new_info)
             if Version(gymnasium.__version__) >= Version("1.0"):
@@ -1241,17 +1248,25 @@ class Workspace:
                     data = {
                         "observation": tree_map(lambda x: x[None, ...], obs),
                         "action": action[None, ...],
-                        "terminated": new_terminated[None, ..., None],
-                        "truncated": new_truncated[None, ..., None],
-                        "done": np.logical_or(new_terminated, new_truncated)[None, ..., None],
-                        "next": {
-                            **tree_map(lambda value: value[None, ...], successor),
-                            "terminated": new_terminated[None, ..., None],
-                            "truncated": new_truncated[None, ..., None],
-                        },
                         "step_count": step_count[None, ..., None],
                         "reward": new_reward[None, ..., None],
                     }
+                    if explicit_main_successor:
+                        data.update(
+                            terminated=new_terminated[None, ..., None],
+                            truncated=new_truncated[None, ..., None],
+                            done=np.logical_or(new_terminated, new_truncated)[None, ..., None],
+                            next={
+                                **tree_map(lambda value: value[None, ...], successor),
+                                "terminated": new_terminated[None, ..., None],
+                                "truncated": new_truncated[None, ..., None],
+                            },
+                        )
+                    else:
+                        data.update(
+                            terminated=terminated[None, ..., None],
+                            truncated=truncated[None, ..., None],
+                        )
                     data["observation"].pop("history", None)
                     if context is not None:
                         data["z"] = context[None, ...]
