@@ -17,7 +17,7 @@ def build_scratch_config(**kwargs):
     assert cfg.agent.train.reg_coeff == 0.01
     assert cfg.agent.train.reg_coeff_velocity == 0.002
     assert cfg.agent.train.reg_coeff_heading == 0.002
-    assert cfg.buffer_device == "cuda"
+    assert cfg.buffer_device == "cpu"
     return cfg
 
 

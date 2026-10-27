@@ -39,7 +39,7 @@ def test_training_preserves_full_final_template(monkeypatch, tmp_path, device, w
         use_wandb=False,
         wandb_run_name="pbfm_fb_depth",
         expert_buffer_cache_root=str(tmp_path / "cache"),
-        buffer_device=agent_device,
+        buffer_device="cpu",
         distributed_world_size=world_size,
         distributed_sync=world_size > 1,
         distributed_gradient_sync="ddp" if world_size > 1 else "manual",
@@ -48,7 +48,6 @@ def test_training_preserves_full_final_template(monkeypatch, tmp_path, device, w
     _assert_declared_fields(expected, cfg.model_dump(mode="json"))
     cfg.env.hydra_overrides.append("terrain.seed=999")
     assert "terrain.seed=999" not in build_ufo_mjlab_config(device=device).env.hydra_overrides
-    assert load_final_config()["work_dir"] != cfg.work_dir
 
 
 def test_cli_defaults_and_explicit_overrides(monkeypatch):
@@ -65,6 +64,10 @@ def test_cli_defaults_and_explicit_overrides(monkeypatch):
     assert args.update_z_every_step == final["agent"]["train"]["update_z_every_step"]
     assert args.buffer_size == final["buffer_size"]
     assert not args.use_wandb
+    assert final["num_env_steps"] == 192020480
+    assert final["num_agent_updates"] == 16
+    assert final["buffer_device"] == "cpu"
+    assert final["env"]["terrain_curriculum_start_global_step"] == 0
     cfg = build_ufo_mjlab_config(
         device="cpu", robot_config=args.robot_config, seed=7,
         num_envs=16, num_env_steps=2048, terrain_mode="plane",

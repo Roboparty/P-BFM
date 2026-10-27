@@ -28,7 +28,7 @@ robot calibration; inference and export retain that calibration.
 | Depth | 8 × 18 × 32, first CNN stride 1, frame feature 256, GRU feature 256 |
 | Velocity estimator | 721 → 512 → 256 → 3, yaw-frame velocity, depth supervision |
 | Slippage / stumble | -4 / -2 |
-| Precision / replay | FP32 / GPU |
+| Precision / replay | FP32 / CPU |
 | Data | LaFAN-only; supplied separately |
 | Training | 8 ranks, 1024 environments/rank, seed 4831, 192020480 global steps |
 | Curriculum | Starts at 0 for scratch, interval 19200000 global steps |
@@ -116,10 +116,9 @@ For RP1, replace the robot configuration with
 use a separate new work directory. Complete commands for both robots are in
 the [README](../README.md#train).
 
-The scratch entry point starts the terrain curriculum at step 0 and refuses a work
-directory that already contains a checkpoint. The underlying template uses a
-192020480 → 384040960 continuation schedule; a direct `python -m pbfm.train`
-invocation does not apply the scratch schedule automatically.
+The default and scratch entry points both run 192020480 global steps with the
+terrain curriculum starting at step 0. The scratch entry point additionally
+refuses a work directory that already contains a checkpoint.
 
 For W&B, authenticate separately and append
 `--use-wandb --wandb-project PBFM --wandb-run-name pbfm`.
@@ -155,9 +154,9 @@ same `buffer.hdf5` as the replay; do not copy only selected datasets.
 Existing `explicit_next=true` replay remains loadable in its original storage
 format; it is not silently converted or deleted. Model checkpoints and ONNX
 interfaces are unchanged. Savings depend on episode lengths and reset frequency.
-Allow GPU memory for replay, model/optimizer state and training batches, and disk
-space for each rank's replay checkpoint. A small-replay smoke test is not a
-full-capacity memory check.
+Allow host memory for replay, GPU memory for model/optimizer state and training
+batches, and disk space for each rank's replay checkpoint. A small-replay smoke
+test is not a full-capacity memory check.
 
 ## Tests and validation
 

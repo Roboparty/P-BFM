@@ -285,7 +285,7 @@ def build_ufo_mjlab_config(
         wandb_ename=os.environ.get("WANDB_ENTITY"),
         wandb_pname=wandb_project or raw["wandb_pname"],
         wandb_run_name=wandb_run_name or "pbfm_fb_depth",
-        buffer_device=agent_device,
+        buffer_device=raw["buffer_device"],
         cache_expert_buffer=bool(cache_expert_buffer),
         rebuild_expert_buffer_cache=bool(rebuild_expert_buffer_cache),
         expert_buffer_cache_root=str(Path(cache_root or Path.cwd() / "cache").expanduser()),

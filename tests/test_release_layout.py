@@ -7,14 +7,14 @@ from pbfm.agents.buffers.transition import DictBuffer
 from pbfm.utils.resource_paths import CONFIG_ROOT, PACKAGE_ROOT
 
 
-def test_archived_training_settings_are_unchanged():
+def test_training_and_depth_templates_are_pinned():
     hashes = {
-        "legacy_large.json": "6ed7c384dafdad7ee7ec415baa0ab230d5c3616151f6eff9bc70774ca5f1cd97",
+        "legacy_large.json": "78372effda08a92e479f17ae256a03e99359ba897cfce00506fb59bfb93ad534",
         "depth_contract.json": "ea6c9ebd23ffb08080bad1112498451912c36a67daa7b17639ef38a8a593d1c5",
     }
     for name, expected in hashes.items():
         content = (CONFIG_ROOT / name).read_bytes()
-        # Naming cleanup is allowed; keep the original numeric-config fingerprint.
+        # The archived terrain name and its public alias are equivalent.
         content = content.replace(b"terrain.terrain_type=training_mix", b"terrain.terrain_type=rp1_simple")
         assert hashlib.sha256(content).hexdigest() == expected
 

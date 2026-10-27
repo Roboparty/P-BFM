@@ -89,7 +89,7 @@ uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=
   --work-dir /path/to/new-rp1-run
 ```
 
-Both commands start from scratch with 192,020,480 total global steps and the terrain curriculum starting at step 0. They use GPU replay; check memory and disk capacity before launching. For a short test, append `--smoke` and use a separate new output directory (32,768 global steps, reduced environments and replay). These commands do not wait for idle GPUs or stop existing jobs.
+Both commands start from scratch with 192,020,480 total global steps and the terrain curriculum starting at step 0. Replay is stored in CPU memory; check host memory and disk capacity before launching. For a short test, append `--smoke` and use a separate new output directory (32,768 global steps, reduced environments and replay). These commands do not wait for idle GPUs or stop existing jobs.
 
 For W&B, authenticate separately and append `--use-wandb`. Network sizes, robot-specific rewards/DR, schedules and checkpoint requirements are in the [training guide](docs/TRAINING.md).
 

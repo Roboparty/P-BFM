@@ -89,7 +89,7 @@ uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=
   --work-dir /path/to/new-rp1-run
 ```
 
-以上均为从头训练，总计192,020,480全局步，地形课程从第0步计时。使用GPU replay，启动前需确认显存与磁盘容量。追加 `--smoke` 并使用独立的新输出目录可进行短测：32,768全局步、减少环境和replay容量。命令不会自动等待空卡或停止已有任务。
+以上均为从头训练，总计192,020,480全局步，地形课程从第0步计时。Replay 保存在 CPU 内存中，启动前需确认主机内存与磁盘容量。追加 `--smoke` 并使用独立的新输出目录可进行短测：32,768全局步、减少环境和 replay 容量。命令不会自动等待空卡或停止已有任务。
 
 使用 W&B 时先单独登录，再追加 `--use-wandb`。网络大小、两种机器人的奖励／DR、课程和checkpoint要求见[训练指南](docs/TRAINING.md)。
 
