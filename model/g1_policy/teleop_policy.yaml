@@ -1,0 +1,5 @@
+extends: policy.yaml
+teleop_velocity_enabled: true
+standing_fallback_z_path: model/g1_policy/standing_z.npy
+teleop_auto_resume: true
+teleop_auto_resume_fresh_s: 0.1

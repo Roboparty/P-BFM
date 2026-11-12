@@ -1,0 +1,117 @@
+{
+  "checkpoint_step": 364822528,
+  "date": "2026-11-12",
+  "python": "3.10.20",
+  "pytest": {
+    "passed": 143,
+    "failed": 0
+  },
+  "tasks_dry_run": 18,
+  "split_vs_original_onnx": {
+    "samples": 32,
+    "max_action_error": 0.0,
+    "inputs": "synthetic; normalized uint8 depth, including all-zero/all-one frames"
+  },
+  "onnx_context_hash_verification": "passed",
+  "python_parse_and_bash_syntax": "passed",
+  "native_g1_cpp_syntax": "passed",
+  "hardware_control_started": false,
+  "not_verified": [
+    "Jetson ARM64 clean install/native build",
+    "TensorRT engine build/inference",
+    "live RealSense/Pico; full synchronized real sensor recording",
+    "motor control/firmware response to command timeout"
+  ],
+  "source_backup_modified": false,
+  "deployment_xml_loads": 4,
+  "retarget_config_load": "passed",
+  "actor_builder_command_test": "passed with mocked trtexec; no TensorRT build performed",
+  "entrypoint_help_imports": 6,
+  "cleanup": {
+    "files_removed": 42,
+    "bytes_removed": 33644059,
+    "model_and_context_hashes_unchanged": true
+  },
+  "platform": "Linux x86_64",
+  "clean_python_environment": {
+    "inherited_site_packages": false,
+    "packages": 53,
+    "constraints": "requirements/constraints.txt",
+    "pip_dependency_check": "passed"
+  },
+  "native_g1_build": {
+    "platform": "x86_64",
+    "configure": "passed",
+    "compile_and_link": "passed",
+    "import": "passed, watchdog timeout constant = 100 ms; interface NOT constructed",
+    "pybind11": "3.1.0",
+    "sdk_version": "2.0.0 local snapshot; upstream Git revision unavailable",
+    "sdk_include_tree_sha256": "5adc877388a489620a868c1bffc5e409d4129bdaae6236d86a26c23299c39d01",
+    "sdk_libraries_sha256": {
+      "lib/x86_64/libunitree_sdk2.a": "f13bdc0a0b971766aef86260ba9ad12e51f89f1020194b00790d681b8957956f",
+      "thirdparty/lib/x86_64/libddsc.so": "4038630c231412f7b34a2ea60df192bbdebd0a57f22ac7f35c1b6d28323e695c",
+      "thirdparty/lib/x86_64/libddscxx.so": "d3e7c1b03123c2745839f2465041777ded090ad66d62f1372949209254f7ebe5"
+    }
+  },
+  "recorded_simulation_replay": {
+    "frames": 256,
+    "source": "tests/fixtures/a417_sim_replay.json",
+    "state_history_abs_tolerance": 2e-06,
+    "heading_abs_tolerance": 1.1e-06,
+    "action_abs_tolerance": 2e-05,
+    "passed": true,
+    "real_sensor_capture": false
+  },
+  "synthetic_sensor_pipeline": "passed: raw depth -> rays -> crop/Gaussian -> timestamp history -> encoder -> wire messages -> observations -> actor; depth/low-state outages",
+  "realtime_z_process": "passed: loopback retarget packets -> real backward ONNX -> X pause/follow, anchor reset, stale stop, recovery",
+  "retarget_web_initialization": "passed in clean environment with loopback-only HTTP server",
+  "command_watchdog": "compiled C++ test passed; 100 ms deadline, late updates cannot clear latch",
+  "actual_config_verification": "regressions passed: Gaussian, PD, history, engine selection, robot limits, trailing overrides",
+  "release_status": "offline validation passed; hardware validation pending",
+  "release_archive_extraction": "passed: fresh directory, source + models, 18 tasks and 32 ONNX reference cases",
+  "simplification": {
+    "net_runtime_lines_removed": 443,
+    "removed_unused_pose_buffer": true,
+    "file_context_format": "NPZ only; existing 18 tasks retained",
+    "removed_dependency": "joblib",
+    "keyboard_controls": "shared joystick state machine; stop latch, reward standing and goal reset tested",
+    "fallback_rearm": "shared freshness check rejects future/missing timestamps",
+    "teleop_policy_config_override": "preserved and tested",
+    "model_and_context_hashes_unchanged": true
+  },
+  "resource_cleanup": {
+    "release_files_before": 221,
+    "release_files_after": 187,
+    "duplicate_meshes_removed": 32,
+    "duplicate_mesh_bytes_removed": 16389988,
+    "retarget_geometry_unchanged": true,
+    "resolved_configs_identical_including_key_order": true,
+    "unused_files_removed": [
+      "scripts/teleop/position_velocity.py",
+      "config/policy/g1_pbfm_policy.yaml"
+    ],
+    "net_runtime_lines_removed": 375,
+    "model_and_context_hashes_unchanged": true
+  },
+  "legacy_transport_cleanup": {
+    "net_runtime_lines_removed": 657,
+    "release_files": 187,
+    "state_transport": "g1_real via timestamped ZMQ only; old configurations rejected before motor setup",
+    "removed": [
+      "object mocap subscriptions and wire messages",
+      "simulation motor command transport",
+      "policy-local direct SDK state path",
+      "unread state interpolation buffers and world-pose FK helpers"
+    ],
+    "preserved": [
+      "dry-run",
+      "controller clock mapping",
+      "duplicate tick rejection",
+      "IMU validation",
+      "native motor command mapping",
+      "all 18 tasks"
+    ],
+    "tests": "fake motor interface mapping/PD/close and no-actuation dry-run; synthetic SDK state duplicates, clock restart, invalid quaternion",
+    "model_context_and_depth_processing_unchanged": true
+  }
+}

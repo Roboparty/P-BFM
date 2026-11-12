@@ -1,0 +1,15 @@
+type: tracking
+context_contract: reward_goal_yaw_command_v1
+start: 0
+end: 3150
+stop: 0
+ctx_source: npz
+ctx_path: model/g1_policy/contexts/01_goal21/context.npz
+gamma: 0.8
+window_size: 1
+ctx_playback_hz: 50.0
+ctx_playback_loop: false
+ctx_end_behavior: hold_first
+manual_goal_selection: true
+goal_schedule_path: model/g1_policy/contexts/01_goal21/schedule.json
+goal_standing_z_path: model/g1_policy/standing_z.npy

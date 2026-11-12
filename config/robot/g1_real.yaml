@@ -1,0 +1,202 @@
+ROBOT_TYPE: 'g1_real' # UFO-Deploy release real runtime supports Unitree G1 29-DoF.
+DOMAIN_ID: 0 # Domain id
+# Interface
+INTERFACE: "eth0"   # Override per machine with G1_INTERFACE or ROBOT_CONFIG.
+USE_JOYSTICK: True
+
+# Real policy state and terrain are produced by independent sensor/state
+# processes. The policy process never repackages a cached SDK state
+# as if it were current.
+LOW_STATE_SOURCE: "zmq"
+LOW_STATE_HOST: "127.0.0.1"
+LOW_STATE_PORT: 5590
+LOW_STATE_RECEIVE_TIMEOUT_MS: 100.0
+LOW_STATE_CAPTURE_TIMEOUT_MS: 100.0
+TERRAIN_DEPTH_HOST: "127.0.0.1"
+TERRAIN_DEPTH_PORT: 5592
+DIRECT_DEPTH_LATENT_HOST: "127.0.0.1"
+DIRECT_DEPTH_LATENT_PORT: 5594
+CAPTURE_FUTURE_TOLERANCE_MS: 10.0
+# The G1 controller publishes low-state substantially faster than the 60 Hz
+# camera and 50 Hz policy need. Reading the DDS KEEP_LAST sample at 200 Hz
+# supplies fresh controller samples (nominal spacing 5 ms) without letting a
+# 500 Hz Python callback starve native-resolution depth preprocessing.
+SDK2_LOW_STATE_RATE_HZ: 200.0
+
+# Set true only after the Unitree command timeout has been measured on the
+# target robot. False records the known residual risk but no longer blocks the
+# explicitly opted-in operator-supervised real mode. A true flag is still
+# rejected unless every verified contract field below is complete.
+COMMAND_TIMEOUT_VERIFIED: false
+COMMAND_TIMEOUT_CONTRACT:
+  status: "unverified"
+  required_repeat_trials: 3
+  target_robot_id: ""
+  firmware_version: ""
+  interface: ""
+  g1_interface_sha256: ""
+  verified_utc: ""
+  timeout_min_ms: null
+  timeout_max_ms: null
+  safe_behavior: ""
+  report_sha256: []
+
+# Direct image contract used by realsense_g1_terrain_producer.py.  The model
+# sees robot pixels exactly as the physical camera does; no geometry adapter,
+# self mask, odometry or temporal terrain estimator is used.  The D435i runs at
+# 60 Hz, while the encoder worker consumes the latest frame at the trained 50 Hz
+# control/history cadence and publishes depth_latent for the 50 Hz policy.
+REAL_TERRAIN_SENSOR:
+  MODEL_CONTRACT: "rp1_direct_depth_D001"
+  MIN_DEPTH_M: 0.0
+  MAX_DEPTH_M: 2.5
+  # Weak disparity-domain spatial smoothing; invalid depth remains zero.
+  # Override with DEPTH_SPATIAL_FILTER=0/1 for A/B tests.
+  SPATIAL_FILTER:
+    enabled: false
+    magnitude: 1
+    alpha: 0.8
+    delta: 10
+    holes_fill: 0
+  # Optional disparity-domain temporal smoothing; persistence is configured below.
+  TEMPORAL_FILTER:
+    enabled: false
+    alpha: 0.8
+    delta: 20
+    persistence_control: 2
+  DEPTH_CROP:
+    top: 0
+    bottom: 0
+    left: 0
+    right: 0
+    reference_width: 64
+    reference_height: 36
+  # Retained only in wire metadata/viewer diagnostics; the direct policy does
+  # not transform the image into a robot/world frame.
+  TORSO_TO_CAMERA_OPTICAL_POSITION: [0.0487988662332928, 0.01, 0.4378029937970051]
+  TORSO_TO_CAMERA_OPTICAL_QUATERNION_XYZW: [-0.6579550476, 0.6623183569, -0.2512184045, 0.2555817138]
+
+
+joint_pos_lower_limit:
+  left_hip_pitch_joint: -2.5307
+  right_hip_pitch_joint: -2.5307  
+  waist_yaw_joint: -2.6180
+  waist_pitch_joint: -0.52
+  waist_roll_joint: -0.52
+  left_hip_roll_joint: -0.5236
+  right_hip_roll_joint: -2.9671
+  left_hip_yaw_joint: -2.7576
+  right_hip_yaw_joint: -2.7576
+  left_knee_joint: -0.0873
+  right_knee_joint: -0.0873
+  left_shoulder_pitch_joint: -3.0892
+  right_shoulder_pitch_joint: -3.0892
+  left_ankle_pitch_joint: -0.8727
+  right_ankle_pitch_joint: -0.8727
+  left_shoulder_roll_joint: -1.5882
+  right_shoulder_roll_joint: -2.2515
+  left_ankle_roll_joint: -0.2618
+  right_ankle_roll_joint: -0.2618
+  left_shoulder_yaw_joint: -2.6180
+  right_shoulder_yaw_joint: -2.6180
+  left_elbow_joint: -1.0472
+  right_elbow_joint: -1.0472
+  left_wrist_roll_joint: -1.9722
+  right_wrist_roll_joint: -1.9722
+  left_wrist_pitch_joint: -1.6144
+  right_wrist_pitch_joint: -1.6144
+  left_wrist_yaw_joint: -1.6144
+  right_wrist_yaw_joint: -1.6144
+
+joint_pos_upper_limit:
+  left_hip_pitch_joint: 2.8798
+  right_hip_pitch_joint: 2.8798
+  waist_yaw_joint: 2.6180
+  waist_pitch_joint: 0.52
+  waist_roll_joint: 0.52
+  left_hip_roll_joint: 2.9671
+  right_hip_roll_joint: 0.5236
+  left_hip_yaw_joint: 2.7576
+  right_hip_yaw_joint: 2.7576
+  left_knee_joint: 2.8798
+  right_knee_joint: 2.8798
+  left_shoulder_pitch_joint: 2.6704
+  right_shoulder_pitch_joint: 2.6704
+  left_ankle_pitch_joint: 0.5236
+  right_ankle_pitch_joint: 0.5236
+  left_shoulder_roll_joint: 2.2515
+  right_shoulder_roll_joint: 1.5882
+  left_ankle_roll_joint: 0.2618
+  right_ankle_roll_joint: 0.2618
+  left_shoulder_yaw_joint: 2.6180
+  right_shoulder_yaw_joint: 2.6180
+  left_elbow_joint: 2.0944
+  right_elbow_joint: 2.0944
+  left_wrist_roll_joint: 1.9722
+  right_wrist_roll_joint: 1.9722
+  left_wrist_pitch_joint: 1.6144
+  right_wrist_pitch_joint: 1.6144
+  left_wrist_yaw_joint: 1.6144
+  right_wrist_yaw_joint: 1.6144
+
+joint_velocity_limit:
+  left_hip_pitch_joint: 32.0
+  right_hip_pitch_joint: 32.0
+  waist_yaw_joint: 32.0
+  waist_pitch_joint: 37.0
+  waist_roll_joint: 37.0
+  left_hip_roll_joint: 32.0
+  right_hip_roll_joint: 32.0
+  left_hip_yaw_joint: 32.0
+  right_hip_yaw_joint: 32.0
+  left_knee_joint: 20.0
+  right_knee_joint: 20.0
+  left_shoulder_pitch_joint: 37.0
+  right_shoulder_pitch_joint: 37.0
+  left_ankle_pitch_joint: 37.0
+  right_ankle_pitch_joint: 37.0
+  left_shoulder_roll_joint: 37.0
+  right_shoulder_roll_joint: 37.0
+  left_ankle_roll_joint: 37.0
+  right_ankle_roll_joint: 37.0
+  left_shoulder_yaw_joint: 37.0
+  right_shoulder_yaw_joint: 37.0
+  left_elbow_joint: 37.0
+  right_elbow_joint: 37.0
+  left_wrist_roll_joint: 37.0
+  right_wrist_roll_joint: 37.0
+  left_wrist_pitch_joint: 22.0
+  right_wrist_pitch_joint: 22.0
+  left_wrist_yaw_joint: 22.0
+  right_wrist_yaw_joint: 22.0
+
+joint_effort_limit:
+  left_hip_pitch_joint: 88.0
+  left_hip_roll_joint: 88.0
+  left_hip_yaw_joint: 88.0
+  left_knee_joint: 139.0
+  left_ankle_pitch_joint: 50.0
+  left_ankle_roll_joint: 50.0
+  right_hip_pitch_joint: 88.0
+  right_hip_roll_joint: 88.0
+  right_hip_yaw_joint: 88.0
+  right_knee_joint: 139.0
+  right_ankle_pitch_joint: 50.0
+  right_ankle_roll_joint: 50.0
+  waist_yaw_joint: 88.0
+  waist_roll_joint: 50.0
+  waist_pitch_joint: 50.0
+  left_shoulder_pitch_joint: 25.0
+  left_shoulder_roll_joint: 25.0
+  left_shoulder_yaw_joint: 25.0
+  left_elbow_joint: 25.0
+  left_wrist_roll_joint: 25.0
+  left_wrist_pitch_joint: 5.0
+  left_wrist_yaw_joint: 5.0
+  right_shoulder_pitch_joint: 25.0
+  right_shoulder_roll_joint: 25.0
+  right_shoulder_yaw_joint: 25.0
+  right_elbow_joint: 25.0
+  right_wrist_roll_joint: 25.0
+  right_wrist_pitch_joint: 5.0
+  right_wrist_yaw_joint: 5.0

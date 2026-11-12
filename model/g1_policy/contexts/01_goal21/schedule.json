@@ -1,0 +1,170 @@
+[
+  {
+    "index": 0,
+    "motion_id": 0,
+    "motion": "fallAndGetUp1_subject4",
+    "frame": 2193,
+    "start_s": 0,
+    "end_s": 3
+  },
+  {
+    "index": 1,
+    "motion_id": 0,
+    "motion": "fallAndGetUp1_subject4",
+    "frame": 2230,
+    "start_s": 3,
+    "end_s": 6
+  },
+  {
+    "index": 2,
+    "motion_id": 0,
+    "motion": "fallAndGetUp1_subject4",
+    "frame": 3350,
+    "start_s": 6,
+    "end_s": 9
+  },
+  {
+    "index": 3,
+    "motion_id": 0,
+    "motion": "fallAndGetUp1_subject4",
+    "frame": 5015,
+    "start_s": 9,
+    "end_s": 12
+  },
+  {
+    "index": 4,
+    "motion_id": 1,
+    "motion": "dance1_subject3",
+    "frame": 505,
+    "start_s": 12,
+    "end_s": 15
+  },
+  {
+    "index": 5,
+    "motion_id": 1,
+    "motion": "dance1_subject3",
+    "frame": 4024,
+    "start_s": 15,
+    "end_s": 18
+  },
+  {
+    "index": 6,
+    "motion_id": 1,
+    "motion": "dance1_subject3",
+    "frame": 4700,
+    "start_s": 18,
+    "end_s": 21
+  },
+  {
+    "index": 7,
+    "motion_id": 2,
+    "motion": "dance2_subject4",
+    "frame": 700,
+    "start_s": 21,
+    "end_s": 24
+  },
+  {
+    "index": 8,
+    "motion_id": 2,
+    "motion": "dance2_subject4",
+    "frame": 670,
+    "start_s": 24,
+    "end_s": 27
+  },
+  {
+    "index": 9,
+    "motion_id": 3,
+    "motion": "fightAndSports1_subject1",
+    "frame": 252,
+    "start_s": 27,
+    "end_s": 30
+  },
+  {
+    "index": 10,
+    "motion_id": 3,
+    "motion": "fightAndSports1_subject1",
+    "frame": 745,
+    "start_s": 30,
+    "end_s": 33
+  },
+  {
+    "index": 11,
+    "motion_id": 3,
+    "motion": "fightAndSports1_subject1",
+    "frame": 1009,
+    "start_s": 33,
+    "end_s": 36
+  },
+  {
+    "index": 12,
+    "motion_id": 5,
+    "motion": "fight1_subject3",
+    "frame": 5559,
+    "start_s": 36,
+    "end_s": 39
+  },
+  {
+    "index": 13,
+    "motion_id": 5,
+    "motion": "fight1_subject3",
+    "frame": 10229,
+    "start_s": 39,
+    "end_s": 42
+  },
+  {
+    "index": 14,
+    "motion_id": 5,
+    "motion": "fight1_subject3",
+    "frame": 11981,
+    "start_s": 42,
+    "end_s": 45
+  },
+  {
+    "index": 15,
+    "motion_id": 7,
+    "motion": "dance1_subject2",
+    "frame": 1150,
+    "start_s": 45,
+    "end_s": 48
+  },
+  {
+    "index": 16,
+    "motion_id": 7,
+    "motion": "dance1_subject2",
+    "frame": 2877,
+    "start_s": 48,
+    "end_s": 51
+  },
+  {
+    "index": 17,
+    "motion_id": 13,
+    "motion": "walk2_subject1",
+    "frame": 2588,
+    "start_s": 51,
+    "end_s": 54
+  },
+  {
+    "index": 18,
+    "motion_id": 13,
+    "motion": "walk2_subject1",
+    "frame": 11375,
+    "start_s": 54,
+    "end_s": 57
+  },
+  {
+    "index": 19,
+    "motion_id": 13,
+    "motion": "walk2_subject1",
+    "frame": 11384,
+    "start_s": 57,
+    "end_s": 60
+  },
+  {
+    "index": 20,
+    "motion_id": 21,
+    "motion": "walk3_subject3",
+    "frame": 9044,
+    "start_s": 60,
+    "end_s": 63
+  }
+]

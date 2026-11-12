@@ -1,0 +1,14 @@
+-c constraints.txt
+# Python dependencies for the single-checkpoint G1 deployment.
+# This file intentionally excludes teleop retarget and training-only packages.
+numpy==2.2.6
+mujoco==3.17.0
+onnx==1.16.1
+onnxruntime==1.22.0
+pyyaml==6.0.2
+scipy==1.15.3
+pyzmq==27.0.0
+loguru==0.7.3
+termcolor==3.1.0
+sshkeyboard==2.3.1
+opencv-python-headless==4.11.0.86

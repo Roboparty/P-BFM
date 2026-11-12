@@ -1,0 +1,12 @@
+type: tracking
+context_contract: reward_goal_yaw_command_v1
+start: 0
+end: 1000
+stop: 0
+ctx_source: npz
+ctx_path: model/g1_policy/contexts/03_forward08_arms_spread/context.npz
+gamma: 0.8
+window_size: 1
+ctx_playback_hz: 50.0
+ctx_playback_loop: false
+ctx_end_behavior: hold_first

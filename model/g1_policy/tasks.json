@@ -1,0 +1,92 @@
+[
+  {
+    "task": "a417",
+    "context": "contexts/a417.npz",
+    "contract": "tracking"
+  },
+  {
+    "task": "teleop",
+    "context": "realtime",
+    "contract": "tracking"
+  },
+  {
+    "task": "01_goal21",
+    "context": "contexts/01_goal21/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "02_rotate_inplace_1",
+    "context": "contexts/02_rotate_inplace_1/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "03_forward08_arms_spread",
+    "context": "contexts/03_forward08_arms_spread/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "04_low_forward",
+    "context": "contexts/04_low_forward/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "05_low_forward",
+    "context": "contexts/05_low_forward/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "06_low_forward",
+    "context": "contexts/06_low_forward/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "07_low_forward",
+    "context": "contexts/07_low_forward/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "08_forward08_arms_spread",
+    "context": "contexts/08_forward08_arms_spread/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "09_arc_forward",
+    "context": "contexts/09_arc_forward/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "10_back_arms",
+    "context": "contexts/10_back_arms/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "11_low_forward",
+    "context": "contexts/11_low_forward/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "12_side_arms",
+    "context": "contexts/12_side_arms/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "13_raisearms_m_m",
+    "context": "contexts/13_raisearms_m_m/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "14_balance_left15",
+    "context": "contexts/14_balance_left15/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "15_move_ego_low0.5_0_0",
+    "context": "contexts/15_move_ego_low0.5_0_0/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  },
+  {
+    "task": "16_crouch40_forward1p0",
+    "context": "contexts/16_crouch40_forward1p0/context.npz",
+    "contract": "reward_goal_yaw_command_v1"
+  }
+]

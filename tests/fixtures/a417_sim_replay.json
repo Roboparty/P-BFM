@@ -1,0 +1,9 @@
+{
+  "kind": "recorded simulation policy inputs, not physical sensor capture",
+  "frames": 256,
+  "dt_s": 0.02,
+  "source_trace_sha256": "6f4ea1298c93d50a83ddfc2147e897d0ab93cb669f165af5a39d4a44efe9f8ea",
+  "source_full_onnx_sha256": "42872f98404abd7a6e624b871f8b00075ad266146908965afc4dfeb2f6fc910e",
+  "expected_action": "CPU ONNX of the original full network; depth uint8 / 255",
+  "low_state_reconstruction": "Joint/IMU packets reconstructed from recorded observations; yaw reconstructed from context heading and recorded heading error. Raw camera and human data are not in this recording."
+}

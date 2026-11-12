@@ -1,0 +1,2 @@
+PICO + XRobot canonical retarget + ZMQ teleop bridge for Unitree G1 deployment.
+Runtime deps: xrobotoolkit_sdk, mink, mujoco, scipy, numpy, pyyaml, pyzmq.

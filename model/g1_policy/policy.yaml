@@ -1,0 +1,50 @@
+# Runtime settings for the single released policy.
+extends: ../../config/policy/g1_policy.yaml
+log_performance: true
+history_update_after_compute: true
+actor_inference_backend: tensorrt
+depth_inference_backend: onnx
+direct_depth_encoder_model_path: depth_encoder.onnx
+direct_depth_preprocess:
+  source_height: 36
+  source_width: 64
+  crop_left: 16
+  crop_right: 16
+  min_depth_m: 0.0
+  max_depth_m: 2.5
+  history_length: 37
+  history_skip_frames: 5
+  output_frames: 8
+  fixed_delay_frames: 0
+  vertical_flip: false
+  gaussian_enabled: true
+  processing_profile: optical_z_maxcrop18_reset_v2
+  crop_top: 18
+  crop_bottom: 0
+onnx_intra_op_num_threads: 4
+onnx_depth_intra_op_num_threads: 2
+onnx_inter_op_num_threads: 1
+onnx_allow_spinning: false
+observation:
+  policy:
+    heading:
+      mode: behavior_context
+      dimension: 2
+      scale: 1.0
+    depth_latent:
+      receive_timeout_ms: 100.0
+      capture_timeout_ms: 120.0
+      result_timeout_ms: 100.0
+      min_depth_m: 0.0
+      max_depth_m: 2.5
+      scale: 1.0
+require_dry_run: false
+tensorrt_actor_engine_path: tensorrt/actor_fp32.engine
+tracking_heading_yaw_gain: 1.0
+action_filter_alpha: 1.0
+depth_policy_phase_lock: true
+depth_policy_phase_ms: 11.0
+depth_encoder_rate_hz: 50.0
+projected_gravity_xy_bias:
+- 0.0
+- 0.0
