@@ -2,6 +2,7 @@
 FILES.txt
 LICENSE
 README.md
+README_zh-CN.md
 config/policy/g1_policy.yaml
 config/robot/g1_real.yaml
 config/tasks/01_goal21.yaml
