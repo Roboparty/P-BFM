@@ -21,23 +21,15 @@
 
 P-BFM 将**动作参考、目标身体状态与奖励函数**映射到共享的行为意图空间。策略结合行为意图、深度感知及显式航向和速度指令，在不同地形上执行全身动作。
 
-论文中的 G1 实验使用 **40 条平地 LaFAN 动作序列和在线地形交互**，不依赖地形专属的动作示范。本仓库还将 RP1 接入同一套 PBFM 算法和 MJLab 后端，分别配置机器人资产、控制、奖励与域随机化（DR）。
+论文中的 G1 实验使用 **40 条平地 LaFAN 动作序列和在线地形交互**，不依赖地形专属的动作示范。本版本提供 G1 的训练和推理实现。
 
 [训练与配置](docs/TRAINING.md) · [推理与部署](docs/INFERENCE.md) · [代码结构](docs/ARCHITECTURE.md)
 
 ## 支持的机器人
 
-**一套算法，两套机器人配置、数据与策略。** G1 仍为默认机器人，选择 RP1 不会改变 G1 设置。
-
-| | Unitree G1 | RoboParty RP1 |
-| --- | --- | --- |
-| 控制关节数 | 29 | 24 |
-| 机器人配置 | [g1_29dof.yaml](pbfm/configs/robots/g1_29dof.yaml) | [rp1_24dof.yaml](pbfm/configs/robots/rp1_24dof.yaml) |
-| 深度历史，K × H × W | 8 × 18 × 32 | 8 × 18 × 36 |
-| 参考动作 | G1 重定向 LaFAN | RP1 重定向动作，需单独提供 |
-| 验证范围 | 论文实验平台；当前接入版也已短测 | GPU rollout/reset、8卡训练、三种推理入口与ONNX一致性通过；长期训练和实机待验证 |
-
-G1 与 RP1 的权重、关节轨迹**不能混用**。RP1 的资产和控制标定来自 `zerojuhao/roboparty_train`，但本仓库不复现其 Newton 后端，也不能直接加载原仓库的训练权重。详见 [RP1 来源与后端差异](pbfm/data/robots/rp1/SOURCE.txt)。
+本版本支持 **29 个可控关节的 Unitree G1**，使用
+[`g1_29dof.yaml`](pbfm/configs/robots/g1_29dof.yaml)、G1 重定向 LaFAN 动作
+和 8 × 18 × 32 深度输入。推理与导出沿用训练记录中的关节顺序、控制参数和相机标定。
 
 ## 安装
 
@@ -55,7 +47,7 @@ G1 可通过以下命令下载两份 LaFAN PKL，保存到 `pbfm/data/`：
 bash scripts/download_data.sh
 ```
 
-该脚本**不提供 RP1 数据**。RP1 需要重定向后的动作 PKL，并包含机器人标识及关节／刚体顺序信息，详见[动作数据要求](docs/TRAINING.md#motion-data)。
+使用其他 G1 重定向数据集时，请参阅[动作数据要求](docs/TRAINING.md#motion-data)。
 
 ## 训练
 
@@ -78,24 +70,13 @@ uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=
   --work-dir /path/to/new-g1-run
 ```
 
-### RP1
+该命令从头训练，总计192,020,480全局步，地形课程从第0步计时。Replay 保存在 CPU 内存中，启动前需确认主机内存与磁盘容量。追加 `--smoke` 并使用独立的新输出目录可进行短测：32,768全局步、减少环境和 replay 容量。命令不会自动等待空卡或停止已有任务。
 
-```bash
-uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=8 \
-  scripts/train_legacy_scratch.py --gpu-ids single --terrain-mode training_mix \
-  --robot-config pbfm/configs/robots/rp1_24dof.yaml \
-  --num-envs 1024 --num-env-steps 192020480 --seed 4831 \
-  --data-path /path/to/rp1_motions.pkl \
-  --work-dir /path/to/new-rp1-run
-```
-
-以上均为从头训练，总计192,020,480全局步，地形课程从第0步计时。Replay 保存在 CPU 内存中，启动前需确认主机内存与磁盘容量。追加 `--smoke` 并使用独立的新输出目录可进行短测：32,768全局步、减少环境和 replay 容量。命令不会自动等待空卡或停止已有任务。
-
-使用 W&B 时先单独登录，再追加 `--use-wandb`。网络大小、两种机器人的奖励／DR、课程和checkpoint要求见[训练指南](docs/TRAINING.md)。
+使用 W&B 时先单独登录，再追加 `--use-wandb`。网络大小、G1 的奖励／DR、课程和checkpoint要求见[训练指南](docs/TRAINING.md)。
 
 ## 推理与部署
 
-两种机器人共用三个入口，根据训练目录保存的配置确定机器人：
+G1 提供三个推理入口，沿用训练目录保存的标定：
 
 ```bash
 uv run python -m pbfm.inference.tracking --help
@@ -103,7 +84,7 @@ uv run python -m pbfm.inference.goal --help
 uv run python -m pbfm.inference.reward --help
 ```
 
-Tracking 支持参考动作、地形及相机设置。RP1 goal 推理需要自己的 `--goal-json`；RP1 reward 推理目前支持移动类奖励。与tracking、goal及模型导出不同，计算新的reward latent需要replay样本。
+Tracking 支持参考动作、地形及相机设置；goal 推理使用匹配的 G1 动作数据中的目标帧。与tracking、goal及模型导出不同，计算新的reward latent需要replay样本。
 
 ```bash
 uv run python -m scripts.export_depth_policy_onnx \
@@ -127,11 +108,11 @@ docs/    配置、架构及部署指南
 PYTHONPATH=. uv run python -m pytest tests
 ```
 
-依赖外部数据或GPU的测试会在资源缺失时跳过。两种机器人均已通过完整网络8卡短训练，并使用新保存的checkpoint完成tracking／goal／reward推理、视频解码及policy／backward ONNX一致性检查。RP1另有CPU接口／奖励／DR和真实GPU reset测试。这不代表收敛、正式规模显存容量或实机安全已获验证。测试规模和验证范围见[训练指南](docs/TRAINING.md#tests-and-validation)。
+依赖外部数据或 GPU 的测试会在资源缺失时跳过。测试覆盖训练配置、参考动作处理、回放、奖励、checkpoint 加载、推理与 ONNX 导出。GPU rollout 和 reset 检查需显式启用，详见[训练指南](docs/TRAINING.md#tests-and-validation)。
 
 ## 致谢
 
-PBFM 基于 [UFO](https://github.com/Roboparty/UFO)，保留上游声明及 CC BY-NC 4.0 [许可证](LICENSE)。RP1资产保留其[来源许可证](pbfm/data/robots/rp1/SOURCE_LICENSE)，资产再分发注意事项见来源说明。
+PBFM 基于 [UFO](https://github.com/Roboparty/UFO)，保留上游声明及 CC BY-NC 4.0 [许可证](LICENSE)。
 
 ## 项目与交流
 

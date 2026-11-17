@@ -821,7 +821,7 @@ class HumanoidVerseMjlabCore:
         if self._direct_depth_runtime is not None:
             depth_sensor = self.mjlab_env.scene.sensors["g1_direct_depth"]
             randomize_installation = getattr(depth_sensor, "randomize_installation", None)
-            if randomize_installation is not None and self._direct_depth_runtime.cfg.processing_profile != "rp1_pufo":
+            if randomize_installation is not None:
                 randomize_installation(env_ids)
             depth_sensor.update(0.0)
             sensors_invalidated = True

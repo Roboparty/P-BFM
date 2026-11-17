@@ -1,4 +1,4 @@
-"""Validated training metadata for the two supported robots."""
+"""Validated training metadata for the supported G1 robot."""
 
 from __future__ import annotations
 
@@ -108,8 +108,8 @@ class RobotTrainingSpec:
 
 
 def validate_robot(name: str, control_joint_names: list[str] | None = None) -> None:
-    if name not in {"g1_29dof", "rp1_24dof"}:
-        raise ValueError(f"Supported robots are G1 (g1_29dof) and RP1 (rp1_24dof); got {name!r}")
+    if name != "g1_29dof":
+        raise ValueError(f"Supported robots: G1 (g1_29dof); got {name!r}")
     if control_joint_names is not None:
         curated = OmegaConf.load(CONFIG_ROOT / f"robots/{name}.yaml")
         expected = list(curated.training.init_state.default_joint_angles)
@@ -199,10 +199,8 @@ def load_robot_training_spec(config_path: str | Path, *, saved: dict[str, Any] |
 
     actuator_source = str(actuator.get("source", ""))
     motor_model = str(actuator.get("model", "dc"))
-    if motor_model not in {"dc", "rp1_torque_speed"}:
+    if motor_model != "dc":
         raise ValueError(f"Unsupported actuator model: {motor_model}")
-    if robot.name == "rp1_24dof" and (actuator_source != "yaml" or motor_model != "rp1_torque_speed"):
-        raise ValueError("RP1 requires its YAML torque-speed motor calibration")
     if actuator_source not in {"g1_mode15", "g1-mode_15", "yaml"}:
         raise ValueError("training.actuator.source must be one of: g1_mode15, g1-mode_15, yaml")
     if actuator_source == "yaml":
@@ -217,15 +215,6 @@ def load_robot_training_spec(config_path: str | Path, *, saved: dict[str, Any] |
                 if key not in params:
                     raise ValueError(f"training.actuator.joints.{joint} is missing '{key}'")
                 float(params[key])
-            if motor_model == "rp1_torque_speed":
-                speed = _required_float(params, "velocity_limit", context=joint)
-                keep = _required_float(params, "keep_velocity", context=joint)
-                if not (math.isfinite(speed) and 0 <= keep < speed):
-                    raise ValueError(f"{joint}: require 0 <= keep_velocity < velocity_limit")
-                for key in ("effort_limit", "armature", "friction", "viscous_friction"):
-                    value = _required_float(params, key, context=joint)
-                    if not math.isfinite(value) or value < 0 or (key == "effort_limit" and value == 0):
-                        raise ValueError(f"Invalid {joint}.{key}: {value}")
 
     semantic = dict(training.get("semantics") or {})
     contact_bodies = _required_name_list(semantic, "contact_bodies", context="training.semantics")

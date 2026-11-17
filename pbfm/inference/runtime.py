@@ -102,7 +102,7 @@ def add_bool_arg(parser: argparse.ArgumentParser, name: str, default: bool, help
 
 
 def add_robot_config_manifest_args(parser: argparse.ArgumentParser, *, purpose: str) -> None:
-    parser.add_argument("--robot-config", type=Path, default=None, help="G1 or RP1 YAML; must match the checkpoint robot.")
+    parser.add_argument("--robot-config", type=Path, default=None, help="G1 YAML; must match the checkpoint robot.")
     parser.add_argument("--data-manifest", type=Path, default=None, help=f"Motion data manifest. Use with --dataset for {purpose}.")
     parser.add_argument("--dataset", default=None, help="Dataset name inside --data-manifest.")
     parser.add_argument("--rebuild-motion-cache", action="store_true", help="Rebuild manifest-generated motion pkl cache.")

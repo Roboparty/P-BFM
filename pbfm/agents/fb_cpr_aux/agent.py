@@ -1243,7 +1243,7 @@ class FBcprAuxAgent(AgentExecutionMixin):
                     offset += main_batch_size
             heading_action = combined_action[offset:] if heading_obs is not None else None
 
-            # Main RP1 terrain realization and physical auxiliary objectives.
+            # Main terrain realization and physical auxiliary objectives.
             Qs_aux = self._model._aux_critic(main_obs, main_z, main_action)
             _, _, Q_aux = self.get_targets_uncertainty(Qs_aux, self.cfg.train.actor_pessimism_penalty)  # batch
 

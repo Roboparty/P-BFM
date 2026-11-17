@@ -1304,7 +1304,7 @@ def parse_args() -> argparse.Namespace:
                         help="auto: walk/run tracking or explicit move-ego reward; valid: custom locomotion; invalid: no QV task.")
     parser.add_argument("--save-policy-inputs", action="store_true",
                         help="Save pre-action deployable inputs and aligned velocity predictions/truth for offline audits.")
-    parser.add_argument("--depth-profile", choices=("legacy_rp1", "optical_z_maxcrop18_reset_v2", "rp1_pufo"), default=None)
+    parser.add_argument("--depth-profile", choices=("legacy_rp1", "optical_z_maxcrop18_reset_v2"), default=None)
     parser.add_argument("--allow-depth-contract-shift", action="store_true",
                         help="DIAGNOSTIC ONLY: run old weights with different depth semantics; not deployment validation.")
     parser.add_argument(

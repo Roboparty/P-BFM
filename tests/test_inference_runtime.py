@@ -67,7 +67,7 @@ def test_legacy_null_robot_training_uses_g1(tmp_path, robot_config):
 def test_standalone_export_uses_run_calibration(tmp_path, monkeypatch, explicit_folder):
     from scripts import export_depth_policy_onnx as exporter
     from pbfm.robots import load_robot_training_spec
-    saved = load_robot_training_spec("configs/robots/rp1_24dof.yaml").to_env_dict()
+    saved = load_robot_training_spec("configs/robots/g1_29dof.yaml").to_env_dict()
     saved["action_scale"] = .31
     (tmp_path / "config.json").write_text(json.dumps({"env": {"robot_training": saved}}))
     checkpoint = tmp_path / ("archive/checkpoint" if explicit_folder else "checkpoint")
@@ -82,7 +82,7 @@ def test_standalone_export_uses_run_calibration(tmp_path, monkeypatch, explicit_
     monkeypatch.setattr(exporter, "_export_policy_model", export)
     exporter.main()
     calibration = export.call_args.args[2]
-    assert calibration.robot.name == "rp1_24dof" and calibration.action_scale == .31
+    assert calibration.robot.name == "g1_29dof" and calibration.action_scale == .31
     assert export.call_args.kwargs["output_name"] == "policy.onnx"
 
 
@@ -255,3 +255,34 @@ def test_tracking_generic_and_training_rollouts_keep_context_export_and_renderin
     expert_renderer.close.assert_called_once_with()
     policy_renderer.close.assert_called_once_with()
     wrapped.close.assert_called_once_with()
+
+
+def test_inference_and_export_keep_saved_robot_calibration(tmp_path, monkeypatch):
+    import copy
+    from pathlib import Path
+    from pbfm.robots import load_robot_training_spec
+    from pbfm.inference.runtime import load_mjlab_env_cfg
+    spec = load_robot_training_spec("configs/robots/g1_29dof.yaml")
+    saved = spec.to_env_dict()
+    saved.update(action_scale=.3)
+    saved["stiffness"]["left_knee_joint"] = 100.
+    saved["default_joint_angles"]["left_knee_joint"] += .02
+    saved["camera"] = {"mount_body": spec.torso_name, "mount_pos": [.11175, .011, .3982],
+                       "camera_frame_quat_wxyz": [0., .5, 0., .866]}
+    saved["robot"]["xml_path"] = "/unavailable-server/" + Path(spec.robot.xml_path).name
+    (tmp_path / "config.json").write_text(json.dumps({"env": {"robot_training": saved, "lafan_tail_path": "motion.pkl"}}))
+    restored = runtime.load_inference_robot_training(tmp_path, spec.config_path)
+    expected = copy.deepcopy(saved)
+    expected["robot"]["xml_path"] = spec.robot.xml_path
+    assert restored.to_env_dict() == expected
+    env, _ = load_mjlab_env_cfg(tmp_path, device="cpu", data_path=None, headless=True,
+        disable_dr=True, disable_obs_noise=True, max_episode_length_s=10.)
+    assert env.robot_training == expected
+    count = len(spec.robot.control_joint_names)
+    monkeypatch.setattr(runtime, "export_meta_policy_as_onnx", lambda *a, **kw: {"output_action_dim": count})
+    meta = runtime._export_policy_model(SimpleNamespace(action_dim=count,
+        cfg=SimpleNamespace(archi=SimpleNamespace(z_dim=256))), tmp_path / "export", restored)
+    assert meta["robot_calibration"] == expected
+    saved["robot"]["joint_ranges"]["left_knee_joint"][0] += .1
+    with pytest.raises(ValueError, match="joint limits"):
+        load_robot_training_spec(spec.config_path, saved=saved)

@@ -4,7 +4,7 @@ The command is intentionally read-only with respect to a training run.  It
 loads a frozen model plus memory-mapped replay files, measures the gradients
 that the FB, auxiliary, and canonical-plane discriminator-value branches send
 to the shared Actor, and performs paired depth counterfactuals at identical
-RP1 stair states.
+G1 stair states.
 """
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ class MemoryMappedTrajectoryReplay:
         self.end_key = str(self.config["end_key"])
         self.depth_history_offsets = tuple(int(value) for value in self.config.get("depth_history_offsets", DEPTH_HISTORY_OFFSETS))
         if self.depth_history_offsets != DEPTH_HISTORY_OFFSETS:
-            raise ValueError(f"Expected the frozen RP1 depth offsets {DEPTH_HISTORY_OFFSETS}, got {self.depth_history_offsets}")
+            raise ValueError(f"Expected the frozen depth offsets {DEPTH_HISTORY_OFFSETS}, got {self.depth_history_offsets}")
 
         self.arrays: dict[str, np.memmap] = {}
         with h5py.File(self.h5_path, "r") as h5:
@@ -723,7 +723,7 @@ def run_depth_counterfactual(
     )
     available = main_replay.available_depth_history(time_idx, env_idx)
     if np.any(available < max(DEPTH_HISTORY_OFFSETS)):
-        raise AssertionError("Counterfactual states do not have the full RP1 history")
+        raise AssertionError("Counterfactual states do not have the full depth history")
     offsets = np.asarray(DEPTH_HISTORY_OFFSETS, dtype=np.int64)
     history_times = np.remainder(time_idx[:, None] - offsets[None, :], main_replay.capacity)
     history_envs = np.broadcast_to(env_idx[:, None], history_times.shape)
@@ -805,7 +805,7 @@ def _root_state_from_qpos_qvel(qpos: torch.Tensor, qvel: torch.Tensor) -> dict[s
 
 
 class FlatDepthHistoryOverride:
-    """Render the physical robot pose over a plane and mirror RP1 timing."""
+    """Render the physical robot pose over a plane and preserve depth timing."""
 
     def __init__(self, plane_env) -> None:
         self.env = plane_env
@@ -1010,7 +1010,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--expert-cache-root",
         type=Path,
-        default=Path("/data/xue/UFO/cache/expert_buffers"),
+        default=Path("cache/expert_buffers"),
     )
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--device", default="cuda:0")

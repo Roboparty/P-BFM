@@ -85,13 +85,6 @@ DEFAULT_TASKS = [
 
 def _resolve_reward_tasks(tasks: list[str] | None, robot_training) -> tuple[list[str], str]:
     validate_robot(robot_training.robot.name, robot_training.robot.control_joint_names)
-    if robot_training.robot.name == "rp1_24dof":
-        from pbfm.envs.mjlab.rewards import LocomotionReward
-        selected = list(tasks or ["move-ego-0-0.8"])
-        for task in selected:
-            if LocomotionReward.reward_from_name(task) is None:
-                raise ValueError(f"RP1 reward inference currently supports locomotion tasks only; unsupported: {task}")
-        return selected, "RP1 locomotion tasks"
     return list(tasks or DEFAULT_TASKS), "G1 full tasks"
 
 

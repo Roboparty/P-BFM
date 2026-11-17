@@ -121,7 +121,7 @@ terrain:
     resolution: 0.1
     debug_vis: false
 
-  # Opt-in RP1-compatible direct-depth policy. `fb_depth` enables this block;
+  # Opt-in direct-depth policy. `fb_depth` enables this block;
   # the existing `fb_terrain` map policy leaves it disabled.
   direct_depth:
     enabled: false
@@ -146,10 +146,10 @@ terrain:
     num_output_frames: 8
     delayed_frame_ranges: [0, 1]
     # Fixed per episode, independently sampled for each simulated camera.
-    # Matches UFO-RP1's depth-camera installation randomization.
+    # Legacy camera installation randomization; the selected profile overrides it.
     position_error: 0.05
     angle_error_deg: 5.0
-    # RP1 terrain uses geom group 0; legacy UFO terrain rays use group 5.
+    # Training terrain uses geom group 0; legacy UFO terrain rays use group 5.
     include_geom_groups: [0, 2, 5]
     exclude_parent_body: false
     debug_terrain_reference: false

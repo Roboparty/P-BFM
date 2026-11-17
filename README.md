@@ -21,23 +21,16 @@
 
 P-BFM maps **motion references, target body states, and reward functions** into a shared behavioral intent space. A policy combines that intent with depth perception and explicit heading and velocity instructions to adapt whole-body behavior to terrain.
 
-The paper's G1 experiments use **40 flat-ground LaFAN motion sequences and online terrain interaction**, without terrain-specific motion demonstrations. This repository also integrates RP1 into the same PBFM algorithm and MJLab backend, with robot-specific assets, control, rewards and domain randomization (DR).
+The paper's G1 experiments use **40 flat-ground LaFAN motion sequences and online terrain interaction**, without terrain-specific motion demonstrations. This release contains the G1 training and inference implementation.
 
 [Training and configuration](docs/TRAINING.md) · [Inference and deployment](docs/INFERENCE.md) · [Code structure](docs/ARCHITECTURE.md)
 
-## Supported robots
+## Supported robot
 
-**One algorithm, separate robot configurations, datasets and policies.** G1 remains the default; selecting RP1 does not change G1 settings.
-
-| | Unitree G1 | RoboParty RP1 |
-| --- | --- | --- |
-| Controlled joints | 29 | 24 |
-| Robot configuration | [g1_29dof.yaml](pbfm/configs/robots/g1_29dof.yaml) | [rp1_24dof.yaml](pbfm/configs/robots/rp1_24dof.yaml) |
-| Depth stack, K × H × W | 8 × 18 × 32 | 8 × 18 × 36 |
-| Reference motions | G1-retargeted LaFAN | RP1-retargeted motions, supplied separately |
-| Validation scope | Platform used in the paper; current integration also smoke-tested | GPU rollout/reset, eight-rank training, three inference entry points and ONNX parity; long-run training and hardware validation pending |
-
-G1 and RP1 weights and joint trajectories are **not interchangeable**. The RP1 integration uses assets and calibration from `zerojuhao/roboparty_train`; it does not reproduce the Newton backend or directly load that repository's trained policies. See [RP1 provenance and backend differences](pbfm/data/robots/rp1/SOURCE.txt).
+This release supports **Unitree G1 with 29 controlled joints**, using
+[`g1_29dof.yaml`](pbfm/configs/robots/g1_29dof.yaml), G1-retargeted LaFAN motions,
+and an 8 × 18 × 32 depth stack. The saved run configuration carries the joint
+order, control parameters and camera calibration into inference and export.
 
 ## Installation
 
@@ -55,7 +48,7 @@ For G1, the optional downloader supplies the two LaFAN PKLs under `pbfm/data/`:
 bash scripts/download_data.sh
 ```
 
-It does **not** supply RP1 data. RP1 training requires a retargeted motion PKL with robot and joint/body ordering metadata; see [motion data requirements](docs/TRAINING.md#motion-data).
+See [motion data requirements](docs/TRAINING.md#motion-data) for using another G1-retargeted dataset.
 
 ## Train
 
@@ -78,18 +71,7 @@ uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=
   --work-dir /path/to/new-g1-run
 ```
 
-### RP1
-
-```bash
-uv run python -m torch.distributed.run --standalone --nnodes=1 --nproc_per_node=8 \
-  scripts/train_legacy_scratch.py --gpu-ids single --terrain-mode training_mix \
-  --robot-config pbfm/configs/robots/rp1_24dof.yaml \
-  --num-envs 1024 --num-env-steps 192020480 --seed 4831 \
-  --data-path /path/to/rp1_motions.pkl \
-  --work-dir /path/to/new-rp1-run
-```
-
-Both commands start from scratch with 192,020,480 total global steps and the terrain curriculum starting at step 0. Replay is stored in CPU memory; check host memory and disk capacity before launching. For a short test, append `--smoke` and use a separate new output directory (32,768 global steps, reduced environments and replay). These commands do not wait for idle GPUs or stop existing jobs.
+The command starts from scratch with 192,020,480 total global steps and the terrain curriculum starting at step 0. Replay is stored in CPU memory; check host memory and disk capacity before launching. For a short test, append `--smoke` and use a separate new output directory (32,768 global steps, reduced environments and replay). These commands do not wait for idle GPUs or stop existing jobs.
 
 For W&B, authenticate separately and append `--use-wandb`. Network sizes, robot-specific rewards/DR, schedules and checkpoint requirements are in the [training guide](docs/TRAINING.md).
 
@@ -103,7 +85,7 @@ uv run python -m pbfm.inference.goal --help
 uv run python -m pbfm.inference.reward --help
 ```
 
-Tracking accepts reference motions, terrain and camera settings. RP1 goal inference requires its own `--goal-json`; RP1 reward inference currently supports locomotion rewards. Computing a new reward latent requires replay samples, unlike tracking, goal inference and model export.
+Tracking accepts reference motions, terrain and camera settings. Goal inference uses target frames from the matching G1 motion dataset. Computing a new reward latent requires replay samples, unlike tracking, goal inference and model export.
 
 ```bash
 uv run python -m scripts.export_depth_policy_onnx \
@@ -127,11 +109,14 @@ docs/    Configuration, architecture and deployment guides
 PYTHONPATH=. uv run python -m pytest tests
 ```
 
-Tests needing external data or GPUs skip when those inputs are unavailable. Both robots have passed full-network eight-rank short training, followed by tracking/goal/reward rollouts from the saved checkpoints, video decoding and policy/backward ONNX parity checks. RP1 also has CPU interface/reward/DR and real GPU reset tests. These checks do not establish convergence, production-scale memory capacity or hardware safety. Test sizes and validation scope are in [Training](docs/TRAINING.md#tests-and-validation).
+Tests needing external data or GPUs skip when those inputs are unavailable. The
+suite covers training configuration, reference processing, replay, rewards,
+checkpoint loading, inference and ONNX export. GPU rollout and reset checks are
+opt-in; see [Training](docs/TRAINING.md#tests-and-validation).
 
 ## Acknowledgments
 
-PBFM builds on [UFO](https://github.com/Roboparty/UFO), retaining its notices and CC BY-NC 4.0 [license](LICENSE). RP1 assets retain their [source license](pbfm/data/robots/rp1/SOURCE_LICENSE); see the provenance file for asset redistribution considerations.
+PBFM builds on [UFO](https://github.com/Roboparty/UFO), retaining its notices and CC BY-NC 4.0 [license](LICENSE).
 
 ## Project and community
 

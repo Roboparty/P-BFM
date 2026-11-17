@@ -45,7 +45,7 @@ from pbfm.inference.runtime import load_inference_robot_training
 
 def _find_goal_json(goal_json: Path | None, *, num_dof: int, robot_name: str) -> Path:
     validate_robot(robot_name)
-    expected = {"g1_29dof": 29, "rp1_24dof": 24}[robot_name]
+    expected = 29
     if int(num_dof) != expected:
         raise ValueError(f"{robot_name} requires {expected} DOF")
     if goal_json is not None:
@@ -53,8 +53,6 @@ def _find_goal_json(goal_json: Path | None, *, num_dof: int, robot_name: str) ->
         if not goal_json.exists():
             raise FileNotFoundError(f"Missing goal JSON: {goal_json}")
         return goal_json
-    if robot_name == "rp1_24dof":
-        raise ValueError("RP1 requires an explicit --goal-json referring to the RP1 motion dataset")
 
     candidates = [
         HUMANOIDVERSE_DIR / "data" / "robots" / "g1" / "goal_frames_lafan29dof.json",

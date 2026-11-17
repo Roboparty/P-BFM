@@ -1,6 +1,6 @@
 # Inference and deployment export
 
-G1 and RP1 use the same three policy inference entry points:
+G1 supports three policy inference entry points:
 
 ```bash
 python -m pbfm.inference.tracking --help
@@ -19,13 +19,10 @@ Installing the Python video packages alone does not provide that command.
 | Operation | Additional inputs |
 | --- | --- |
 | Tracking | Corresponding robot's reference motion PKL; `--motion-list` indexes this dataset |
-| Goal | Corresponding reference data and goal definitions; RP1 requires an explicit `--goal-json` |
-| Reward | A compatible replay shard to infer a new latent; RP1 currently supports locomotion tasks |
+| Goal | Corresponding reference data and goal definitions |
+| Reward | A compatible replay shard to infer a new latent |
 | ONNX export | Model checkpoint and saved run configuration; no replay required |
 | Execute an exported context | Matching policy, context and sensor/control interface; no replay or reference PKL at runtime |
-
-This guide describes PBFM checkpoints. Original RP1 Newton `.pt` files cannot be
-passed directly to these commands, and G1/RP1 weights are not interchangeable.
 
 ## Tracking
 
@@ -46,20 +43,19 @@ before labelling a video.
 
 ## Goal and reward
 
-RP1 goal definitions must refer to its own motion data, not G1 motion IDs:
+Goal definitions refer to frame indices in the selected G1 motion dataset:
 
 ```bash
-python -m pbfm.inference.goal --model-folder /path/to/rp1-run \
-  --data-path /path/to/rp1_reference_motions.pkl \
-  --goal-json /path/to/rp1_goals.json --save-mp4
+python -m pbfm.inference.goal --model-folder /path/to/run \
+  --data-path /path/to/g1_reference_motions.pkl \
+  --goal-json /path/to/goals.json --save-mp4
 ```
 
 The goal file is a list of entries with `motion_id`, `motion_name`, and `frames`
 (a list of frame indices). Use indices from the matching dataset; joint and qpos
-fields, if supplied, must have the selected robot's dimensions. There is no
-bundled RP1 goal list.
+fields, if supplied, must have the selected robot's dimensions. The default goal list refers to the bundled G1 LaFAN motion names.
 
-For a forward locomotion reward (supported by both robots):
+For a forward locomotion reward:
 
 ```bash
 python -m pbfm.inference.reward --model-folder /path/to/run \
@@ -70,7 +66,6 @@ python -m pbfm.inference.reward --model-folder /path/to/run \
 The replay must belong to the same robot and have the fields needed for reward
 relabeling. A model-only download is insufficient for this step. Once a latent
 and its commands are saved, executing that context no longer needs replay.
-RP1 does not yet expose the G1-specific upper-body reward task set.
 
 ## Context
 
@@ -111,9 +106,7 @@ training, including privileged features. It can encode reference targets offline
 executing an already-exported context does not require the real robot to supply
 those privileged features or run the backward encoder at every control step.
 
-The default depth stack is K × H × W = 8 × 18 × 32 for G1 and 8 × 18 × 36 for
-RP1. RP1 uses its own camera mount, crop and 0.1–2.5 m normalization range;
-do not substitute G1 preprocessing. Exported metadata is authoritative for
+The default G1 depth stack is K × H × W = 8 × 18 × 32. Exported metadata is authoritative for
 the selected checkpoint, including joint order, default pose, action scaling,
 PD gains, camera mount and depth contract.
 
