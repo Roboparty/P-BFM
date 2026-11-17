@@ -9,7 +9,7 @@ from pbfm.utils.resource_paths import CONFIG_ROOT, PACKAGE_ROOT
 
 def test_training_and_depth_templates_are_pinned():
     hashes = {
-        "legacy_large.json": "9a692ff49c3e3aeac09c9393906031481ef7c9bde28c13055a2a9b2f0f0c7e5f",
+        "legacy_large.json": "78372effda08a92e479f17ae256a03e99359ba897cfce00506fb59bfb93ad534",
         "depth_contract.json": "ea6c9ebd23ffb08080bad1112498451912c36a67daa7b17639ef38a8a593d1c5",
     }
     for name, expected in hashes.items():

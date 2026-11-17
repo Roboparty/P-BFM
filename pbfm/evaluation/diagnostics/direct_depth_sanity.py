@@ -1,4 +1,4 @@
-"""Render the direct-depth contract on five G1 poses."""
+"""Render the RP1-compatible direct-depth contract on five G1 poses."""
 
 from __future__ import annotations
 

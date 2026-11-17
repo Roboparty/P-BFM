@@ -197,6 +197,8 @@ def build_ufo_mjlab_config(
         resolved_robot = resolve_robot_config_path(robot_config)
         if resolved_robot != resolve_robot_config_path(DEFAULT_ROBOT_CONFIG):
             spec = load_robot_training_spec(resolved_robot)
+            if spec.robot.name != "g1_29dof" and data_path is None:
+                raise ValueError("RP1 requires explicit RP1-retargeted --data-path or --data-manifest; G1 motions cannot be reused")
             env.update(mjcf_path=spec.robot.xml_path,
                        robot_config_path=str(spec.config_path),
                        robot_training=spec.to_env_dict())
@@ -566,7 +568,7 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=None,
         help=(
-            "G1 robot YAML. Defaults to configs/robots/g1_29dof.yaml. "
+            "G1 or RP1 robot YAML. Defaults to configs/robots/g1_29dof.yaml. "
             "If omitted and --data-manifest declares robot_config, the manifest robot config is used."
         ),
     )

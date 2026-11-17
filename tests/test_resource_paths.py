@@ -33,7 +33,7 @@ class ResourcePathsTest(unittest.TestCase):
             self.assertEqual(remap_resource_path(old_resource), old_resource)
             self.assertEqual(resolve_resource_path(old_resource), old_resource)
         for external in (
-            "/data/example/bfmzero/data/lafan_29dof.pkl",
+            "/data/xue/bfmzero/data/lafan_29dof.pkl",
             "/nonexistent/dataset/configs/robots/g1_29dof.yaml",
             "/nonexistent/code/data/lafan.pkl",
             "/nonexistent/code/humanoidverse/data/../../external.pkl",

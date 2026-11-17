@@ -182,7 +182,7 @@ class PbfmTerrainHeightSensor(TerrainHeightSensor):
         # MJLab creates generator padding directly in geom group 0.  The
         # legacy G1 terrains move all physical terrain into a dedicated group
         # and therefore need the padding moved and miss-repaired as well.
-        # Training terrain intentionally stays in source group 0, so its padding is
+        # RP1 terrain intentionally stays in source group 0, so its padding is
         # already visible and must not be rediscovered by scanning every
         # group-0 terrain geom.
         needs_padding_group_remap = int(self.cfg.padding_ray_group) != 0

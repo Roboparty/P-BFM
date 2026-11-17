@@ -53,6 +53,13 @@ def _depth_observation_contract(cfg: config.TrainConfig) -> dict[str, tp.Any] | 
                         image_randomization=False, installation_resample="reset",
                         position_error_m=0.01, rpy_error_deg=[2., 10., 2.],
                         installation_frame="camera_link", delay_frames=[0, 1])
+    elif profile == "rp1_pufo":
+        contract.update(processing_profile=profile, depth_quantity="optical_z",
+                        invalid_depth_m=2.5, clipping="max", normalization_range_m=[.1, 2.5],
+                        gaussian_sigma=1., image_randomization=True,
+                        image_noise="roboparty_train_ed0b933", installation_resample="startup",
+                        position_error_m=.02, rpy_error_deg=[3., 10., 3.],
+                        installation_frame="camera_link", position_frame="parent", delay_frames=[0, 1])
     return contract
 
 

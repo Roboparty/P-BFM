@@ -801,7 +801,7 @@ def main() -> None:
     parser.add_argument("--buffer-path", type=Path, default=None)
     parser.add_argument("--buffer-rank", type=int, default=0)
     parser.add_argument("--expert-cache", type=Path, default=None)
-    parser.add_argument("--expert-cache-root", type=Path, default=Path("cache/expert_buffers"))
+    parser.add_argument("--expert-cache-root", type=Path, default=Path("/data/xue/UFO/cache/expert_buffers"))
     parser.add_argument("--num-samples", type=int, default=100000)
     parser.add_argument("--max-workers", type=int, default=8)
     parser.add_argument("--process-executor", action="store_true")

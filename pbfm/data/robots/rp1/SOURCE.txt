@@ -1,0 +1,51 @@
+RP1 24-DOF assets
+
+Source: https://github.com/zerojuhao/roboparty_train
+Revision: ed0b933f92c7adc5520d63603131cd8a91117214
+MJCF: robo_newton/robolab/data/robots/rp1/mjcf/robot_24dof.xml
+Original MJCF SHA256: 46b1c94486a8b92c9307b0b9ac1735b39e2f79c442cc9f7c0bd06e460b10182f
+Local change: compiler meshdir ../ -> .; meshes copied without modification.
+Only the 25 referenced visual mesh files are included.
+
+Control parameters and camera mount:
+  robo_newton/robolab/assets/robots/roboparty.py (RP1_UFO_CFG)
+  robo_newton/robolab/tasks/manager_based/ufo/pufo_env_cfg.py
+  robo_newton/robolab/tasks/manager_based/ufo/agents/rp1_pufo_agent_cfg.py
+Code license from that repository is retained in SOURCE_LICENSE.
+
+RP1 training selects the reward weights/formulas and DR from the pinned
+PUFORewardsCfg, PUFOEventCfg and RP1_UFO_CFG, not G1's reward/DR preset.
+The nine Aux terms are action rate, contact-gated foot COM vertical velocity/
+acceleration, joint acceleration/velocity, joint position limits, impact,
+slippage, ankle roll and stumble. RP1 impact excludes static load; G1 is unchanged.
+PD: [0.7,1.3] at reset; per-link mass/inertia: [0.8,1.2] at startup;
+torso COM: +/-0.03 m at startup; friction: [0.3,1.7] at startup;
+push: overwrite XY and angular velocities within +/-1 every 1--3 s, z=0.
+Motor delay is one shared per-episode lag of 0/1/2 physics ticks (0/5/10 ms).
+RFI is +/-10% peak torque before motor-envelope clipping at every physics tick.
+Absolute PD position targets are clipped to the MJCF hard joint limits after
+action scaling/default offset, before motor delay (not the soft reward limits).
+Stumble takes the maximum world-frame horizontal excess across every foot
+contact and all physics ticks in a control step; contacts are not top-k filtered.
+No extra policy-step delay, external RFI, joint-zero offsets or forced lie-down reset.
+Camera installation: +/-0.02 m in parent frame and +/-[3,10,3] degrees in camera
+FLU frame, sampled at startup only. Depth crop is (18,0,14,14), output 18x36.
+After sanitization/crop: range-gated 0.01 m Gaussian noise; scale [0.95,1.05]
+with p=0.5; random 3x3 convolution (std=0.01) with p=0.5; dead/saturated
+pixels each p=0.002 with batch p=0.5; Gaussian blur 3x3 sigma=1; normalization
+of [0.1,2.5] m to [0,1]. All pixels are finally stored as uint8 in PBFM replay.
+History remains 8 frames at ages 35,30,...,0, with per-episode delay 0/1 frame.
+
+Backend differences (not an exact Newton reproduction):
+PBFM uses its own MJLab 1.4/MuJoCo 3.8 backend.
+It does not import the Newton-native compiled physics JSON or reproduce the
+original IsaacLab/Newton simulation, dataset, networks or trained checkpoint.
+MuJoCo has a single sliding-friction coefficient, not independent static and
+dynamic coefficients with the source's 64 material buckets; the same range is
+used but those contact semantics are not identical. Physics/contact/acceleration
+signals depend on the backend. Foot COM acceleration uses MuJoCo's world-frame
+inertial-frame acceleration sensor with gravity restored, not a control-step
+finite difference. PBFM's terrain generation/reset placement and replay storage
+remain in use. GPU rollout and short training checks are recorded in
+docs/TRAINING.md; long-run policy training and hardware validation remain pending.
+Confirm redistribution rights for robot meshes before a public release.

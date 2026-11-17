@@ -55,6 +55,12 @@ def body_contact_severity(
     return torch.clamp((force_severity * impact_gain).sum(dim=1), max=severity_cap)
 
 
+def foot_impact_cost(com_velocity, com_acceleration, contact_force):
+    """RP1 vertical COM motion cost, gated by nonzero vertical foot force."""
+    loaded = contact_force[..., 2].abs() > 0
+    return ((com_velocity[..., 2].square() + com_acceleration[..., 2].square()) * loaded).sum(dim=1)
+
+
 def tangential_contact_speed(
     contact_force: torch.Tensor,
     body_vel: torch.Tensor,
@@ -181,6 +187,15 @@ def _compute_reward(self, *, pre_body_vel: torch.Tensor | None = None) -> tuple[
         aux["joint_vel_l2"] = self.dof_vel.square().sum(dim=1)
     if "joint_acc_l2" in self.reward_scales:
         aux["joint_acc_l2"] = self.robot.data.joint_acc[:, self._joint_ids].square().sum(dim=1)
+    if "sound_suppression_acc_per_foot" in self.reward_scales:
+        com_vel = self.robot.data.body_com_vel_w[:, self._body_ids][:, self.feet_indices, :3]
+        # MuJoCo frame acceleration includes -gravity; restore world acceleration.
+        acceleration = torch.stack([
+            self.mjlab_env.scene.sensors[f"robot/foot_com_acc_{i}"].data for i in range(2)
+        ], dim=1)
+        gravity = acceleration.new_tensor(self.mjlab_env.sim.mj_model.opt.gravity)
+        aux["sound_suppression_acc_per_foot"] = foot_impact_cost(
+            com_vel, acceleration + gravity, contact[:, self.feet_indices])
     lower, upper = self.dof_pos_limits[:, 0], self.dof_pos_limits[:, 1]
     aux["limits_dof_pos"] = torch.sum((-(self.dof_pos - lower).clip(max=0.0)) + ((self.dof_pos - upper).clip(min=0.0)), dim=1)
     vel_limit = self.dof_vel_limits * float(self.config.rewards.reward_limit.soft_dof_vel_limit)
@@ -232,7 +247,9 @@ def _compute_reward(self, *, pre_body_vel: torch.Tensor | None = None) -> tuple[
     aux["feet_heading_alignment"] = torch.abs(wrap_to_pi(torch.atan2(forward_left[:, 1], forward_left[:, 0]) - heading_root)) + torch.abs(
         wrap_to_pi(torch.atan2(forward_right[:, 1], forward_right[:, 0]) - heading_root)
     )
-    aux["feet_stumble"] = feet_stumble_penalty(self._read_foot_collision_force_history())
+    stumble_sensor = self.mjlab_env.scene.sensors.get("foot_stumble")
+    aux["feet_stumble"] = (stumble_sensor.data if stumble_sensor is not None
+                           else feet_stumble_penalty(self._read_foot_collision_force_history()))
     if self.virtual_terrain_edges is not None:
         from pbfm.terrains.edge_penalty import foot_points_world, penetration_cost
         points, velocities = foot_points_world(self.body_pos[:,self.feet_indices],

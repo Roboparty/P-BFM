@@ -479,7 +479,7 @@ class ResidualActor(nn.Module):
 
 
 class DirectDepthActorArchiConfig(ActorArchiConfig):
-    """Residual PBFM actor with a temporal depth encoder."""
+    """Residual PBFM actor with UFO-rp1's temporal depth encoder."""
 
     name: tp.Literal["direct_depth"] = "direct_depth"
     model: tp.Literal["residual"] = "residual"
@@ -491,7 +491,7 @@ class DirectDepthActorArchiConfig(ActorArchiConfig):
     # Keep legacy defaults so old checkpoint configs reconstruct unchanged.
     depth_first_conv_stride: tp.Literal[1, 2] = 2
     depth_frame_feature_dim: tp.Literal[128, 256] = 128
-    depth_processing_profile: tp.Literal["legacy_rp1", "optical_z_maxcrop18_reset_v2"] = "legacy_rp1"
+    depth_processing_profile: tp.Literal["legacy_rp1", "optical_z_maxcrop18_reset_v2", "rp1_pufo"] = "legacy_rp1"
     estimated_velocity_enabled: bool = False
     velocity_supervision_updates_depth: bool = False
 
@@ -500,7 +500,7 @@ class DirectDepthActorArchiConfig(ActorArchiConfig):
 
 
 class _FixedAdaptiveAvgPool2x4(nn.Module):
-    """ONNX-friendly adaptive 2x4 pooling for the fixed depth feature map."""
+    """ONNX-friendly adaptive 2x4 pooling for the fixed RP1 feature map."""
 
     def __init__(self, height: int = 9, width: int = 8):
         super().__init__()
@@ -574,7 +574,7 @@ class DepthEncoder(nn.Module):
 
 
 class DirectDepthActor(nn.Module):
-    """Fuse proprioception and the temporal depth latent."""
+    """Fuse proprioception and the RP1 temporal depth latent."""
 
     def __init__(self, obs_space, z_dim, action_dim, cfg: DirectDepthActorArchiConfig) -> None:
         super().__init__()

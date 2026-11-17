@@ -648,7 +648,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--buffer-dir", type=Path, default=None)
     parser.add_argument("--buffer-rank", type=int, default=0)
     parser.add_argument("--expert-cache", type=Path, default=None)
-    parser.add_argument("--expert-cache-root", type=Path, default=Path("cache/expert_buffers"))
+    parser.add_argument("--expert-cache-root", type=Path, default=Path("/data/xue/UFO/cache/expert_buffers"))
     parser.add_argument("--output-dir", type=Path, required=True)
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--seed", type=int, default=9371)
